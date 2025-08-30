@@ -35,6 +35,35 @@ if (!existsSync(dbPath)) {
   console.log('   1. Run "npm run dev" to create database');
   console.log('   2. Add your events and questions');
   console.log('   3. Run "npm run build:static" again');
+  
+  // Create fallback demo data file
+  console.log('📝 Creating fallback demo data file...');
+  const fallbackPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
+  const fallbackContent = `// Fallback demo data for static build
+// Last updated: ${new Date().toISOString()}
+// Using default demo data (no database found)
+
+import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
+
+export const demoEvent = fallbackEvent;
+export const demoQuestions = fallbackQuestions;
+export const demoFunFacts = fallbackFunFacts;
+
+export const allEvents = fallbackEvent ? [fallbackEvent] : [];
+
+export const buildInfo = {
+  extractedAt: "${new Date().toISOString()}",
+  databaseUrl: "fallback",
+  eventsCount: fallbackEvent ? 1 : 0,
+  questionsCount: fallbackQuestions?.length || 0,
+  funFactsCount: fallbackFunFacts?.length || 0,
+  primaryEventId: fallbackEvent?.id || null,
+  usingFallbackData: true,
+};
+`;
+  
+  writeFileSync(fallbackPath, fallbackContent, 'utf8');
+  console.log('✅ Fallback demo data file created!');
   process.exit(0);
 }
 
@@ -56,6 +85,35 @@ try {
 
   if (!tableNames.includes('events')) {
     console.log('⚠️  Database tables not found. Please run "npm run dev" first to initialize schema.');
+    console.log('📝 Creating fallback demo data file...');
+    const fallbackPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
+    const fallbackContent = `// Fallback demo data for static build
+// Last updated: ${new Date().toISOString()}
+// Using default demo data (no database tables found)
+
+import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
+
+export const demoEvent = fallbackEvent;
+
+export const demoEvent = fallbackEvent;
+export const demoQuestions = fallbackQuestions;
+export const demoFunFacts = fallbackFunFacts;
+
+export const allEvents = fallbackEvent ? [fallbackEvent] : [];
+
+export const buildInfo = {
+  extractedAt: "${new Date().toISOString()}",
+  databaseUrl: "fallback",
+  eventsCount: fallbackEvent ? 1 : 0,
+  questionsCount: fallbackQuestions?.length || 0,
+  funFactsCount: fallbackFunFacts?.length || 0,
+  primaryEventId: fallbackEvent?.id || null,
+  usingFallbackData: true,
+};
+`;
+    
+    writeFileSync(fallbackPath, fallbackContent, 'utf8');
+    console.log('✅ Fallback demo data file created!');
     process.exit(0);
   }
 
@@ -193,5 +251,37 @@ export const buildInfo = {
 } catch (error) {
   console.error('❌ Error extracting data:', error);
   console.log('⚠️  Using existing demo data for static build.');
+  
+  // Create fallback demo data file
+  console.log('📝 Creating fallback demo data file...');
+  const fallbackPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
+  const fallbackContent = `// Fallback demo data for static build
+// Last updated: ${new Date().toISOString()}
+// Using default demo data (database error occurred)
+
+import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
+
+export const demoEvent = fallbackEvent;
+
+export const demoEvent = fallbackEvent;
+export const demoQuestions = fallbackQuestions;
+export const demoFunFacts = fallbackFunFacts;
+
+export const allEvents = fallbackEvent ? [fallbackEvent] : [];
+
+export const buildInfo = {
+  extractedAt: "${new Date().toISOString()}",
+  databaseUrl: "fallback",
+  eventsCount: fallbackEvent ? 1 : 0,
+  questionsCount: fallbackQuestions?.length || 0,
+  funFactsCount: fallbackFunFacts?.length || 0,
+  primaryEventId: fallbackEvent?.id || null,
+  usingFallbackData: true,
+  error: ${JSON.stringify(error.message || 'Unknown error')},
+};
+`;
+  
+  writeFileSync(fallbackPath, fallbackContent, 'utf8');
+  console.log('✅ Fallback demo data file created!');
   process.exit(0); // Don't fail the build, just use existing data
 }

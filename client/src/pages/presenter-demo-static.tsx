@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Trophy, Play, RotateCcw, Pause, SkipForward, ChevronRight } from "lucide-react";
-import { demoEvent, demoQuestions, demoFunFacts } from "@/data/demoData.js";
+import { demoEvent, demoQuestions, demoFunFacts } from "@/data/demoData";
 
 // SimpleProgress component will be inline
 const SimpleProgress = ({ value, className }: { value: number; className?: string }) => {
