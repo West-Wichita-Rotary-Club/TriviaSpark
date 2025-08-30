@@ -12,7 +12,7 @@
 
 import { createClient } from '@libsql/client';
 import { drizzle } from 'drizzle-orm/libsql';
-import { writeFileSync, existsSync } from 'fs';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -38,6 +38,9 @@ if (!existsSync(dbPath)) {
   
   // Create fallback demo data file
   console.log('📝 Creating fallback demo data file...');
+  // Ensure output directory exists
+  const dataDir = join(rootDir, 'client', 'src', 'data');
+  try { mkdirSync(dataDir, { recursive: true }); } catch {}
   const fallbackPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
   const fallbackContent = `// Fallback demo data for static build
 // Last updated: ${new Date().toISOString()}
@@ -86,14 +89,15 @@ try {
   if (!tableNames.includes('events')) {
     console.log('⚠️  Database tables not found. Please run "npm run dev" first to initialize schema.');
     console.log('📝 Creating fallback demo data file...');
-    const fallbackPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
+  // Ensure output directory exists
+  const dataDir = join(rootDir, 'client', 'src', 'data');
+  try { mkdirSync(dataDir, { recursive: true }); } catch {}
+  const fallbackPath = join(dataDir, 'demoData.ts');
     const fallbackContent = `// Fallback demo data for static build
 // Last updated: ${new Date().toISOString()}
 // Using default demo data (no database tables found)
 
 import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
-
-export const demoEvent = fallbackEvent;
 
 export const demoEvent = fallbackEvent;
 export const demoQuestions = fallbackQuestions;
@@ -233,7 +237,10 @@ export const buildInfo = {
   };
 
   // Write the generated data file
-  const outputPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
+  // Ensure output directory exists
+  const dataDir = join(rootDir, 'client', 'src', 'data');
+  try { mkdirSync(dataDir, { recursive: true }); } catch {}
+  const outputPath = join(dataDir, 'demoData.ts');
   const generatedContent = generateDataFile(events, questions, funFacts);
   
   writeFileSync(outputPath, generatedContent, 'utf8');
@@ -254,14 +261,15 @@ export const buildInfo = {
   
   // Create fallback demo data file
   console.log('📝 Creating fallback demo data file...');
-  const fallbackPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
+  // Ensure output directory exists
+  const dataDir = join(rootDir, 'client', 'src', 'data');
+  try { mkdirSync(dataDir, { recursive: true }); } catch {}
+  const fallbackPath = join(dataDir, 'demoData.ts');
   const fallbackContent = `// Fallback demo data for static build
 // Last updated: ${new Date().toISOString()}
 // Using default demo data (database error occurred)
 
 import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
-
-export const demoEvent = fallbackEvent;
 
 export const demoEvent = fallbackEvent;
 export const demoQuestions = fallbackQuestions;
