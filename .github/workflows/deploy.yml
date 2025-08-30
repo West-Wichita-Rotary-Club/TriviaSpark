@@ -32,6 +32,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Prepare SQLite database for static data extraction
+        run: |
+          mkdir -p data
+          echo "DATABASE_URL=file:./data/trivia.db" >> $GITHUB_ENV
+          npm run db:push
+          node scripts/seed-database.mjs
+
       - name: Build static site
         run: npm run build:static
 
