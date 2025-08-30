@@ -18,31 +18,38 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
+const dataDirPath = join(rootDir, 'client', 'src', 'data');
+const fallbackDataModulePath = join(dataDirPath, 'fallback-data.ts');
 
-// Import schema (using dynamic import since we're in .mjs)
-const schemaPath = join(rootDir, 'shared', 'schema.ts');
+// Helper: generate fallback content (inline on CI or when module missing)
+const generateFallbackContent = () => {
+  const preferInline = process.env.CI === 'true' || !existsSync(fallbackDataModulePath);
+  if (preferInline) {
+    const now = new Date().toISOString();
+    return `// Fallback demo data for static build (inline)
+// Last updated: ${now}
+// Using inline minimal demo data (no database found in CI or fallback module missing)
 
-console.log('🔍 Extracting data from SQLite database...');
+export const demoEvent = null as const;
+export const demoQuestions: any[] = [];
+export const demoFunFacts: any[] = [];
 
-// Database configuration
-const DATABASE_URL = process.env.DATABASE_URL || 'file:./data/trivia.db';
-const dbPath = join(rootDir, 'data', 'trivia.db');
+export const allEvents: any[] = [];
 
-// Check if database exists
-if (!existsSync(dbPath)) {
-  console.log('⚠️  No SQLite database found. Using default demo data.');
-  console.log('   To include real data in static build:');
-  console.log('   1. Run "npm run dev" to create database');
-  console.log('   2. Add your events and questions');
-  console.log('   3. Run "npm run build:static" again');
-  
-  // Create fallback demo data file
-  console.log('📝 Creating fallback demo data file...');
-  // Ensure output directory exists
-  const dataDir = join(rootDir, 'client', 'src', 'data');
-  try { mkdirSync(dataDir, { recursive: true }); } catch {}
-  const fallbackPath = join(rootDir, 'client', 'src', 'data', 'demoData.ts');
-  const fallbackContent = `// Fallback demo data for static build
+export const buildInfo = {
+  extractedAt: "${now}",
+  databaseUrl: "fallback",
+  eventsCount: 0,
+  questionsCount: 0,
+  funFactsCount: 0,
+  primaryEventId: null,
+  usingFallbackData: true,
+};
+`;
+  }
+
+  // Use richer local fallback module when available (non-CI dev machines)
+  return `// Fallback demo data for static build
 // Last updated: ${new Date().toISOString()}
 // Using default demo data (no database found)
 
@@ -64,6 +71,32 @@ export const buildInfo = {
   usingFallbackData: true,
 };
 `;
+};
+
+// Import schema (using dynamic import since we're in .mjs)
+const schemaPath = join(rootDir, 'shared', 'schema.ts');
+
+console.log('🔍 Extracting data from SQLite database...');
+
+// Database configuration
+const DATABASE_URL = process.env.DATABASE_URL || 'file:./data/trivia.db';
+const dbPath = join(rootDir, 'data', 'trivia.db');
+
+// Check if database exists
+if (!existsSync(dbPath)) {
+  console.log('⚠️  No SQLite database found. Using default demo data.');
+  console.log('   To include real data in static build:');
+  console.log('   1. Run "npm run dev" to create database');
+  console.log('   2. Add your events and questions');
+  console.log('   3. Run "npm run build:static" again');
+  
+  // Create fallback demo data file
+  console.log('📝 Creating fallback demo data file...');
+  // Ensure output directory exists
+  const dataDir = dataDirPath;
+  try { mkdirSync(dataDir, { recursive: true }); } catch {}
+  const fallbackPath = join(dataDir, 'demoData.ts');
+  const fallbackContent = generateFallbackContent();
   
   writeFileSync(fallbackPath, fallbackContent, 'utf8');
   console.log('✅ Fallback demo data file created!');
@@ -90,31 +123,10 @@ try {
     console.log('⚠️  Database tables not found. Please run "npm run dev" first to initialize schema.');
     console.log('📝 Creating fallback demo data file...');
   // Ensure output directory exists
-  const dataDir = join(rootDir, 'client', 'src', 'data');
+  const dataDir = dataDirPath;
   try { mkdirSync(dataDir, { recursive: true }); } catch {}
   const fallbackPath = join(dataDir, 'demoData.ts');
-    const fallbackContent = `// Fallback demo data for static build
-// Last updated: ${new Date().toISOString()}
-// Using default demo data (no database tables found)
-
-import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
-
-export const demoEvent = fallbackEvent;
-export const demoQuestions = fallbackQuestions;
-export const demoFunFacts = fallbackFunFacts;
-
-export const allEvents = fallbackEvent ? [fallbackEvent] : [];
-
-export const buildInfo = {
-  extractedAt: "${new Date().toISOString()}",
-  databaseUrl: "fallback",
-  eventsCount: fallbackEvent ? 1 : 0,
-  questionsCount: fallbackQuestions?.length || 0,
-  funFactsCount: fallbackFunFacts?.length || 0,
-  primaryEventId: fallbackEvent?.id || null,
-  usingFallbackData: true,
-};
-`;
+  const fallbackContent = generateFallbackContent();
     
     writeFileSync(fallbackPath, fallbackContent, 'utf8');
     console.log('✅ Fallback demo data file created!');
@@ -238,7 +250,7 @@ export const buildInfo = {
 
   // Write the generated data file
   // Ensure output directory exists
-  const dataDir = join(rootDir, 'client', 'src', 'data');
+  const dataDir = dataDirPath;
   try { mkdirSync(dataDir, { recursive: true }); } catch {}
   const outputPath = join(dataDir, 'demoData.ts');
   const generatedContent = generateDataFile(events, questions, funFacts);
@@ -262,32 +274,10 @@ export const buildInfo = {
   // Create fallback demo data file
   console.log('📝 Creating fallback demo data file...');
   // Ensure output directory exists
-  const dataDir = join(rootDir, 'client', 'src', 'data');
+  const dataDir = dataDirPath;
   try { mkdirSync(dataDir, { recursive: true }); } catch {}
   const fallbackPath = join(dataDir, 'demoData.ts');
-  const fallbackContent = `// Fallback demo data for static build
-// Last updated: ${new Date().toISOString()}
-// Using default demo data (database error occurred)
-
-import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
-
-export const demoEvent = fallbackEvent;
-export const demoQuestions = fallbackQuestions;
-export const demoFunFacts = fallbackFunFacts;
-
-export const allEvents = fallbackEvent ? [fallbackEvent] : [];
-
-export const buildInfo = {
-  extractedAt: "${new Date().toISOString()}",
-  databaseUrl: "fallback",
-  eventsCount: fallbackEvent ? 1 : 0,
-  questionsCount: fallbackQuestions?.length || 0,
-  funFactsCount: fallbackFunFacts?.length || 0,
-  primaryEventId: fallbackEvent?.id || null,
-  usingFallbackData: true,
-  error: ${JSON.stringify(error.message || 'Unknown error')},
-};
-`;
+  const fallbackContent = generateFallbackContent();
   
   writeFileSync(fallbackPath, fallbackContent, 'utf8');
   console.log('✅ Fallback demo data file created!');
