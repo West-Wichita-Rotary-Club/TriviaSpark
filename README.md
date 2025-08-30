@@ -466,6 +466,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+## 👨‍💻 Project Creator
+
+**Mark Hazleton** - *Lead Developer & Architect*
+
+- Website: [https://markhazleton.com](https://markhazleton.com)
+- GitHub: [@markhazleton](https://github.com/markhazleton)
+
+*TriviaSpark was conceived and developed by Mark Hazleton to create engaging, AI-powered trivia experiences for wine dinners, corporate events, and fundraisers.*
+
+---
+
 ## 🆘 Support & Contact
 
 - **Documentation**: Complete API docs available at `/api-docs`

@@ -2,6 +2,8 @@
 
 This document describes local development setup and the validate-before-PR workflow.
 
+*Developed by Mark Hazleton - [https://markhazleton.com](https://markhazleton.com)*
+
 ## Prerequisites
 
 - Node.js 18+ (LTS recommended)

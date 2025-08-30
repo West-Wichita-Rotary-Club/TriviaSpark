@@ -2,6 +2,8 @@
 
 This document provides a clear blueprint for understanding and reproducing the TriviaSpark architecture. It describes the Express.js + React + TypeScript stack from an agent's perspective and provides a step-by-step playbook to scaffold, implement, and validate a unified single-server SPA + API system.
 
+*Based on TriviaSpark by Mark Hazleton - [https://markhazleton.com](https://markhazleton.com)*
+
 ## Scope
 
 - Audience: autonomous or semi-autonomous coding agents and engineers
@@ -217,6 +219,7 @@ TriviaSpark/
 ## Success Criteria
 
 **Development Mode:**
+
 - `npm run dev` starts server on port 5000
 - Frontend hot reload works
 - WebSocket connections establish
@@ -224,12 +227,14 @@ TriviaSpark/
 - Authentication flow works
 
 **Production Build:**
+
 - `npm run build` completes without errors
 - Client and server builds are optimized
 - Health endpoint responds
 - Deep linking works with SPA fallback
 
 **Static Build:**
+
 - `npm run build:static` creates GitHub Pages build
 - Demo data embedded correctly
 - Static assets load properly
@@ -240,6 +245,7 @@ TriviaSpark/
 ## Common Patterns & Solutions
 
 **WebSocket Integration:**
+
 ```typescript
 // Server-side event broadcasting
 wsManager.broadcast(eventId, {
@@ -252,6 +258,7 @@ const { sendMessage, lastMessage } = useWebSocket();
 ```
 
 **Database Operations:**
+
 ```typescript
 // Type-safe database queries with Drizzle
 const events = await db.select().from(eventsTable)
@@ -259,6 +266,7 @@ const events = await db.select().from(eventsTable)
 ```
 
 **API Error Handling:**
+
 ```typescript
 // Consistent error responses
 res.status(404).json({ 

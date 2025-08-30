@@ -2,6 +2,8 @@
 
 High-level system overview for the Event Trivia Application.
 
+*Designed and developed by Mark Hazleton - [https://markhazleton.com](https://markhazleton.com)*
+
 ## Overview
 
 - Real-time event trivia: admin, player, and presentation UIs

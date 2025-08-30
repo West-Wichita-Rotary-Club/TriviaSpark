@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing! This guide keeps contributions consistent and fast.
 
+*Original project by Mark Hazleton - [https://markhazleton.com](https://markhazleton.com)*
+
 ## Quick Start
 
 - Fork the repo and create a feature branch.
