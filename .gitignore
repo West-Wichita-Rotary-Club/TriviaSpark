@@ -182,6 +182,9 @@ playwright/.cache/
 *.mdf
 *.ldf
 *.ndf
+*.db
+*.db-*
+data/
 
 # Azure Functions (not typical for Web API, but safe)
 local.settings.json

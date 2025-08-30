@@ -1,216 +1,380 @@
-# Copilot Instructions — TriviaSpark (Event Trivia Application)
+# GitHub Copilot Instructions for TriviaSpark
 
-Purpose: Steer Copilot to produce code and guidance aligned with this repository’s goals, stack, and conventions.
+## Project Overview
 
-Keep responses concise, production-minded, and focused on the real-time event trivia context.
+TriviaSpark is an intelligent event trivia platform that transforms gatherings into unforgettable, interactive experiences. The application combines AI-powered content generation with real-time multiplayer capabilities to create context-aware trivia events for wine dinners, corporate events, parties, educational sessions, and fundraisers.
 
-## Top 8 Rules (Read First)
+## Architecture & Technology Stack
 
-- Stack: ASP.NET Core 9 + EF Core + SignalR + SQLite; React 18 + TypeScript + Tailwind CSS (latest). Don’t add heavy dependencies without approval.
-- Backend-first and API-driven: return ActionResult<T> with ProblemDetails for errors; never leak EF entities—map to DTOs.
-- Real-time only via SignalR: group by gameId and tableId; enable client auto-reconnect; handlers must be idempotent. Avoid polling.
-- Mobile-first UI: small, accessible components using Tailwind; fast time-to-interaction; no SSR, GraphQL, or gRPC.
-- EF Core performance: no lazy-loading; AsNoTracking for reads; projection to DTOs; avoid N+1; use explicit transactions for multi-step updates.
-- Validation & security: validate all inputs; short-lived, scoped tokens for join flows; no secrets in source or logs; structured logging without PII.
-- Deployment: develop on Windows 11 (VS Code/Visual Studio); deploy to Windows 10 IIS (Hosting Bundle). Prefer framework-dependent publish; include web.config; ensure IIS app pool can write to SQLite path when needed.
-- Client state & types: prefer local state and a thin fetch client; ask before adding React Query/Redux; mirror backend DTO types in TypeScript.
+### Frontend
 
-## Docs & Workflow Rules
+- **React 18** with TypeScript for type safety
+- **Vite** for fast development and optimized builds
+- **Wouter** for lightweight client-side routing
+- **TanStack Query** for efficient server state management
+- **shadcn/ui** components with Radix UI primitives
+- **Tailwind CSS** with custom wine-themed design system
+- **Framer Motion** for animations
 
-- Documentation placement: generate all new Markdown docs under `copilot/` at the repo root. Exceptions: `README.md` stays at root; `.github/copilot-instructions.md` stays here. Don’t scatter docs elsewhere without explicit request.
-- Build/validation ownership: run build, lint/typecheck, and unit tests yourself after changes. Defer runtime/manual or long-running integration testing to the user; provide clear, copyable commands when relevant.
-- Clarifications: when any instruction is ambiguous or under-specified, ask 1–2 targeted questions before proceeding. If a tiny assumption is required to move forward, state it explicitly and keep changes minimal.
-- Post-change review: after any code edits, include a short self-review (what/why, risks, affected areas, follow-ups) and report quality gates status.
+### Backend
 
-## Project Context
+- **Express.js** server with TypeScript (ESM format)
+- **WebSocket** integration for real-time features
+- **Drizzle ORM** with SQLite database
+- **OpenAI GPT-4o** integration for AI content generation
+- **Google Cloud Storage** for file uploads
+- **Session-based authentication** with secure cookie management
 
-- Real-time event trivia system with admin, player, and presentation UIs.
-- Development: Windows 11 using VS Code or Visual Studio.
-- Backend: ASP.NET Core 9, EF Core, SignalR, SQLite.
-- Frontend: React 18, TypeScript, Tailwind CSS (latest), SignalR client.
-- Deployment target: Windows 10 IIS (ASP.NET Core Hosting Bundle).
+### Database
 
-## Architecture Principles (Always Honor)
+- **SQLite** with local file storage (`./data/trivia.db`) for development/production
+- **Turso/LibSQL** option for distributed deployments
+- **Drizzle ORM** for type-safe database operations
 
-- Backend first: solid domain, services, and persistence before UI scaffolding.
-- API-driven: RESTful endpoints for CRUD + SignalR hubs for real-time state.
-- Mobile-first: responsive, touch-friendly player UI; fast time-to-interaction.
-- Real-time: live scoring, timers, and game state change via SignalR groups.
+### Deployment Options
 
-## Development Order (Default Suggestion Flow)
+1. **Local Development** - Full-featured with persistent SQLite database
+2. **GitHub Pages** - Static site deployment (read-only demo)
 
-1. Models & Database (EF Core entities, relationships, migrations)
-2. Core Services (game logic, scoring, team management)
-3. API Controllers (REST; validation; DTO mapping)
-4. SignalR Hubs (typed hubs, groups per game/table)
-5. React Foundation (routing, state handling, API client)
-6. UI Components (admin, player, presentation)
+## Coding Standards & Conventions
 
-## Coding Standards
+### TypeScript Guidelines
 
-- C#
-  - Use .NET 9, nullable enabled, async/await, cancellation tokens.
-  - DTOs as record types.
-  - Services depend on interfaces; register in DI with AddScoped/AddSingleton as appropriate.
-  - Prefer minimal APIs or conventional controllers consistently; do not mix without reason.
-  - EF Core: no lazy-loading; write explicit includes; use AsNoTracking for queries.
-- TypeScript/React
-  - Functional components with hooks; avoid class components.
-  - Strong typing with TypeScript; define clear DTO types mirroring backend.
-  - State: prefer local state + lightweight patterns; if adding libs, ask before adding.
-  - Styling via Tailwind CSS (latest); keep components small, accessible, and responsive.
-- Naming
-  - C#: PascalCase for types/members; snake_case not allowed.
-  - TS/JS: camelCase for vars/functions; PascalCase for components/types.
-- Error Handling
-  - Backend: problem-details responses for errors; log context-rich messages; never leak secrets.
-  - Frontend: surface actionable user feedback; retry transient real-time issues.
+- Use strict TypeScript configuration
+- Prefer interfaces over types for object shapes
+- Use proper return types for all functions
+- Leverage union types and type guards for type safety
+- Use `const assertions` where appropriate
 
-## Domain Notes (Key Features)
+### React Best Practices
 
-- Players/teams join tables via QR code or short code.
-- Event-themed categories (themeable per event); elegant, accessible UI.
-- Pause/resume rounds or segments between event activities.
-- Fullscreen presentation mode for hosts.
+- Use functional components with hooks
+- Implement proper error boundaries
+- Use React.memo for performance optimization when needed
+- Prefer custom hooks for reusable logic
+- Use proper dependency arrays in useEffect
 
-## API & Real-Time Guidelines
+### File Organization
 
-- REST
-  - Consistent resource paths: /api/teams, /api/games/{id}/questions.
-  - Use proper status codes; validation errors -> 400 with problem details.
-  - Avoid over-fetching; add pagination for list endpoints if needed.
-- SignalR
-  - Strongly-typed hubs when possible.
-  - Group by gameId and by tableId to scope updates.
-  - Reconnect handling and idempotent message processing on client.
-
-## Data & EF Core
-
-- SQLite for dev and simple prod; keep migrations atomic and named (yyyyMMddHHmm_Description).
-- Avoid N+1; prefer projection (Select) DTOs; keep transactions explicit for multi-step updates.
-- On IIS, ensure the app pool identity has write access to the SQLite file/folder when needed.
-- Seed minimal demo data behind a dev-only flag.
-
-## UI & Theming
-
-- Mobile-first layouts; large tap targets; readable at arm’s length.
-- Tailwind: use a neutral, event-friendly palette; support theme tokens and high contrast.
-- Presentation mode: fullscreen, large typography, animated but non-distracting transitions.
-
-## Deployment
-
-- Target Windows 10 IIS (ASP.NET Core Hosting Bundle, InProcess hosting).
-- Publish framework-dependent unless self-contained is required; include web.config as needed.
-- Use environment variables or appSettings with transforms; no secrets in source.
-- Expose a health endpoint; enable structured logging (files/Event Log) appropriate for IIS.
-
-## Security & Privacy
-
-- No secrets or credentials in code, logs, or examples.
-- Validate all input; rate-limit admin-sensitive operations if applicable.
-- Keep tokens short-lived (e.g., for QR join flows) and scoped.
-
-## Testing
-
-- Backend: xUnit + FluentAssertions; unit-test services and critical controllers.
-- Frontend: React Testing Library + Vitest/Jest; test critical flows (join, answer, score updates).
-- Favor fast, deterministic tests; mock SignalR where possible.
-
-## Do / Don’t (Absolute)
-
-- Do focus on real-time performance, minimal allocations, and non-blocking I/O.
-- Do keep changes small and composable; prefer incremental diffs.
-- Do add input validation and error handling in all examples.
-- Do ask before introducing new dependencies or moving away from the stack.
-- Don’t introduce GraphQL, gRPC, or SSR frameworks without explicit approval.
-- Don’t add heavy state managers unless asked (Redux, MobX, etc.).
-- Don’t invent database schema or business rules if unspecified—ask first.
-
-## Default Patterns to Suggest
-
-- Controller signatures return ActionResult<T> with typed results.
-- Map domain -> DTOs explicitly; don’t leak EF entities to API.
-- Use CancellationToken in async methods.
-- SignalR client with automatic reconnect and backoff.
-- Tailwind components with aria-attributes and keyboard navigation.
-
-## Example Contracts (Reference)
-
-- C# DTOs (records)
-
-```csharp
-public sealed record CreateTeamRequest(string Name, string TableCode);
-public sealed record TeamDto(Guid Id, string Name, string TableCode, int Score);
+```
+client/src/
+├── components/           # Reusable UI components
+│   ├── ai/              # AI-powered content generation
+│   ├── event/           # Event configuration components
+│   ├── layout/          # Navigation and layout
+│   └── ui/              # shadcn/ui component library
+├── contexts/            # React context providers
+├── data/                # Static demo data
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions and configurations
+└── pages/               # Page components and routing
 ```
 
-- Controller outline
+### Component Structure
 
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-public sealed class TeamsController : ControllerBase
-{
-    private readonly ITeamService _teams;
-    public TeamsController(ITeamService teams) => _teams = teams;
+- Use descriptive component names with PascalCase
+- Include proper TypeScript props interfaces
+- Add data-testid attributes for testing
+- Implement proper accessibility attributes
+- Use semantic HTML elements
 
-    [HttpPost]
-    public async Task<ActionResult<TeamDto>> Create(CreateTeamRequest request, CancellationToken ct)
-    {
-        // validate, create, map to DTO, return 201 with location
-    }
+### API Development
+
+- RESTful API design patterns
+- Proper HTTP status codes
+- Input validation using Zod schemas
+- Error handling middleware
+- WebSocket events for real-time features
+
+## Key Features & Functionality
+
+### Event Management
+
+- Create, configure, and manage trivia events
+- Dynamic theming for different event types (wine dinners, corporate events, parties)
+- Custom branding with logos, colors, and messaging
+- QR code generation for participant joining
+
+### Real-time Features
+
+- WebSocket connections for live updates
+- Real-time leaderboards and scoring
+- Live participant monitoring
+- Event state synchronization
+
+### AI Integration
+
+- OpenAI GPT-4o for question generation
+- Event copy creation and content suggestions
+- Difficulty assessment and categorization
+- Analytics insights generation
+
+### Multi-format Support
+
+- Flexible team sizes and configurations
+- Multiple question formats (text, images, audio, video)
+- Rich media support and content management
+- Comprehensive question arsenal
+
+## Development Environment
+
+### Scripts
+
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production deployment
+- `npm run build:static` - Build static version for GitHub Pages
+- `npm run seed` - Seed database with sample data
+- `npm run check` - TypeScript type checking
+
+### Environment Variables
+
+```bash
+DATABASE_URL=file:./data/trivia.db
+OPENAI_API_KEY=your_openai_api_key_here
+GOOGLE_CLOUD_STORAGE_BUCKET=your_bucket_name
+NODE_ENV=development
+PORT=5000
+```
+
+### Development Workflow Guidelines
+
+1. **Documentation Location**: All generated documentation (.md files) should be placed in a `/copilot` folder at the project root
+2. **Terminal Usage**: Reuse existing terminals whenever possible - do not create new terminals without asking the user first
+3. **Testing Protocol**: When making changes that affect functionality, ASK the user to run the site and test the changes before proceeding with additional modifications
+
+## Code Generation Guidelines
+
+### Documentation Standards
+
+- All generated documentation (.md files) must be placed in `/copilot` folder
+- Use clear, descriptive filenames for documentation
+- Include proper markdown formatting and structure
+- Reference existing project documentation when appropriate
+
+### Development Workflow
+
+- **Terminal Management**: Always reuse existing terminals - only create new terminals when explicitly requested by the user
+- **Testing Integration**: After implementing features or fixes, ask the user to run the site and test functionality before proceeding
+- **Code Review Protocol**: After any change with new code, perform a code review as an expert React developer, checking for best practices, performance, security, and maintainability
+- **Incremental Development**: Make changes in small, testable increments rather than large bulk modifications
+
+### When generating components:
+
+1. Use TypeScript with proper type definitions
+2. Include shadcn/ui components when appropriate
+3. Apply wine-themed color scheme (`wine-`, `champagne-` prefixes)
+4. Add proper accessibility attributes
+5. Include data-testid attributes for testing
+6. Use Tailwind CSS for styling
+7. Implement responsive design patterns
+
+### When generating API routes:
+
+1. Use Express.js with TypeScript
+2. Implement proper error handling
+3. Add input validation with Zod
+4. Use proper HTTP status codes
+5. Include proper authentication checks
+6. Add comprehensive logging
+
+### When generating database operations:
+
+1. Use Drizzle ORM syntax
+2. Implement proper transaction handling
+3. Add proper error handling
+4. Use type-safe queries
+5. Include proper foreign key relationships
+
+### When generating AI integration:
+
+1. Use OpenAI GPT-4o model
+2. Implement proper error handling for API calls
+3. Add fallback mechanisms
+4. Use structured prompts for consistent output
+5. Implement proper rate limiting
+
+## Testing Considerations
+
+### Unit Testing
+
+- Use Jest for JavaScript/TypeScript testing
+- React Testing Library for component testing
+- Mock external API calls
+- Test custom hooks in isolation
+
+### Integration Testing
+
+- Test API endpoints with proper database setup
+- WebSocket connection testing
+- Authentication flow testing
+- File upload functionality testing
+
+### E2E Testing
+
+- Test complete trivia event flows
+- Participant joining and team formation
+- Real-time updates and scoring
+- Presenter interface functionality
+
+## Security Guidelines
+
+### Authentication & Authorization
+
+- Secure session management
+- HTTP-only cookies for session storage
+- Proper password hashing (if implementing user registration)
+- Rate limiting for API endpoints
+
+### Data Protection
+
+- Input sanitization and validation
+- SQL injection prevention through ORM
+- XSS protection in frontend
+- Secure file upload handling
+
+### API Security
+
+- Proper CORS configuration
+- API key management for external services
+- Secure WebSocket connections
+- Request validation and sanitization
+
+## Performance Optimization
+
+### Frontend
+
+- Code splitting and lazy loading
+- Image optimization and lazy loading
+- Efficient state management
+- Minimize bundle size
+- Implement proper caching strategies
+
+### Backend
+
+- Database query optimization
+- Connection pooling for production
+- Proper indexing strategies
+- Caching for frequently accessed data
+- WebSocket connection management
+
+## UI/UX Design System
+
+### Color Palette
+
+- Primary: Wine-themed colors (`wine-50` to `wine-900`)
+- Accent: Champagne colors (`champagne-50` to `champagne-900`)
+- Neutral: Standard gray scale
+- Semantic: Success, warning, error states
+
+### Typography
+
+- Use system font stack for performance
+- Proper heading hierarchy (h1-h6)
+- Readable font sizes for mobile devices
+- Consistent line heights and spacing
+
+### Component Patterns
+
+- Use shadcn/ui as the foundation
+- Consistent spacing using Tailwind classes
+- Proper focus states for accessibility
+- Loading states for async operations
+- Error states with user-friendly messages
+
+## Accessibility Requirements
+
+- Semantic HTML structure
+- Proper ARIA labels and roles
+- Keyboard navigation support
+- Screen reader compatibility
+- Color contrast compliance (WCAG 2.1 AA)
+- Focus management for dynamic content
+
+## Common Patterns & Examples
+
+### Creating Event Components
+
+```typescript
+interface EventCardProps {
+  event: Event;
+  onEdit?: (event: Event) => void;
+  onDelete?: (eventId: string) => void;
+}
+
+export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
+  // Implementation
 }
 ```
 
-- SignalR hub outline
+### API Route Structure
 
-```csharp
-public sealed class GameHub : Hub<IGameClient>
-{
-    public async Task JoinTable(Guid gameId, string tableCode)
-    {
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"game:{gameId}");
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"table:{tableCode}");
-    }
-}
+```typescript
+app.get("/api/events/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const event = await storage.getEvent(id);
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 ```
 
-- React component shape
+### WebSocket Event Handling
 
-```tsx
-function JoinTable() {
-  // uses QR code payload or manual entry
-  // calls POST /api/teams and then connects to SignalR
-  return (
-    <form className="p-4 flex flex-col gap-3">{/* inputs + submit */}</form>
-  );
-}
+```typescript
+wsManager.broadcast(eventId, {
+  type: "SCORE_UPDATE",
+  payload: { teamId, score, timestamp: Date.now() },
+});
 ```
 
-## Frontend Interaction Hints
+## Error Handling Patterns
 
-- Prefer fetch or a thin API client; if suggesting React Query, ask first.
-- Debounce inputs; optimistic UI when safe; reconcile with server events.
-- Use CSS transitions for polished but subtle animations.
+### Frontend Error Boundaries
 
-## Performance Notes
+- Implement error boundaries for component trees
+- Graceful degradation for failed features
+- User-friendly error messages
+- Retry mechanisms for transient failures
 
-- Avoid polling; use SignalR for updates.
-- Batch updates server-side where possible; throttle noisy events client-side.
-- Use AsNoTracking for read-only queries and minimal JSON payloads.
+### Backend Error Handling
 
-## Review & PR Guidance
+- Centralized error handling middleware
+- Proper error logging
+- Structured error responses
+- Rate limiting for abuse prevention
 
-- Keep PRs focused; include brief rationale and test notes.
-- Ensure API changes update TS types and client calls.
-- Provide migration scripts alongside model changes.
+## Deployment Considerations
 
-## When Ambiguity Exists
+### Static Build (GitHub Pages)
 
-- Ask targeted questions before making assumptions about domain rules, schema, or UX.
-- Propose 1–2 minimal options with trade-offs when suggesting new patterns.
+- No backend functionality
+- Embedded demo data
+- Read-only presenter interface
+- Full responsive design
 
-## Copilot Output Style
+### Full Deployment
 
-- Provide complete, compilable snippets.
-- Include necessary imports/usings and minimal wiring.
-- Keep comments actionable; avoid verbose narration.
+- Database migrations
+- Environment variable configuration
+- SSL/TLS setup for production
+- Monitoring and logging setup
+
+## AI Prompt Engineering
+
+### For Question Generation
+
+- Provide context about event type and audience
+- Specify difficulty levels and categories
+- Include format preferences (multiple choice, true/false)
+- Request explanations for educational value
+
+### For Event Copy
+
+- Specify event theme and tone
+- Include target audience demographics
+- Request brand-appropriate language
+- Ensure mobile-friendly formatting
+
+This instruction file should guide GitHub Copilot to generate code that aligns with the TriviaSpark platform's architecture, coding standards, and best practices while maintaining consistency with the existing codebase.
