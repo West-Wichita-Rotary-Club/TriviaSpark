@@ -12,20 +12,33 @@ interface ContactTabProps {
 }
 
 export function ContactTab({ event, onUpdate, isLoading }: ContactTabProps) {
+  const parseJsonField = (value: unknown): Record<string, any> => {
+    if (!value) return {};
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return {};
+      }
+    }
+    if (typeof value === 'object') return (value as Record<string, any>) ?? {};
+    return {};
+  };
+
   const handleSocialLinksChange = (platform: string, url: string) => {
-    const currentLinks = event.socialLinks ? JSON.parse(event.socialLinks) : {};
+    const currentLinks = parseJsonField(event.socialLinks);
     const updatedLinks = { ...currentLinks, [platform]: url };
     onUpdate({ socialLinks: JSON.stringify(updatedLinks) });
   };
 
   const handleSponsorChange = (field: string, value: string) => {
-    const currentSponsors = event.sponsorInformation ? JSON.parse(event.sponsorInformation) : {};
+    const currentSponsors = parseJsonField(event.sponsorInformation);
     const updatedSponsors = { ...currentSponsors, [field]: value };
     onUpdate({ sponsorInformation: JSON.stringify(updatedSponsors) });
   };
 
-  const socialLinks = event.socialLinks ? JSON.parse(event.socialLinks) : {};
-  const sponsorInfo = event.sponsorInformation ? JSON.parse(event.sponsorInformation) : {};
+  const socialLinks = parseJsonField(event.socialLinks);
+  const sponsorInfo = parseJsonField(event.sponsorInformation);
 
   return (
     <div className="space-y-6">

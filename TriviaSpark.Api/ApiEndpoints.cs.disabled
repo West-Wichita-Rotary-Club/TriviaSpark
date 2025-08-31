@@ -1,0 +1,715 @@
+using System.Text.Json.Serialization;
+// using Dapper; // Removed - migrated to EF Core
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using TriviaSpark.Api.Services;
+
+namespace TriviaSpark.Api;
+
+public static class ApiEndpoints
+{
+    public static void MapApiEndpoints(this IEndpointRouteBuilder app)
+    {
+    var api = app.MapGroup("/api").RequireCors("ApiCors").AddEndpointFilter(new CorsFilter());
+
+    // Health with simple DB check
+    api.MapGet("/health", (IDb db) =>
+    {
+        try
+        {
+            using var conn = db.CreateConnection();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT 1";
+            var scalar = cmd.ExecuteScalar();
+            var dbPath = (conn.DataSource ?? string.Empty).ToString();
+            var exists = !string.IsNullOrWhiteSpace(dbPath) && System.IO.File.Exists(dbPath);
+            return Results.Ok(new { ok = true, db = new { connected = true, path = dbPath, exists }, time = DateTime.UtcNow });
+        }
+        catch (Exception ex)
+        {
+            return Results.Json(new { ok = false, db = new { connected = false, error = ex.ToString() }, time = DateTime.UtcNow }, statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+    })
+       .WithName("ApiHealth");
+
+        // Auth
+    api.MapPost("/auth/login", async ([FromBody] LoginRequest body, ISessionService sessions, IStorage storage, HttpResponse res) =>
+        {
+            try
+            {
+                if (body is null)
+                    return Results.Json(new { error = "Request body is required" }, statusCode: StatusCodes.Status400BadRequest);
+                if (string.IsNullOrWhiteSpace(body.Username) || string.IsNullOrWhiteSpace(body.Password))
+                    return Results.Json(new { error = "Username and password are required" }, statusCode: StatusCodes.Status400BadRequest);
+
+                var user = await storage.GetUserByUsername(body.Username);
+                if (user is null || user.Password != body.Password)
+                    return Results.Json(new { error = "Invalid username or password" }, statusCode: StatusCodes.Status401Unauthorized);
+
+                var sid = sessions.Create(user.Id);
+                res.Cookies.Append("sessionId", sid, new CookieOptions { HttpOnly = false, Secure = false, SameSite = SameSiteMode.Lax, MaxAge = TimeSpan.FromDays(1) });
+                return Results.Ok(new { user = new { id = user.Id, username = user.Username, email = user.Email, fullName = user.FullName } });
+            }
+            catch (Exception ex)
+            {
+                // Return JSON error to keep client-side parsing consistent
+                Console.Error.WriteLine($"[Login Error] {ex}");
+                return Results.Json(new { error = "Login failed", detail = ex.ToString() }, statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        api.MapPost("/auth/logout", (ISessionService sessions, HttpRequest req, HttpResponse res) =>
+        {
+            if (req.Cookies.TryGetValue("sessionId", out var sid))
+                sessions.Delete(sid);
+            res.Cookies.Delete("sessionId");
+            return Results.Ok(new { success = true });
+        });
+
+        api.MapGet("/auth/me", async (ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var user = await storage.GetUser(userId);
+            if (user is null) return Results.NotFound(new { error = "User not found" });
+            return Results.Ok(new { user = new { id = user.Id, username = user.Username, email = user.Email, fullName = user.FullName, createdAt = user.CreatedAt } });
+        });
+
+        api.MapPut("/auth/profile", async ([FromBody] ProfileUpdate body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            if (string.IsNullOrWhiteSpace(body.FullName) || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Username))
+                return Results.BadRequest(new { error = "Full name, email, and username are required" });
+            var updated = await storage.UpdateUser(userId, body.FullName, body.Email, body.Username);
+            if (updated is null) return Results.NotFound(new { error = "User not found" });
+            return Results.Ok(new { user = new { id = updated.Id, username = updated.Username, email = updated.Email, fullName = updated.FullName, createdAt = updated.CreatedAt } });
+        });
+
+        // Dashboard
+        api.MapGet("/dashboard/stats", async (ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var stats = await storage.GetEventStats(userId);
+            return Results.Ok(stats);
+        });
+
+        api.MapGet("/dashboard/insights", async (ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            // Placeholder: in Node app, OpenAI is used. Return canned insights here.
+            var stats = await storage.GetEventStats(userId);
+            var insights = new[]
+            {
+                "Participants are most accurate on medium difficulty questions.",
+                "Average points per response is trending upward week-over-week."
+            };
+            return Results.Ok(new { insights });
+        });
+
+        // Events
+        api.MapGet("/events", async (ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var events = await storage.GetEventsByHost(userId);
+            return Results.Ok(events);
+        });
+
+        api.MapGet("/events/active", async (ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var events = await storage.GetActiveEvents(userId);
+            return Results.Ok(events);
+        });
+
+        api.MapGet("/events/upcoming", async ([FromQuery] long? fromEpochMs, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var items = await storage.GetUpcomingEvents(userId, fromEpochMs);
+            return Results.Ok(items);
+        });
+
+        api.MapPost("/events", async ([FromBody] CreateEventRequest body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var id = Guid.NewGuid().ToString();
+            long? eventDateMs = body.EventDate.HasValue ? new DateTimeOffset(body.EventDate.Value).ToUnixTimeMilliseconds() : (long?)null;
+            var createdAtMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var row = new EventRow
+            {
+                Id = id,
+                Title = body.Title,
+                Description = body.Description,
+                HostId = userId,
+                EventType = body.EventType,
+                MaxParticipants = body.MaxParticipants,
+                Difficulty = body.Difficulty,
+                Status = body.Status ?? "draft",
+                QrCode = body.QrCode,
+                EventDate = eventDateMs,
+                EventTime = body.EventTime,
+                Location = body.Location,
+                SponsoringOrganization = body.SponsoringOrganization,
+                Settings = body.Settings,
+                CreatedAt = createdAtMs,
+                StartedAt = null,
+                CompletedAt = null
+            };
+            var created = await storage.CreateEvent(row);
+            return Results.Created($"/api/events/{created.Id}", created);
+        });
+
+        api.MapGet("/events/{id}", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            if (id.StartsWith("seed-event-"))
+            {
+                var demo = await storage.GetEvent(id);
+                if (demo is null) return Results.NotFound(new { error = "Event not found" });
+                return Results.Ok(demo);
+            }
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            return Results.Ok(ev);
+        });
+
+        api.MapPut("/events/{id}", async (string id, [FromBody] object body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var updated = await storage.UpdateEvent(id, body);
+            return Results.Ok(updated);
+        });
+
+        api.MapPatch("/events/{id}/status", async (string id, [FromBody] EventStatusUpdate body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var updated = await storage.UpdateEventStatus(id, body.Status);
+            return Results.Ok(updated);
+        });
+
+        api.MapPost("/events/{id}/start", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var updated = await storage.UpdateEventStatus(id, "active");
+            await storage.LockTeamSwitching(id);
+            return Results.Ok(updated);
+        });
+
+        api.MapDelete("/events/{id}/participants/inactive", async (string id, [FromQuery] int inactiveThresholdMinutes, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var participants = await storage.GetParticipantsByEvent(id);
+            var thresholdTimestamp = DateTimeOffset.UtcNow.AddMinutes(-1 * (inactiveThresholdMinutes == 0 ? 30 : inactiveThresholdMinutes)).ToUnixTimeSeconds();
+            var toRemove = participants.Where(p => p.IsActive == 0 || (long.TryParse(p.LastActiveAt, out var lastActive) && lastActive < thresholdTimestamp)).ToList();
+            var removed = 0;
+            foreach (var p in toRemove)
+            {
+                if (await storage.DeleteParticipant(p.Id)) removed++;
+            }
+            return Results.Ok(new { message = $"Removed {removed} inactive participants", removedCount = removed, thresholdMinutes = inactiveThresholdMinutes == 0 ? 30 : inactiveThresholdMinutes, remainingParticipants = participants.Count() - removed });
+        });
+
+        // Questions
+        api.MapGet("/events/{id}/questions", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            if (id.StartsWith("seed-event-"))
+            {
+                var eventExists = await storage.GetEvent(id);
+                if (eventExists is null) return Results.NotFound(new { error = "Event not found" });
+                var demoQs = await storage.GetQuestionsByEvent(id);
+                return Results.Ok(demoQs);
+            }
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var qs = await storage.GetQuestionsByEvent(id);
+            return Results.Ok(qs);
+        });
+
+        api.MapPut("/events/{id}/questions/reorder", async (string id, [FromBody] ReorderQuestionsRequest body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var updates = body.QuestionOrder.Select((qid, idx) => new { qid, idx });
+            foreach (var u in updates)
+            {
+                await storage.UpdateQuestion(u.qid, new { orderIndex = u.idx });
+            }
+            var updated = await storage.GetQuestionsByEvent(id);
+            return Results.Ok(new { message = "Question order updated successfully", questions = updated });
+        });
+
+        api.MapPut("/questions/{id}", async (string id, [FromBody] UpdateQuestion body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var q = await storage.GetQuestion(id);
+            if (q is null) return Results.NotFound(new { error = "Question not found" });
+            var ev = await storage.GetEvent(q.EventId);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var updateObj = new { body.Question, body.Type, Options = body.Options is not null ? System.Text.Json.JsonSerializer.Serialize(body.Options) : null, body.CorrectAnswer, body.Difficulty, body.Category, body.Explanation, body.TimeLimit, body.OrderIndex, body.AiGenerated };
+            var updated = await storage.UpdateQuestion(id, updateObj);
+            return Results.Ok(updated);
+        });
+
+        api.MapDelete("/questions/{id}", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var q = await storage.GetQuestion(id);
+            if (q is null) return Results.NotFound(new { error = "Question not found" });
+            var ev = await storage.GetEvent(q.EventId);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var okDel = await storage.DeleteQuestion(id);
+            return okDel ? Results.NoContent() : Results.StatusCode(StatusCodes.Status500InternalServerError);
+        });
+
+        // Teams
+        api.MapGet("/events/{id}/teams", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var teams = await storage.GetTeamsByEvent(id);
+            var result = new List<object>();
+            foreach (var t in teams)
+            {
+                var members = await storage.GetParticipantsByTeam(t.Id);
+                result.Add(new { t.Id, t.EventId, t.Name, t.TableNumber, t.MaxMembers, t.CreatedAt, participantCount = members.Count(), participants = members });
+            }
+            return Results.Ok(result);
+        });
+
+        api.MapPost("/events/{id}/teams", async (string id, [FromBody] CreateTeamRequest body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            if (string.IsNullOrWhiteSpace(body.Name)) return Results.BadRequest(new { error = "Team name is required" });
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var dup = await storage.GetTeamByNameOrTable(id, (body.TableNumber?.ToString() ?? body.Name));
+            if (dup is not null) return Results.BadRequest(new { error = "Team name or table number already exists" });
+            var row = new TeamRow(Guid.NewGuid().ToString(), id, body.Name, body.TableNumber.HasValue ? (long)body.TableNumber.Value : null, 6L, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString());
+            var created = await storage.CreateTeam(row);
+            return Results.Created($"/api/events/{id}/teams/{created.Id}", created);
+        });
+
+        api.MapGet("/events/{qrCode}/teams-public", async (string qrCode, IStorage storage) =>
+        {
+            // Demo behavior: find host 'mark-user-id' events and match qr
+            var hostEvents = await storage.GetEventsByHost("mark-user-id");
+            var ev = hostEvents.FirstOrDefault(e => e.QrCode == qrCode);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            var teams = await storage.GetTeamsByEvent(ev.Id);
+            var withCounts = new List<object>();
+            foreach (var t in teams)
+            {
+                var members = await storage.GetParticipantsByTeam(t.Id);
+                withCounts.Add(new { t.Id, t.EventId, t.Name, t.TableNumber, participantCount = members.Count() });
+            }
+            return Results.Ok(withCounts);
+        });
+
+        // Participants
+        api.MapGet("/events/{id}/participants", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var ps = await storage.GetParticipantsByEvent(id);
+            return Results.Ok(ps);
+        });
+
+        api.MapGet("/events/join/{qrCode}/check", async (string qrCode, HttpRequest req, IStorage storage) =>
+        {
+            if (!req.Cookies.TryGetValue("participantToken", out var token))
+                return Results.NotFound(new { error = "No participant token found" });
+            var p = await storage.GetParticipantByToken(token);
+            if (p is null) return Results.NotFound(new { error = "Participant not found" });
+            var ev = await storage.GetEvent(p.EventId);
+            if (ev is null || ev.QrCode != qrCode) return Results.NotFound(new { error = "Participant not found for this event" });
+            var team = string.IsNullOrWhiteSpace(p.TeamId) ? null : await storage.GetTeam(p.TeamId!);
+            return Results.Ok(new { participant = p, team, event_ = new { id = ev.Id, title = ev.Title, description = ev.Description, status = ev.Status }, returning = true });
+        });
+
+        api.MapPost("/events/join/{qrCode}", async (string qrCode, [FromBody] JoinEventRequest body, IStorage storage, HttpResponse res) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.Name)) return Results.BadRequest(new { error = "Name is required" });
+            var hostEvents = await storage.GetEventsByHost("mark-user-id");
+            var ev = hostEvents.FirstOrDefault(e => e.QrCode == qrCode);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.Status == "cancelled") return Results.BadRequest(new { error = "Event has been cancelled" });
+            string? teamId = null;
+            if (body.TeamAction == "join" && !string.IsNullOrWhiteSpace(body.TeamIdentifier))
+            {
+                var team = await storage.GetTeamByNameOrTable(ev.Id, body.TeamIdentifier);
+                if (team is null) return Results.NotFound(new { error = "Team not found" });
+                var members = await storage.GetParticipantsByTeam(team.Id);
+                if (members.Count() >= (team.MaxMembers == 0 ? 6 : team.MaxMembers))
+                    return Results.BadRequest(new { error = "Team is full" });
+                teamId = team.Id;
+            }
+            else if (body.TeamAction == "create" && !string.IsNullOrWhiteSpace(body.TeamIdentifier))
+            {
+                var existing = await storage.GetTeamByNameOrTable(ev.Id, body.TeamIdentifier);
+                if (existing is not null) return Results.BadRequest(new { error = "Team name or table number already exists" });
+                var isTable = int.TryParse(body.TeamIdentifier, out var tbl);
+                var newTeam = await storage.CreateTeam(new TeamRow(Guid.NewGuid().ToString(), ev.Id, isTable ? $"Table {tbl}" : body.TeamIdentifier, isTable ? (long?)tbl : null, 6L, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()));
+                teamId = newTeam.Id;
+            }
+            var participant = new ParticipantRow(Guid.NewGuid().ToString(), ev.Id, teamId, body.Name, Guid.NewGuid().ToString("N"), DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), 1, ev.Status != "active" ? 1 : 0);
+            var created = await storage.CreateParticipant(participant);
+            res.Cookies.Append("participantToken", created.ParticipantToken, new CookieOptions { HttpOnly = true, Secure = false, SameSite = SameSiteMode.Strict, MaxAge = TimeSpan.FromHours(24) });
+            var joinedTeam = string.IsNullOrWhiteSpace(created.TeamId) ? null : await storage.GetTeam(created.TeamId!);
+            return Results.Created($"/api/participants/{created.Id}", new { participant = created, team = joinedTeam, event_ = new { id = ev.Id, title = ev.Title, description = ev.Description, status = ev.Status }, returning = false });
+        });
+
+        api.MapPut("/participants/{id}/team", async (string id, [FromBody] SwitchTeamRequest body, HttpRequest req, IStorage storage) =>
+        {
+            if (!req.Cookies.TryGetValue("participantToken", out var token))
+                return Results.Unauthorized();
+            var p = await storage.GetParticipantByToken(token);
+            if (p is null || p.Id != id) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            if (p.CanSwitchTeam == 0) return Results.BadRequest(new { error = "Team switching is locked" });
+            var updated = await storage.SwitchParticipantTeam(id, body.TeamId);
+            return Results.Ok(updated);
+        });
+
+        // Responses
+        api.MapPost("/responses", async ([FromBody] SubmitResponseRequest body, IStorage storage) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.ParticipantId) || string.IsNullOrWhiteSpace(body.QuestionId) || string.IsNullOrWhiteSpace(body.Answer))
+                return Results.BadRequest(new { error = "Missing required fields" });
+            var q = await storage.GetQuestion(body.QuestionId);
+            if (q is null) return Results.NotFound(new { error = "Question not found" });
+            var isCorrect = string.Equals((q.CorrectAnswer ?? "").Trim(), body.Answer.Trim(), StringComparison.OrdinalIgnoreCase);
+            var points = 0;
+            if (isCorrect && (body.TimeRemaining ?? 0) > 0)
+            {
+                var tr = body.TimeRemaining ?? 0;
+                points = tr >= 20 ? 20 : tr >= 15 ? 15 : tr >= 10 ? 10 : tr >= 5 ? 5 : 1;
+            }
+            var rr = new ResponseRow(Guid.NewGuid().ToString(), body.ParticipantId, body.QuestionId, body.Answer, isCorrect ? 1 : 0, points, body.ResponseTime, body.TimeRemaining, DateTime.UtcNow);
+            var created = await storage.CreateResponse(rr);
+            return Results.Created($"/api/responses/{created.Id}", created);
+        });
+
+        // Fun facts
+        api.MapGet("/events/{id}/fun-facts", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            if (id.StartsWith("seed-event-"))
+            {
+                var ev = await storage.GetEvent(id);
+                if (ev is null) return Results.NotFound(new { error = "Event not found" });
+                var facts = await storage.GetFunFactsByEvent(id);
+                return Results.Ok(facts);
+            }
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var e2 = await storage.GetEvent(id);
+            if (e2 is null) return Results.NotFound(new { error = "Event not found" });
+            if (e2.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var funFacts = await storage.GetFunFactsByEvent(id);
+            return Results.Ok(funFacts);
+        });
+
+        api.MapPost("/events/{id}/fun-facts", async (string id, [FromBody] CreateFunFactRequest body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            if (ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var row = new FunFactRow 
+            {
+                Id = Guid.NewGuid().ToString(),
+                EventId = id,
+                Title = body.Title,
+                Content = body.Content,
+                OrderIndex = (long)(body.OrderIndex ?? 0),
+                IsActive = body.IsActive ? 1L : 0L,
+                CreatedAt = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            };
+            var created = await storage.CreateFunFact(row);
+            return Results.Created($"/api/fun-facts/{created.Id}", created);
+        });
+
+        api.MapPut("/fun-facts/{id}", async (string id, [FromBody] UpdateFunFactRequest body, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var fact = await storage.GetFunFact(id);
+            if (fact is null) return Results.NotFound(new { error = "Fun fact not found" });
+            var ev = await storage.GetEvent(fact.EventId);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var updated = await storage.UpdateFunFact(id, new { body.Title, body.Content, body.OrderIndex, IsActive = body.IsActive });
+            return Results.Ok(updated);
+        });
+
+        api.MapDelete("/fun-facts/{id}", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var fact = await storage.GetFunFact(id);
+            if (fact is null) return Results.NotFound(new { error = "Fun fact not found" });
+            var ev = await storage.GetEvent(fact.EventId);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var okDel = await storage.DeleteFunFact(id);
+            return okDel ? Results.NoContent() : Results.StatusCode(StatusCodes.Status500InternalServerError);
+        });
+
+        // Analytics
+        api.MapGet("/events/{id}/analytics", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+            var participants = await storage.GetParticipantsByEvent(id);
+            var teams = await storage.GetTeamsByEvent(id);
+            var questions = await storage.GetQuestionsByEvent(id);
+
+            int totalResponses = 0, correctResponses = 0, totalPoints = 0;
+            var questionPerformance = new List<object>();
+            foreach (var q in questions)
+            {
+                var responses = await storage.GetResponsesByQuestion(q.Id);
+                var correct = responses.Count(r => r.IsCorrect == 1);
+                var avgPoints = responses.Any() ? responses.Average(r => r.Points) : 0;
+                questionPerformance.Add(new { id = q.Id, question = q.Question, totalResponses = responses.Count(), correctResponses = correct, accuracy = responses.Any() ? (double)correct / responses.Count() * 100 : 0, averagePoints = avgPoints, difficulty = q.Difficulty });
+                totalResponses += responses.Count();
+                correctResponses += correct;
+                totalPoints += responses.Sum(r => r.Points);
+            }
+
+            var teamPerformance = new List<object>();
+            foreach (var t in teams)
+            {
+                var members = await storage.GetParticipantsByTeam(t.Id);
+                int teamPoints = 0, teamResponses = 0;
+                foreach (var p in members)
+                {
+                    var responses = await storage.GetResponsesByParticipant(p.Id);
+                    teamPoints += responses.Sum(r => r.Points);
+                    teamResponses += responses.Count();
+                }
+                teamPerformance.Add(new { id = t.Id, name = t.Name, participantCount = members.Count(), totalPoints = teamPoints, totalResponses = teamResponses, averagePointsPerParticipant = members.Any() ? (double)teamPoints / members.Count() : 0 });
+            }
+            teamPerformance = teamPerformance.OrderByDescending(t => (int)t.GetType().GetProperty("totalPoints")!.GetValue(t)!).ToList();
+
+            var payload = new
+            {
+                event_ = new { id = ev.Id, title = ev.Title, status = ev.Status, participantCount = participants.Count(), teamCount = teams.Count(), questionCount = questions.Count() },
+                performance = new { totalResponses, correctResponses, overallAccuracy = totalResponses > 0 ? (double)correctResponses / totalResponses * 100 : 0, totalPoints, averagePointsPerResponse = totalResponses > 0 ? (double)totalPoints / totalResponses : 0 },
+                questionPerformance,
+                teamPerformance
+            };
+            return Results.Ok(payload);
+        });
+
+        api.MapGet("/events/{id}/leaderboard", async (string id, [FromQuery] string? type, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var mode = (type ?? "teams").ToLowerInvariant();
+            if (mode == "teams")
+            {
+                var teams = await storage.GetTeamsByEvent(id);
+                var leaderboard = new List<object>();
+                foreach (var t in teams)
+                {
+                    var members = await storage.GetParticipantsByTeam(t.Id);
+                    int totalPoints = 0, totalResponses = 0, correctResponses = 0;
+                    foreach (var p in members)
+                    {
+                        var responses = await storage.GetResponsesByParticipant(p.Id);
+                        totalPoints += responses.Sum(r => r.Points);
+                        totalResponses += responses.Count();
+                        correctResponses += responses.Count(r => r.IsCorrect == 1);
+                    }
+                    leaderboard.Add(new { rank = 0, team = new { id = t.Id, name = t.Name, tableNumber = t.TableNumber }, participantCount = members.Count(), totalPoints, totalResponses, correctResponses, accuracy = totalResponses > 0 ? (double)correctResponses / totalResponses * 100 : 0, averagePointsPerParticipant = members.Any() ? (double)totalPoints / members.Count() : 0 });
+                }
+                leaderboard = leaderboard.OrderByDescending(x => (int)x.GetType().GetProperty("totalPoints")!.GetValue(x)!).ToList();
+                for (var i = 0; i < leaderboard.Count; i++)
+                {
+                    var obj = leaderboard[i];
+                    obj.GetType().GetProperty("rank")!.SetValue(obj, i + 1);
+                }
+                return Results.Ok(new { type = "teams", leaderboard });
+            }
+            else
+            {
+                var participants = await storage.GetParticipantsByEvent(id);
+                var leaderboard = new List<object>();
+                foreach (var p in participants)
+                {
+                    var responses = await storage.GetResponsesByParticipant(p.Id);
+                    var totalPoints = responses.Sum(r => r.Points);
+                    var correct = responses.Count(r => r.IsCorrect == 1);
+                    var team = string.IsNullOrWhiteSpace(p.TeamId) ? null : await storage.GetTeam(p.TeamId!);
+                    leaderboard.Add(new { rank = 0, participant = new { id = p.Id, name = p.Name }, team = team is null ? null : new { id = team.Id, name = team.Name }, totalPoints, totalResponses = responses.Count(), correctResponses = correct, accuracy = responses.Any() ? (double)correct / responses.Count() * 100 : 0 });
+                }
+                leaderboard = leaderboard.OrderByDescending(x => (int)x.GetType().GetProperty("totalPoints")!.GetValue(x)!).ToList();
+                for (var i = 0; i < leaderboard.Count; i++)
+                {
+                    var obj = leaderboard[i];
+                    obj.GetType().GetProperty("rank")!.SetValue(obj, i + 1);
+                }
+                return Results.Ok(new { type = "participants", leaderboard });
+            }
+        });
+
+        api.MapGet("/events/{id}/responses/summary", async (string id, ISessionService sessions, IStorage storage, HttpRequest req) =>
+        {
+            var (ok, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!ok || userId is null) return Results.Unauthorized();
+            var ev = await storage.GetEvent(id);
+            if (ev is null || ev.HostId != userId) return Results.StatusCode(StatusCodes.Status403Forbidden);
+            var questions = await storage.GetQuestionsByEvent(id);
+            var summary = new List<object>();
+            foreach (var q in questions)
+            {
+                var responses = await storage.GetResponsesByQuestion(q.Id);
+                var distribution = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                int totalPoints = 0; int? fastest = null; int? slowest = null; int totalWithTimes = 0; int timesSum = 0;
+                foreach (var r in responses)
+                {
+                    var ans = string.IsNullOrWhiteSpace(r.Answer) ? "No Answer" : r.Answer;
+                    distribution[ans] = distribution.TryGetValue(ans, out var c) ? c + 1 : 1;
+                    totalPoints += r.Points;
+                    if (r.ResponseTime.HasValue)
+                    {
+                        fastest = fastest.HasValue ? Math.Min(fastest.Value, r.ResponseTime.Value) : r.ResponseTime.Value;
+                        slowest = slowest.HasValue ? Math.Max(slowest.Value, r.ResponseTime.Value) : r.ResponseTime.Value;
+                        timesSum += r.ResponseTime.Value;
+                        totalWithTimes++;
+                    }
+                }
+                var correct = responses.Count(r => r.IsCorrect == 1);
+                summary.Add(new
+                {
+                    question = new { id = q.Id, text = q.Question, correctAnswer = q.CorrectAnswer, type = q.Type, difficulty = q.Difficulty, orderIndex = q.OrderIndex },
+                    responses = new { total = responses.Count(), correct, incorrect = responses.Count() - correct, accuracy = responses.Any() ? (double)correct / responses.Count() * 100 : 0 },
+                    scoring = new { totalPoints, averagePoints = responses.Any() ? (double)totalPoints / responses.Count() : 0, maxPossiblePoints = responses.Count() * 20 },
+                    timing = new { fastestResponseTime = fastest, slowestResponseTime = slowest, averageResponseTime = totalWithTimes > 0 ? (int?)Math.Round((double)timesSum / totalWithTimes) : null },
+                    answerDistribution = distribution
+                });
+            }
+            return Results.Ok(new { eventId = id, summary });
+        });
+
+        // AI copy placeholder
+        api.MapPost("/events/{id}/generate-copy", async (string id, [FromBody] GenerateCopyRequest body, IStorage storage) =>
+        {
+            var ev = await storage.GetEvent(id);
+            if (ev is null) return Results.NotFound(new { error = "Event not found" });
+            var copy = body.Type?.ToLowerInvariant() switch
+            {
+                "promotional" => $"Join us for {ev.Title}! A fun {ev.EventType} trivia night.",
+                "welcome" => $"Welcome to {ev.Title}!",
+                "thankyou" => $"Thanks for playing {ev.Title}!",
+                "rules" => "Answer quickly for more points!",
+                _ => ev.Description ?? "A great trivia event"
+            };
+            return Results.Ok(new { type = body.Type, copy, eventId = id });
+        });
+
+        // Debug cookies
+        api.MapGet("/debug/cookies", (ISessionService sessions, HttpRequest req) =>
+        {
+            var sid = req.Cookies.TryGetValue("sessionId", out var s) ? s : null;
+            return Results.Ok(new
+            {
+                rawCookies = req.Headers["Cookie"].ToString(),
+                parsedCookies = req.Cookies.ToDictionary(kv => kv.Key, kv => kv.Value),
+                sessionCount = 0, // not tracked
+                availableSessions = sid is null ? Array.Empty<string>() : new[] { sid }
+            });
+        });
+
+        // Debug DB: list tables and users (limited)
+    api.MapGet("/debug/db", (IDb db) =>
+        {
+            try
+            {
+                using var conn = db.CreateConnection();
+                var tables = conn.Query<string>("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").ToList();
+                var userCount = 0;
+                var sampleUsers = new List<string>();
+                if (tables.Contains("users"))
+                {
+                    userCount = conn.ExecuteScalar<int>("SELECT COUNT(*) FROM users");
+                    sampleUsers = conn.Query<string>("SELECT username FROM users LIMIT 5").ToList();
+                }
+        var dbPath = (conn.DataSource ?? string.Empty).ToString();
+        var exists = !string.IsNullOrWhiteSpace(dbPath) && System.IO.File.Exists(dbPath);
+        return Results.Ok(new { db = new { path = dbPath, exists }, tables, users = new { count = userCount, sample = sampleUsers } });
+            }
+            catch (Exception ex)
+            {
+        return Results.Json(new { error = ex.ToString() }, statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+    }
+}
+
+// DTOs
+public record LoginRequest(string Username, string Password);
+public record ProfileUpdate(string FullName, string Email, string Username);
+public record CreateEventRequest(string Title, string? Description, string EventType, int MaxParticipants, string Difficulty, string? Status, string? QrCode, DateTime? EventDate, string? EventTime, string? Location, string? SponsoringOrganization, string? Settings);
+public record EventStatusUpdate(string Status);
+public record ReorderQuestionsRequest(List<string> QuestionOrder);
+public record UpdateQuestion(string Question, string Type, List<string>? Options, string CorrectAnswer, string Difficulty, string? Category, string? Explanation, int? TimeLimit, int? OrderIndex, bool? AiGenerated);
+public record CreateTeamRequest(string Name, int? TableNumber);
+public record JoinEventRequest(string Name, string? TeamAction, string? TeamIdentifier);
+public record SwitchTeamRequest(string? TeamId);
+public record SubmitResponseRequest(string ParticipantId, string QuestionId, string Answer, int? ResponseTime, int? TimeRemaining);
+public record CreateFunFactRequest(string Title, string Content, int? OrderIndex, bool IsActive);
+public record UpdateFunFactRequest(string? Title, string? Content, int? OrderIndex, bool? IsActive);
+public record GenerateCopyRequest(string? Type);
+
+// Simple CORS passthrough to mirror existing behavior
+class CorsFilter : IEndpointFilter
+{
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+    {
+        var res = await next(context);
+        return res;
+    }
+}

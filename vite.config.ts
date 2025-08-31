@@ -4,7 +4,8 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === "production" ? "/TriviaSpark/" : "/",
+  // When building for static GitHub Pages, use "/TriviaSpark/"; otherwise use root
+  base: process.env.STATIC_BUILD === "true" ? "/TriviaSpark/" : "/",
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -17,7 +18,7 @@ export default defineConfig({
     outDir:
       process.env.STATIC_BUILD === "true"
         ? path.resolve(import.meta.dirname, "docs")
-        : path.resolve(import.meta.dirname, "dist/public"),
+        : path.resolve(import.meta.dirname, "TriviaSpark.Api", "wwwroot"),
     emptyOutDir: true,
   },
   server: {

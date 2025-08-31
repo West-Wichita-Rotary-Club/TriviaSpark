@@ -47,7 +47,7 @@ const formatDate = (date: string | null) => {
 
 export default function UpcomingEvents() {
   const { data: events, isLoading } = useQuery<any[]>({
-    queryKey: ["/api/events"],
+    queryKey: ["/api/events/upcoming"],
   });
 
   // Filter events that are in the future (upcoming events)
@@ -71,15 +71,7 @@ export default function UpcomingEvents() {
     });
   }
   
-  const upcomingEvents = events?.filter(event => {
-    if (!event.eventDate) return false;
-    const eventDate = new Date(event.eventDate);
-    return eventDate >= now;
-  }).sort((a, b) => {
-    const dateA = new Date(a.eventDate);
-    const dateB = new Date(b.eventDate);
-    return dateA.getTime() - dateB.getTime(); // Soonest first
-  }).slice(0, 3) || [];
+  const upcomingEvents = (events || []).slice(0, 3);
   
   console.log("Filtered upcoming events:", upcomingEvents);
 

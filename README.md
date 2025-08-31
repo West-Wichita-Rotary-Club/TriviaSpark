@@ -14,7 +14,7 @@ TriviaSpark offers two distinct deployment options:
 | Feature | Local Development | GitHub Pages |
 |---------|------------------|--------------|
 | Database | ✅ SQLite persistent | ❌ Read-only static |
-| Backend Server | ✅ Express.js + WebSocket | ❌ Static files only |
+| Backend Server | ✅ ASP.NET Core Web API + SignalR | ❌ Static files only |
 | Data Persistence | ✅ Changes saved to .db file | ❌ No data persistence |
 | User Authentication | ✅ Sessions & accounts | ❌ No login system |
 | AI Generation | ✅ OpenAI integration | ❌ No backend API |
@@ -55,20 +55,21 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
 
 ### Backend Architecture
 
-- **Express.js** server with TypeScript (ESM)
-- **WebSocket** integration for real-time features
-- **Drizzle ORM** with SQLite database
-- **OpenAI GPT-4o** integration for AI content generation
-- **Google Cloud Storage** for file uploads
-- **Session-based authentication** with secure cookie management
+- **ASP.NET Core 9 Web API** with C#
+- **SignalR** for real-time features (Hub at `/ws`)
+- **SQLite** data store via Dapper
+- **OpenAPI/Swagger** at `/swagger` for live API docs
+- **Session-based authentication** with secure cookies
+- Optional AI integrations (endpoints stubbed where applicable)
 
 ### Database
 
 - **SQLite** with local file storage (`./data/trivia.db`) for development/production
-- **Turso/LibSQL** option for distributed deployments
-- **Drizzle ORM** for type-safe database operations
+- Optional **Turso/LibSQL** for distributed SQLite deployments
+- Backend data access via **Dapper** (C#)
+- Type-safe schema and seeding utilities in the repo use **Drizzle** (TypeScript) for scripts and shared types
 - **Local Persistence**: Data saved between restarts when running locally
-- **Static Deployment**: No database - read-only content embedded in application
+- **Static Deployment**: No database — read-only content embedded in the application
 - Comprehensive schema covering users, events, questions, participants, teams, and analytics
 
 ---
@@ -110,20 +111,25 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
    GOOGLE_CLOUD_STORAGE_BUCKET=your_gcs_bucket_name
    ```
 
-4. **Database setup**
+4. **Database setup (optional)**
 
    ```bash
-   # Create SQLite database schema (no external database required)
+   # Create or update the SQLite schema with Drizzle scripts (optional)
    npm run db:push
    ```
 
-5. **Start development server**
+5. **Start development**
 
    ```bash
-   npm run dev
+   # Option A: Just run the API — it will run npm install/build automatically during build
+   dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
+
+   # Option B: Manually build SPA first, then run the API
+   npm run build
+   dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
    ```
 
-The application will be available at `http://localhost:5000`
+The application will be available at `http://localhost:5000`.
 
 ### Data Persistence
 
@@ -186,24 +192,23 @@ The application will be available at `http://localhost:5000`
 ### Local Development (Full Features)
 
 ```bash
-# Start the complete development environment with SQLite database
-npm run dev
+# Start the API (will also build the SPA into wwwroot during build)
+dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
 
-# Available at: http://localhost:5000
-# Features: Database persistence, WebSocket, AI integration, user accounts
-# Database: ./data/trivia.db (automatically created)
+# App: http://localhost:5000
+# Swagger: http://localhost:5000/swagger
+# SignalR Hub: ws://localhost:5000/ws
+# Database: ./data/trivia.db
 ```
 
 ### Production Build (Full Features)
 
 ```bash
-# Build for production deployment with database
-npm run build
+# Publish the ASP.NET Core API (includes the SPA in wwwroot)
+dotnet publish ./TriviaSpark.Api/TriviaSpark.Api.csproj -c Release
 
-# Start production server
-npm start
-
-# Database: Uses DATABASE_URL from environment
+# Output folder will contain all files needed to deploy the API
+# Database: Uses data/trivia.db (configurable)
 ```
 
 ### Static Demo Build (GitHub Pages)
@@ -235,14 +240,11 @@ TriviaSpark/
 │   │   ├── lib/               # Utility functions and configurations
 │   │   └── pages/             # Page components and routing
 │   └── index.html             # HTML template
-├── server/                     # Backend Express.js application
-│   ├── db.ts                  # Database connection and configuration
-│   ├── index.ts               # Main server entry point
-│   ├── openai.ts              # OpenAI integration
-│   ├── routes.ts              # API route definitions
-│   ├── storage.ts             # Data access layer
-│   ├── vite.ts                # Vite development integration
-│   └── websocket.ts           # WebSocket server implementation
+├── TriviaSpark.Api/            # ASP.NET Core Web API + SignalR (hosts SPA in wwwroot)
+│   ├── Program.cs             # App bootstrap
+│   ├── ApiEndpoints.cs        # Minimal API routes
+│   ├── SignalR/TriviaHub.cs   # SignalR hub (real-time)
+│   └── Services/              # SQLite/Dapper storage and session
 ├── shared/                     # Shared TypeScript types and schemas
 │   └── schema.ts              # Database schema definitions
 ├── docs/                       # Static build output (GitHub Pages)
@@ -305,33 +307,12 @@ Optional OpenAI integration provides:
 
 ## 🌐 API Reference
 
-### REST Endpoints
+### API Surface
 
-#### Authentication
-
-- `POST /api/auth/login` - User authentication
-- `POST /api/auth/logout` - Session termination
-- `GET /api/auth/me` - Current user information
-
-#### Events
-
-- `GET /api/events` - List user events
-- `POST /api/events` - Create new event
-- `GET /api/events/:id` - Get event details
-- `PUT /api/events/:id` - Update event
-- `DELETE /api/events/:id` - Delete event
-
-#### Participants
-
-- `POST /api/events/:id/join` - Join event as participant
-- `GET /api/events/:id/participants` - List event participants
-- `POST /api/events/:id/participants/:participantId/response` - Submit answer
-
-#### Real-time Features
-
-- `ws://localhost:5000/ws` - WebSocket connection for live updates
-
-*Complete API documentation available at `/api-docs` when running the server*
+- REST routes are served under `/api/*` from the ASP.NET Core API
+- Real-time updates via **SignalR** hub at `/ws`
+- Live API docs available at **`/swagger`** when the server is running
+- A complete, versioned API spec is maintained at `copilot/api-spec.md`
 
 ---
 
@@ -357,17 +338,22 @@ Events support customization including:
 
 ## 🚀 Deployment Options
 
-### 1. Full Platform Deployment
+### 1. Full Platform Deployment (ASP.NET Core API + SPA)
 
-**Recommended for**: Complete trivia platform with user accounts and real-time features
+Recommended for complete functionality with real-time features and persistence.
 
-**Platforms**: Vercel, Netlify, Railway, Render, or any Node.js hosting
+Common targets:
 
-**Requirements**:
+- Windows (IIS or Windows Service)
+- Linux (systemd)
+- Docker containers
+- Cloud hosts (e.g., Azure App Service, Render)
 
-- Node.js 18+ environment
-- PostgreSQL database
-- Environment variables configured
+Key steps:
+
+1) `dotnet publish ./TriviaSpark.Api/TriviaSpark.Api.csproj -c Release`
+2) Deploy the publish output folder to your host
+3) Ensure `./data/trivia.db` is writable (or configure an alternate path)
 
 ### 2. Static Demo Deployment
 
@@ -395,7 +381,7 @@ Events support customization including:
 
 ### Development Tools
 
-- **TypeScript** - Full type safety across frontend and backend
+- **TypeScript** - Full type safety across the frontend and shared scripts
 - **ESLint** - Code quality and consistency
 - **Prettier** - Code formatting
 - **Drizzle Kit** - Database migration management
@@ -434,8 +420,8 @@ Events support customization including:
 
 ### Scalability Considerations
 
-- Stateless server design for horizontal scaling
-- Database indexing for query optimization
+- Stateless API instances with sticky sessions when required
+- Database file I/O considerations for SQLite; consider Turso/LibSQL for distributed needs
 - CDN integration for static asset delivery
 - Load balancer compatibility for multi-instance deployment
 

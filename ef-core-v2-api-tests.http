@@ -1,0 +1,375 @@
+# EF Core v2 API Test Suite
+# Complete test coverage for the EF Core migration
+
+@baseUrlV1 = http://localhost:14166/api
+@baseUrlV2 = http://localhost:14166/api/v2
+@testUser = mark
+@testPassword = mark123
+@testEventId = seed-event-coast-to-cascades
+
+### ==========================================================================
+### EF CORE V2 ENDPOINT TESTS
+### ==========================================================================
+
+### Test: EF Core Health Check
+GET {{baseUrlV2}}/health
+Content-Type: application/json
+
+### Test: EF Core Database Debug Info  
+GET {{baseUrlV2}}/debug/db
+Content-Type: application/json
+
+### ==========================================================================
+### AUTHENTICATION TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Login with EF Core v2
+POST {{baseUrlV2}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{testUser}}",
+  "password": "{{testPassword}}"
+}
+
+### Test: Get Current User Profile (EF Core v2)
+# Note: This requires valid session cookie from login above
+GET {{baseUrlV2}}/auth/me
+
+### Test: Update User Profile (EF Core v2)
+# Note: This requires valid session cookie from login above
+PUT {{baseUrlV2}}/auth/profile
+Content-Type: application/json
+
+{
+  "username": "{{testUser}}",
+  "email": "mark@example.com",
+  "displayName": "Mark Test User"
+}
+
+### Test: Logout (EF Core v2)
+POST {{baseUrlV2}}/auth/logout
+
+### ==========================================================================
+### EVENT MANAGEMENT TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Get All Events for Current User (EF Core v2)
+GET {{baseUrlV2}}/events
+
+### Test: Get Active Events (EF Core v2)
+GET {{baseUrlV2}}/events/active
+
+### Test: Get Upcoming Events (EF Core v2)
+GET {{baseUrlV2}}/events/upcoming
+
+### Test: Get Specific Event (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}
+
+### Test: Create New Event (EF Core v2)
+POST {{baseUrlV2}}/events
+Content-Type: application/json
+
+{
+  "name": "EF Core Test Event",
+  "description": "Testing EF Core v2 endpoints",
+  "eventType": "party",
+  "scheduledStart": "2025-09-15T19:00:00.000Z",
+  "theme": "celebration",
+  "maxTeamSize": 6,
+  "requireTeams": true,
+  "allowTeamSwitching": false
+}
+
+### Test: Update Event (EF Core v2)
+PUT {{baseUrlV2}}/events/{{testEventId}}
+Content-Type: application/json
+
+{
+  "name": "Updated Coast to Cascades Event",
+  "description": "Updated via EF Core v2 API",
+  "eventType": "wine_dinner",
+  "scheduledStart": "2025-09-15T19:00:00.000Z",
+  "theme": "wine_country",
+  "maxTeamSize": 8,
+  "requireTeams": true,
+  "allowTeamSwitching": true
+}
+
+### Test: Start Event (EF Core v2)
+POST {{baseUrlV2}}/events/{{testEventId}}/start
+
+### Test: Update Event Status (EF Core v2)
+PATCH {{baseUrlV2}}/events/{{testEventId}}/status
+Content-Type: application/json
+
+{
+  "status": "active"
+}
+
+### ==========================================================================
+### TEAM MANAGEMENT TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Get Teams for Event (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/teams
+
+### Test: Create New Team (EF Core v2)
+POST {{baseUrlV2}}/events/{{testEventId}}/teams
+Content-Type: application/json
+
+{
+  "name": "EF Core Test Team",
+  "description": "Created via EF Core v2 API"
+}
+
+### Test: Get Teams Public View (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/teams-public
+
+### ==========================================================================
+### QUESTION MANAGEMENT TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Get Questions for Event (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/questions
+
+### Test: Update Question (EF Core v2)
+# Note: Replace {questionId} with actual question ID from the event
+PUT {{baseUrlV2}}/questions/{questionId}
+Content-Type: application/json
+
+{
+  "questionText": "Updated question via EF Core v2",
+  "correctAnswer": "Updated answer",
+  "options": ["Option A", "Option B", "Option C", "Updated answer"],
+  "category": "general",
+  "difficulty": "medium",
+  "points": 10
+}
+
+### Test: Reorder Questions (EF Core v2)
+PUT {{baseUrlV2}}/events/{{testEventId}}/questions/reorder
+Content-Type: application/json
+
+{
+  "questionIds": ["question1", "question2", "question3"]
+}
+
+### Test: Generate AI Questions (EF Core v2)
+POST {{baseUrlV2}}/questions/generate
+Content-Type: application/json
+
+{
+  "eventId": "{{testEventId}}",
+  "count": 3,
+  "difficulty": "medium",
+  "category": "oregon",
+  "context": "Oregon travel and tourism"
+}
+
+### Test: Bulk Insert Questions (EF Core v2)
+POST {{baseUrlV2}}/questions/bulk
+Content-Type: application/json
+
+{
+  "eventId": "{{testEventId}}",
+  "questions": [
+    {
+      "questionText": "Bulk Question 1 via EF Core",
+      "correctAnswer": "Answer 1",
+      "options": ["Answer 1", "Wrong 1", "Wrong 2", "Wrong 3"],
+      "category": "test",
+      "difficulty": "easy",
+      "points": 5
+    },
+    {
+      "questionText": "Bulk Question 2 via EF Core",
+      "correctAnswer": "Answer 2",
+      "options": ["Wrong 1", "Answer 2", "Wrong 2", "Wrong 3"],
+      "category": "test",
+      "difficulty": "medium",
+      "points": 10
+    }
+  ]
+}
+
+### Test: Delete Question (EF Core v2)
+# Note: Replace {questionId} with actual question ID
+DELETE {{baseUrlV2}}/questions/{questionId}
+
+### ==========================================================================
+### PARTICIPANT MANAGEMENT TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Get Event Participants (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/participants
+
+### Test: Check Returning Participant (EF Core v2)
+GET {{baseUrlV2}}/events/join/{{testEventId}}/check?participantName=TestParticipant
+
+### Test: Join Event via QR Code (EF Core v2)
+POST {{baseUrlV2}}/events/join/{{testEventId}}
+Content-Type: application/json
+
+{
+  "participantName": "EF Core Test Participant",
+  "teamId": "test-team-id"
+}
+
+### Test: Switch Participant Team (EF Core v2)
+# Note: Replace {participantId} with actual participant ID
+PUT {{baseUrlV2}}/participants/{participantId}/team
+Content-Type: application/json
+
+{
+  "newTeamId": "new-team-id"
+}
+
+### Test: Remove Inactive Participants (EF Core v2)
+DELETE {{baseUrlV2}}/events/{{testEventId}}/participants/inactive
+
+### ==========================================================================
+### RESPONSE MANAGEMENT TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Submit Response (EF Core v2)
+POST {{baseUrlV2}}/responses
+Content-Type: application/json
+
+{
+  "participantId": "test-participant-id",
+  "questionId": "test-question-id",
+  "answer": "Test Answer",
+  "responseTime": 5.5,
+  "points": 10,
+  "isCorrect": true
+}
+
+### ==========================================================================
+### FUN FACTS MANAGEMENT TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Get Fun Facts for Event (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/fun-facts
+
+### Test: Create Fun Fact (EF Core v2)
+POST {{baseUrlV2}}/events/{{testEventId}}/fun-facts
+Content-Type: application/json
+
+{
+  "text": "This fun fact was created via EF Core v2 API!",
+  "category": "test"
+}
+
+### Test: Update Fun Fact (EF Core v2)
+# Note: Replace {funFactId} with actual fun fact ID
+PUT {{baseUrlV2}}/fun-facts/{funFactId}
+Content-Type: application/json
+
+{
+  "text": "This fun fact was updated via EF Core v2 API!",
+  "category": "updated"
+}
+
+### Test: Delete Fun Fact (EF Core v2)
+# Note: Replace {funFactId} with actual fun fact ID
+DELETE {{baseUrlV2}}/fun-facts/{funFactId}
+
+### ==========================================================================
+### ANALYTICS & REPORTING TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Get Event Analytics (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/analytics
+
+### Test: Get Team Leaderboard (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/leaderboard?type=teams
+
+### Test: Get Participant Leaderboard (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/leaderboard?type=participants
+
+### Test: Get Response Summary (EF Core v2)
+GET {{baseUrlV2}}/events/{{testEventId}}/responses/summary
+
+### ==========================================================================
+### AI INTEGRATION TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Generate Event Copy (EF Core v2)
+POST {{baseUrlV2}}/events/{{testEventId}}/generate-copy
+Content-Type: application/json
+
+{
+  "type": "welcome",
+  "tone": "fun",
+  "audience": "wine_enthusiasts"
+}
+
+### ==========================================================================
+### UTILITY & DEBUG TESTS (EF Core v2)
+### ==========================================================================
+
+### Test: Cookie Debug Info (EF Core v2)
+GET {{baseUrlV2}}/debug/cookies
+
+### ==========================================================================
+### COMPARISON TESTS - V1 vs V2
+### ==========================================================================
+
+### Test: Compare Health Check - V1 vs V2
+GET {{baseUrlV1}}/health
+###
+GET {{baseUrlV2}}/health
+
+### Test: Compare Events List - V1 vs V2
+GET {{baseUrlV1}}/events
+###
+GET {{baseUrlV2}}/events
+
+### Test: Compare Event Details - V1 vs V2
+GET {{baseUrlV1}}/events/{{testEventId}}
+###
+GET {{baseUrlV2}}/events/{{testEventId}}
+
+### Test: Compare Teams - V1 vs V2
+GET {{baseUrlV1}}/events/{{testEventId}}/teams
+###
+GET {{baseUrlV2}}/events/{{testEventId}}/teams
+
+### Test: Compare Questions - V1 vs V2
+GET {{baseUrlV1}}/events/{{testEventId}}/questions
+###
+GET {{baseUrlV2}}/events/{{testEventId}}/questions
+
+### Test: Compare Participants - V1 vs V2
+GET {{baseUrlV1}}/events/{{testEventId}}/participants
+###
+GET {{baseUrlV2}}/events/{{testEventId}}/participants
+
+### Test: Compare Fun Facts - V1 vs V2
+GET {{baseUrlV1}}/events/{{testEventId}}/fun-facts
+###
+GET {{baseUrlV2}}/events/{{testEventId}}/fun-facts
+
+### ==========================================================================
+### NOTES FOR TESTING
+### ==========================================================================
+
+# 1. Start the server: npm run dev
+# 2. Login first to get session cookies for authenticated endpoints
+# 3. Replace placeholder IDs with actual IDs from your database
+# 4. Some endpoints require specific data to exist (events, teams, etc.)
+# 5. Use the comparison tests to verify v1 and v2 return identical results
+# 6. Monitor server logs for any EF Core vs Dapper performance differences
+# 7. Check that all EF Core endpoints return proper error codes for invalid requests
+
+### ==========================================================================
+### PERFORMANCE TESTING NOTES
+### ==========================================================================
+
+# For performance testing, consider:
+# 1. Time each request to compare v1 (Dapper) vs v2 (EF Core) performance
+# 2. Test with larger datasets to evaluate query efficiency
+# 3. Monitor memory usage during bulk operations
+# 4. Test concurrent requests to validate async patterns
+# 5. Verify proper connection pooling under load

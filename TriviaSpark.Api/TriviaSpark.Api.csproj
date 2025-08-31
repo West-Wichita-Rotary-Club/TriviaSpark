@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.8" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+        <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.8" />
+        <!-- Dapper removed - migration to EF Core complete! -->
+        <!-- <PackageReference Include="Dapper" Version="2.1.35" /> -->
+        <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.7" />
+        <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.10" />
+    </ItemGroup>
+
+    <!-- Temporarily disabled build steps for testing -->
+    <!-- <Target Name="NpmInstall" BeforeTargets="Build;Publish">
+        <Message Importance="high" Text="Running npm install..." />
+        <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+    </Target>
+
+    <Target Name="NpmBuild" BeforeTargets="Build;Publish" DependsOnTargets="NpmInstall">
+        <Message Importance="high" Text="Building React SPA into wwwroot..." />
+        <Exec Command="npm run build" WorkingDirectory="$(MSBuildProjectDirectory)\.." />
+    </Target> -->
+</Project>

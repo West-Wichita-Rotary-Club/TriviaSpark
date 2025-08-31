@@ -1,0 +1,49 @@
+using System.Data;
+// using Dapper; // Disabled - migrated to EF Core
+using Microsoft.Data.Sqlite;
+
+namespace TriviaSpark.Api.Services;
+
+public interface IDb
+{
+    SqliteConnection CreateConnection();
+}
+
+public class SqliteDb : IDb
+{
+    private readonly string _dbPath;
+
+    public SqliteDb(IHostEnvironment env)
+    {
+        // Use repo-relative path ..\data\trivia.db
+        var root = Directory.GetParent(env.ContentRootPath)!.FullName;
+        _dbPath = Path.Combine(root, "data", "trivia.db");
+    }
+
+    public SqliteConnection CreateConnection()
+    {
+        var cs = new SqliteConnectionStringBuilder
+        {
+            DataSource = _dbPath
+        }.ToString();
+        var conn = new SqliteConnection(cs);
+        // Ensure the connection is opened before usage to avoid runtime errors with Dapper/transactions
+        conn.Open();
+        // Enable foreign keys for SQLite sessions
+        using (var cmd = conn.CreateCommand())
+        {
+            cmd.CommandText = "PRAGMA foreign_keys = ON;";
+            cmd.ExecuteNonQuery();
+        }
+        return conn;
+    }
+}
+
+public static class DapperExt
+{
+    public static async Task<T?> QuerySingleOrDefaultAsyncSafe<T>(this IDbConnection conn, string sql, object? param = null)
+    {
+        var rows = await conn.QueryAsync<T>(sql, param);
+        return rows.FirstOrDefault();
+    }
+}

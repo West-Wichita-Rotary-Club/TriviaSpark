@@ -7,21 +7,21 @@ High-level system overview for the Event Trivia Application.
 ## Overview
 
 - Real-time event trivia: admin, player, and presentation UIs
-- Backend: Express.js + TypeScript (ESM) + WebSocket + SQLite + Drizzle ORM
+- Backend: ASP.NET Core 9 Web API (C#) + SignalR + SQLite (Dapper)
 - Frontend: React 19 + TypeScript 5 + Vite 7 + Tailwind 3 + shadcn/ui + TanStack Query
 - Dev: Cross-platform (VS Code recommended)
-- Deploy: Node.js hosting (Vercel, Railway, Render) or GitHub Pages (static)
+- Deploy: ASP.NET Core hosting (IIS, Linux systemd, Docker, Azure App Service) or GitHub Pages (static demo)
 
 ### Hosting model
 
-- Single-origin SPA + API: the SPA is built via Vite and served by Express alongside REST/WebSocket endpoints
+- Single-origin SPA + API: the SPA is built via Vite and served by ASP.NET Core alongside REST/SignalR endpoints
 - SPA fallback to `index.html` ensures deep links work
 - Dual deployment modes: Full-featured (with database) or Static demo (GitHub Pages)
 
 ## Core principles
 
-- Backend first; API-driven with Express.js and TypeScript
-- Real-time via WebSocket connections; event-based updates per eventId
+- Backend first; API-driven with ASP.NET Core minimal APIs
+- Real-time via SignalR; event-based updates per eventId
 - Mobile-first UI; accessibility and performance optimized
 - JSON APIs only; structured error responses with proper HTTP status codes
 
@@ -29,7 +29,7 @@ High-level system overview for the Event Trivia Application.
 
 - User, Event, Question, Team, Participant, Response, Session
 - Relationships: Event -> Questions; Team -> Participants -> Responses; Event <-> Teams
-- SQLite with Drizzle ORM for type-safe database operations
+- SQLite; Dapper in the API for data access. Drizzle used in scripts and shared types for FE.
 
 ## Key flows
 
@@ -46,14 +46,14 @@ High-level system overview for the Event Trivia Application.
 
 ## Performance & reliability
 
-- Drizzle ORM with prepared statements; optimized queries for performance
-- WebSocket connection management with automatic reconnection
+- Dapper-based queries with prepared statements where relevant
+- SignalR connection management with automatic reconnection on the client
 - Session-based authentication with secure cookie management
 - Error boundaries and graceful degradation
 
 ## Security
 
-- Input validation with Zod schemas
+- Input validation via DTOs and guards in API code; Zod is used on the frontend where applicable
 - Session-based authentication with HTTP-only cookies
 - No secrets in source code; environment variable configuration
 - Rate limiting and request validation

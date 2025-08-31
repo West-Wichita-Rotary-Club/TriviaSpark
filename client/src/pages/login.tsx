@@ -59,7 +59,9 @@ export default function Login() {
         }
         
         if (!response.ok) {
-          throw new Error(responseData.error || "Login failed");
+          const msg = responseData?.error || "Login failed";
+          const detail = responseData?.detail ? `: ${responseData.detail}` : "";
+          throw new Error(`${msg}${detail}`);
         }
         
         return responseData;

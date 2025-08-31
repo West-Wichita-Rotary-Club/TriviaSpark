@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Bell, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useApiHealth } from "@/hooks/useHealth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
@@ -13,6 +14,7 @@ type User = {
 };
 
 export default function Header() {
+  const { status } = useApiHealth(30000);
   // Check authentication status (gracefully handle 401 by returning null)
   const { data: user } = useQuery<{ user: User } | null>({
     queryKey: ["/api/auth/me"],
@@ -47,6 +49,18 @@ export default function Header() {
           </Link>
           
           <div className="flex items-center space-x-4">
+            {/* Health badge */}
+            <span
+              className={`text-xs px-2 py-1 rounded-full border inline-flex items-center gap-1 ${
+                status.ok ? "text-green-700 border-green-300 bg-green-50" : "text-red-700 border-red-300 bg-red-50"
+              }`}
+              title={status.ok ? `API healthy • ${status.time ?? "now"}` : "API unreachable"}
+              data-testid="badge-health"
+              aria-live="polite"
+            >
+              <span className={`h-2 w-2 rounded-full ${status.ok ? "bg-green-500" : "bg-red-500"}`} />
+              {status.ok ? "Online" : "Offline"}
+            </span>
             <Button 
               variant="ghost" 
               size="sm" 

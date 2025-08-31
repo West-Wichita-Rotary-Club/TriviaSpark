@@ -1,0 +1,64 @@
+using Microsoft.AspNetCore.SignalR;
+using TriviaSpark.Api.Services;
+
+namespace TriviaSpark.Api.SignalR;
+
+public record WsMessage(string Type, string? EventId, object? Data, long Timestamp);
+
+public class TriviaHub : Hub
+{
+    private readonly IStorage _storage;
+    public TriviaHub(IStorage storage) => _storage = storage;
+
+    public override async Task OnConnectedAsync()
+    {
+        var http = Context.GetHttpContext();
+        var eventId = http?.Request.Query["eventId"].ToString();
+        var role = http?.Request.Query["role"].ToString() ?? "participant";
+        if (!string.IsNullOrEmpty(eventId))
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, eventId);
+        }
+        await Clients.Caller.SendAsync("message", new WsMessage("connection_confirmed", eventId, new { eventId, role }, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+        await base.OnConnectedAsync();
+    }
+
+    public async Task JoinEvent(string eventId, string? participantId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, eventId);
+        await Clients.Group(eventId).SendAsync("message", new WsMessage("participant_joined", eventId, new { participantId }, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    }
+
+    public async Task ParticipantAnswer(string eventId, string questionId, string selectedAnswer, string? participantId)
+    {
+        await Clients.Group(eventId).SendAsync("message", new WsMessage("answer_selected", eventId, new { participantId, questionId, selectedAnswer, isLocked = false }, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    }
+
+    public async Task LockAnswer(string eventId, string questionId, string selectedAnswer, int timeRemaining, string participantId)
+    {
+        var q = await _storage.GetQuestion(questionId);
+        var isCorrect = q != null && string.Equals(q.CorrectAnswer?.Trim(), selectedAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+        var points = 0;
+        if (isCorrect && timeRemaining > 0)
+        {
+            points = timeRemaining >= 20 ? 20 : timeRemaining >= 15 ? 15 : timeRemaining >= 10 ? 10 : timeRemaining >= 5 ? 5 : 1;
+        }
+        await _storage.CreateResponse(new ResponseRow(Guid.NewGuid().ToString(), participantId, questionId, selectedAnswer, isCorrect ? 1 : 0, points, null, timeRemaining, DateTime.UtcNow));
+        await Clients.Group(eventId).SendAsync("message", new WsMessage("answer_locked", eventId, new { participantId, questionId, selectedAnswer, score = points, timeRemaining, isCorrect }, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    }
+
+    public async Task NextQuestion(string eventId, int questionIndex, object question, int timeLimit)
+    {
+        await Clients.Group(eventId).SendAsync("message", new WsMessage("question_started", eventId, new { questionIndex, question, timeLimit }, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    }
+
+    public async Task TimerUpdate(string eventId, int timeLeft, bool finalCountdown)
+    {
+        await Clients.Group(eventId).SendAsync("message", new WsMessage("timer_update", eventId, new { timeLeft, finalCountdown }, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    }
+
+    public async Task EventStatusChange(string eventId, string status, string? message)
+    {
+        await Clients.Group(eventId).SendAsync("message", new WsMessage("event_status_changed", eventId, new { status, message }, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+    }
+}

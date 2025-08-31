@@ -38,8 +38,9 @@ const Loading = () => (
 );
 
 function App() {
-  // Configure base path for GitHub Pages - simplify this
-  const basePath = import.meta.env.PROD ? '/TriviaSpark' : '';
+  // Use Vite's BASE_URL to derive router base; '/' -> '' else trim trailing slash
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const basePath = baseUrl === '/' ? '' : baseUrl.replace(/\/$/, '');
 
   return (
     <Router base={basePath}>
@@ -51,14 +52,11 @@ function App() {
                 <Suspense fallback={<Loading />}>
                   <Switch>
                     {/* Home page */}
-                    <Route path="/">
-                      {() => {
-                        // For static builds (GitHub Pages), always show the demo
-                        if (import.meta.env.PROD) {
-                          return <StaticPresenterDemo />;
-                        }
-                        return <Home />;
-                      }}
+                    <Route path="/" component={Home} />
+
+                    {/* Some hosts may request /index.html explicitly; treat as home */}
+                    <Route path="/index.html">
+                      {() => (import.meta.env.BASE_URL !== '/' ? <StaticPresenterDemo /> : <Home />)}
                     </Route>
                     
                     {/* Demo routes */}
@@ -152,7 +150,7 @@ function App() {
                     <Route path="/api-docs" component={ApiDocs} />
                     
                     {/* 404 route */}
-                    <Route component={NotFound} />
+                    <Route path="*" component={NotFound} />
                   </Switch>
                 </Suspense>
               </main>

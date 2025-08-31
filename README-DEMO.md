@@ -4,7 +4,7 @@ This repository includes a static demo version of TriviaSpark that can be deploy
 
 ## 🚀 Live Demo
 
-The demo is automatically deployed to GitHub Pages at: `https://sharesmallbiz-support.github.io/TriviaSpark/`
+The demo is automatically deployed to GitHub Pages at: `https://west-wichita-rotary-club.github.io/TriviaSpark/`
 
 ## 📁 Project Structure
 
@@ -26,7 +26,7 @@ This command:
 1. Sets environment variables for production and static build
 2. Builds the React app with Vite
 3. Outputs static files to the `/docs` directory
-4. Configures the correct base path for GitHub Pages
+4. Configures the correct base path for GitHub Pages (/TriviaSpark/)
 
 ## 🔧 GitHub Pages Configuration
 

@@ -1,0 +1,45 @@
+# EF Core vs Dapper Comparison Test
+
+@scheme = http
+@host = localhost
+@port = 14166
+@baseUrl = {{scheme}}://{{host}}:{{port}}
+@seedEventId = seed-event-coast-to-cascades
+
+###
+# Login first
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+# Test Dapper Teams (original)
+GET {{baseUrl}}/api/events/{{seedEventId}}/teams
+
+###
+# Test EF Core Teams (new)
+GET {{baseUrl}}/api/efcore/events/{{seedEventId}}/teams
+
+###
+# Test Dapper Questions (original)
+GET {{baseUrl}}/api/events/{{seedEventId}}/questions
+
+###
+# Test EF Core Questions (new)
+GET {{baseUrl}}/api/efcore/events/{{seedEventId}}/questions
+
+###
+# Test Dapper Fun Facts (original)
+GET {{baseUrl}}/api/events/{{seedEventId}}/fun-facts
+
+###
+# Test EF Core Fun Facts (new)
+GET {{baseUrl}}/api/efcore/events/{{seedEventId}}/fun-facts
+
+###
+# Test EF Core Participants (new)
+GET {{baseUrl}}/api/efcore/events/{{seedEventId}}/participants

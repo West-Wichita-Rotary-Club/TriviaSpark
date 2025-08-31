@@ -1,0 +1,195 @@
+# TriviaSpark API Test Suite (.http)
+#
+# Usage: Install VS Code "REST Client" extension. Execute each request (Ctrl/Cmd+Alt+R).
+# Note: Enable cookie jar in settings for session auth (rest-client.enableCookieJarSupport = true).
+
+@scheme = http
+@host = localhost
+@port = 14166
+@baseUrl = {{scheme}}://{{host}}:{{port}}
+
+# Seed/demo defaults
+@username = mark
+@password = mark123
+@seedEventId = seed-event-coast-to-cascades
+@seedQrCode = rotary-cascades-2025
+
+###
+# Health check
+GET {{baseUrl}}/api/health
+
+###
+# DB debug snapshot
+GET {{baseUrl}}/api/debug/db
+
+###
+# Login (stores cookies in jar)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+###
+# Current user (requires login cookie)
+GET {{baseUrl}}/api/auth/me
+
+###
+# List all events for current host
+GET {{baseUrl}}/api/events
+
+###
+# Upcoming events (server-side filtered)
+GET {{baseUrl}}/api/events/upcoming
+
+###
+# Active events for current host
+GET {{baseUrl}}/api/events/active
+
+###
+# Create a new event
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+
+{
+  "title": "Sample Trivia Night",
+  "description": "Quick test event",
+  "hostId": "placeholder-replaced-by-server",
+  "eventType": "corporate",
+  "maxParticipants": 40,
+  "difficulty": "mixed",
+  "status": "draft",
+  "eventDate": "{{now}}",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue",
+  "sponsoringOrganization": "TriviaSpark"
+}
+
+###
+# Get seeded event (public demo-friendly in some implementations; otherwise requires login)
+GET {{baseUrl}}/api/events/{{seedEventId}}
+
+###
+# Questions for seeded event
+GET {{baseUrl}}/api/events/{{seedEventId}}/questions
+
+###
+# Fun facts for seeded event
+GET {{baseUrl}}/api/events/{{seedEventId}}/fun-facts
+
+###
+# Teams for seeded event (host-only)
+GET {{baseUrl}}/api/events/{{seedEventId}}/teams
+
+###
+# Generate questions with AI for an event (replace eventId if needed)
+POST {{baseUrl}}/api/questions/generate
+Content-Type: application/json
+
+{
+  "eventId": "{{seedEventId}}",
+  "topic": "Rotary & Oregon Wine",
+  "type": "multiple_choice",
+  "count": 3
+}
+
+###
+# Bulk insert questions
+POST {{baseUrl}}/api/questions/bulk
+Content-Type: application/json
+
+{
+  "eventId": "{{seedEventId}}",
+  "questions": [
+    {
+      "question": "Sample MCQ #1?",
+      "type": "multiple_choice",
+      "options": ["A","B","C","D"],
+      "correctAnswer": "A",
+      "difficulty": "easy"
+    },
+    {
+      "question": "Sample TF: Rotary motto is Service Above Self.",
+      "type": "true_false",
+      "options": ["True","False"],
+      "correctAnswer": "True",
+      "difficulty": "easy"
+    }
+  ]
+}
+
+###
+# Reorder questions (provide actual IDs in desired order)
+PUT {{baseUrl}}/api/events/{{seedEventId}}/questions/reorder
+Content-Type: application/json
+
+{
+  "questionOrder": [
+    "q1-wine-regions",
+    "q2-rotary-service",
+    "q3-pacific-northwest"
+  ]
+}
+
+###
+# Start event (lock team switching)
+POST {{baseUrl}}/api/events/{{seedEventId}}/start
+
+###
+# Update event status
+PATCH {{baseUrl}}/api/events/{{seedEventId}}/status
+Content-Type: application/json
+
+{
+  "status": "active"
+}
+
+###
+# Event analytics
+GET {{baseUrl}}/api/events/{{seedEventId}}/analytics
+
+###
+# Leaderboard (teams)
+GET {{baseUrl}}/api/events/{{seedEventId}}/leaderboard?type=teams
+
+###
+# Leaderboard (participants)
+GET {{baseUrl}}/api/events/{{seedEventId}}/leaderboard?type=participants
+
+###
+# Response summary
+GET {{baseUrl}}/api/events/{{seedEventId}}/responses/summary
+
+###
+# Participant: check returning (requires participant cookie; likely 404 initially)
+GET {{baseUrl}}/api/events/join/{{seedQrCode}}/check
+
+###
+# Participant: join event via QR code
+POST {{baseUrl}}/api/events/join/{{seedQrCode}}
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "teamAction": "create",
+  "teamIdentifier": "5"
+}
+
+###
+# After join: switch participant team (fill in participantId and teamId from previous responses)
+PUT {{baseUrl}}/api/participants/{{participantId}}/team
+Content-Type: application/json
+
+{
+  "teamId": "{{teamId}}"
+}
+
+###
+# Debug cookies
+GET {{baseUrl}}/api/debug/cookies
+
+###
+# Logout
+POST {{baseUrl}}/api/auth/logout

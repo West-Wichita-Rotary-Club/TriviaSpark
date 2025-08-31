@@ -1,0 +1,488 @@
+using System.Data;
+// using Dapper; // Disabled - migrated to EF Core
+
+namespace TriviaSpark.Api.Services;
+
+public class User
+{
+    public string Id { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+}
+// EventRow modeled as a POCO for Dapper mapping.
+// All timestamps are stored as Unix epoch milliseconds in the database.
+public class EventRow
+{
+    public string Id { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string HostId { get; set; } = string.Empty;
+    public string EventType { get; set; } = string.Empty;
+    public int MaxParticipants { get; set; }
+    public string Difficulty { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public string? QrCode { get; set; }
+    public long? EventDate { get; set; } // epoch ms
+    public string? EventTime { get; set; }
+    public string? Location { get; set; }
+    public string? SponsoringOrganization { get; set; }
+    public string? Settings { get; set; }
+    public long CreatedAt { get; set; } // epoch ms
+    public long? StartedAt { get; set; } // epoch ms
+    public long? CompletedAt { get; set; } // epoch ms
+}
+// Use a POCO for Dapper to materialize without requiring an exact ctor signature.
+// Timestamps stored as epoch ms for consistency with other rows.
+public class QuestionRow
+{
+    public string Id { get; set; } = string.Empty;
+    public string EventId { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
+    public string Question { get; set; } = string.Empty;
+    public string? Options { get; set; }
+    public string? CorrectAnswer { get; set; }
+    public string? Explanation { get; set; }
+    public int Points { get; set; }
+    public int TimeLimit { get; set; }
+    public string Difficulty { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public string? BackgroundImageUrl { get; set; }
+    public long AiGenerated { get; set; }
+    public int OrderIndex { get; set; }
+    public long CreatedAt { get; set; }
+}
+public record TeamRow(string Id, string EventId, string Name, long? TableNumber, long MaxMembers, string CreatedAt);
+public record ParticipantRow(string Id, string EventId, string? TeamId, string Name, string ParticipantToken, string JoinedAt, string LastActiveAt, long IsActive, long CanSwitchTeam);
+public record ResponseRow(string Id, string ParticipantId, string QuestionId, string Answer, long IsCorrect, int Points, int? ResponseTime, int? TimeRemaining, DateTime SubmittedAt);
+
+public class FunFactRow
+{
+    public string Id { get; set; } = string.Empty;
+    public string EventId { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public long OrderIndex { get; set; }
+    public long IsActive { get; set; }
+    public string CreatedAt { get; set; } = string.Empty;
+}
+
+public interface IStorage
+{
+    // Users
+    Task<User?> GetUserByUsername(string username);
+    Task<User?> GetUser(string id);
+    Task<User?> UpdateUser(string id, string fullName, string email, string username);
+
+    // Events
+    Task<IEnumerable<EventRow>> GetEventsByHost(string hostId);
+    Task<IEnumerable<EventRow>> GetActiveEvents(string hostId);
+    Task<IEnumerable<EventRow>> GetUpcomingEvents(string hostId, long? fromEpochMs = null);
+    Task<EventRow?> GetEvent(string eventId);
+    Task<EventRow> CreateEvent(EventRow e);
+    Task<EventRow?> UpdateEvent(string id, object update);
+    Task<EventRow?> UpdateEventStatus(string id, string status);
+    Task LockTeamSwitching(string eventId);
+
+    // Questions
+    Task<IEnumerable<QuestionRow>> GetQuestionsByEvent(string eventId);
+    Task<QuestionRow?> GetQuestion(string questionId);
+    Task<IEnumerable<QuestionRow>> CreateQuestions(IEnumerable<QuestionRow> questions);
+    Task<QuestionRow?> UpdateQuestion(string id, object update);
+    Task<bool> DeleteQuestion(string id);
+
+    // Teams/Participants
+    Task<IEnumerable<TeamRow>> GetTeamsByEvent(string eventId);
+    Task<TeamRow> CreateTeam(TeamRow team);
+    Task<TeamRow?> GetTeam(string id);
+    Task<TeamRow?> GetTeamByNameOrTable(string eventId, string key);
+    Task<IEnumerable<ParticipantRow>> GetParticipantsByTeam(string teamId);
+    Task<IEnumerable<ParticipantRow>> GetParticipantsByEvent(string eventId);
+    Task<ParticipantRow> CreateParticipant(ParticipantRow p);
+    Task<ParticipantRow?> GetParticipantByToken(string token);
+    Task<ParticipantRow?> SwitchParticipantTeam(string participantId, string? teamId);
+    Task<bool> DeleteParticipant(string id);
+
+    // Responses
+    Task<IEnumerable<ResponseRow>> GetResponsesByQuestion(string questionId);
+    Task<IEnumerable<ResponseRow>> GetResponsesByParticipant(string participantId);
+    Task<ResponseRow> CreateResponse(ResponseRow r);
+
+    // Fun Facts
+    Task<IEnumerable<FunFactRow>> GetFunFactsByEvent(string eventId);
+    Task<FunFactRow> CreateFunFact(FunFactRow f);
+    Task<FunFactRow?> GetFunFact(string id);
+    Task<FunFactRow?> UpdateFunFact(string id, object update);
+    Task<bool> DeleteFunFact(string id);
+
+    // Dashboard
+    Task<object> GetEventStats(string hostId);
+}
+
+public class Storage : IStorage
+{
+    private readonly IDb _db;
+    public Storage(IDb db) => _db = db;
+
+    public async Task<User?> GetUserByUsername(string username)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = "SELECT id Id, username Username, email Email, password Password, full_name FullName, created_at CreatedAt FROM users WHERE username = @username LIMIT 1";
+        return await conn.QuerySingleOrDefaultAsync<User>(sql, new { username });
+    }
+
+    public async Task<User?> GetUser(string id)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = "SELECT id Id, username Username, email Email, password Password, full_name FullName, created_at CreatedAt FROM users WHERE id = @id LIMIT 1";
+        return await conn.QuerySingleOrDefaultAsync<User>(sql, new { id });
+    }
+
+    public async Task<User?> UpdateUser(string id, string fullName, string email, string username)
+    {
+        using var conn = _db.CreateConnection();
+        using var tx = conn.BeginTransaction();
+        await conn.ExecuteAsync("UPDATE users SET full_name=@fullName, email=@email, username=@username WHERE id=@id", new { id, fullName, email, username }, tx);
+        var user = await conn.QuerySingleOrDefaultAsync<User>("SELECT id Id, username Username, email Email, password Password, full_name FullName, created_at CreatedAt FROM users WHERE id=@id", new { id }, tx);
+        tx.Commit();
+        return user;
+    }
+
+    public async Task<IEnumerable<EventRow>> GetEventsByHost(string hostId)
+    {
+        using var conn = _db.CreateConnection();
+    var sql = @"SELECT id Id, title Title, description Description, host_id HostId, event_type EventType, max_participants MaxParticipants, difficulty Difficulty, status Status, qr_code QrCode,
+event_date EventDate,
+event_time EventTime, location Location, sponsoring_organization SponsoringOrganization, settings Settings,
+created_at CreatedAt, started_at StartedAt, completed_at CompletedAt
+FROM events WHERE host_id = @hostId ORDER BY created_at DESC";
+        return await conn.QueryAsync<EventRow>(sql, new { hostId });
+    }
+
+    public async Task<IEnumerable<EventRow>> GetActiveEvents(string hostId)
+    {
+        using var conn = _db.CreateConnection();
+    var sql = @"SELECT id Id, title Title, description Description, host_id HostId, event_type EventType, max_participants MaxParticipants, difficulty Difficulty, status Status, qr_code QrCode,
+event_date EventDate,
+event_time EventTime, location Location, sponsoring_organization SponsoringOrganization, settings Settings,
+created_at CreatedAt, started_at StartedAt, completed_at CompletedAt
+FROM events WHERE host_id = @hostId AND status='active' ORDER BY created_at DESC";
+        return await conn.QueryAsync<EventRow>(sql, new { hostId });
+    }
+
+    public async Task<IEnumerable<EventRow>> GetUpcomingEvents(string hostId, long? fromEpochMs = null)
+    {
+        using var conn = _db.CreateConnection();
+        // Use provided epoch ms or current UTC now in ms
+        var fromMs = fromEpochMs ?? DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var sql = @"SELECT id Id, title Title, description Description, host_id HostId, event_type EventType, max_participants MaxParticipants, difficulty Difficulty, status Status, qr_code QrCode,
+event_date EventDate,
+event_time EventTime, location Location, sponsoring_organization SponsoringOrganization, settings Settings,
+created_at CreatedAt, started_at StartedAt, completed_at CompletedAt
+FROM events
+WHERE host_id = @hostId AND event_date IS NOT NULL AND event_date >= @fromMs
+ORDER BY event_date ASC
+LIMIT 10";
+        return await conn.QueryAsync<EventRow>(sql, new { hostId, fromMs });
+    }
+
+    public async Task<EventRow?> GetEvent(string eventId)
+    {
+        using var conn = _db.CreateConnection();
+    var sql = @"SELECT id Id, title Title, description Description, host_id HostId, event_type EventType, max_participants MaxParticipants, difficulty Difficulty, status Status, qr_code QrCode,
+event_date EventDate,
+event_time EventTime, location Location, sponsoring_organization SponsoringOrganization, settings Settings,
+created_at CreatedAt, started_at StartedAt, completed_at CompletedAt
+FROM events WHERE id = @eventId LIMIT 1";
+        return await conn.QuerySingleOrDefaultAsync<EventRow>(sql, new { eventId });
+    }
+
+    public async Task<EventRow> CreateEvent(EventRow e)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"INSERT INTO events (id, title, description, host_id, event_type, max_participants, difficulty, status, qr_code, event_date, event_time, location, sponsoring_organization, settings, created_at, started_at, completed_at)
+VALUES (@Id, @Title, @Description, @HostId, @EventType, @MaxParticipants, @Difficulty, @Status, @QrCode, @EventDate, @EventTime, @Location, @SponsoringOrganization, @Settings, @CreatedAt, @StartedAt, @CompletedAt);";
+        await conn.ExecuteAsync(sql, e);
+        return e;
+    }
+
+    public async Task<EventRow?> UpdateEvent(string id, object update)
+    {
+        using var conn = _db.CreateConnection();
+        // Very simple patcher: whitelist a few fields
+        var allowed = new[] { "title", "description", "event_type", "max_participants", "difficulty", "status", "event_date", "event_time", "location", "sponsoring_organization", "settings" };
+        var dict = update.GetType().GetProperties().ToDictionary(p => p.Name, p => p.GetValue(update));
+        var setClauses = new List<string>();
+        var dyn = new DynamicParameters(new { id });
+        foreach (var kv in dict)
+        {
+            var key = kv.Key;
+            var dbKey = key switch
+            {
+                "title" => "title",
+                "description" => "description",
+                "eventType" => "event_type",
+                "maxParticipants" => "max_participants",
+                "difficulty" => "difficulty",
+                "status" => "status",
+                "eventDate" => "event_date",
+                "eventTime" => "event_time",
+                "location" => "location",
+                "sponsoringOrganization" => "sponsoring_organization",
+                "settings" => "settings",
+                _ => null
+            };
+            if (dbKey != null && allowed.Contains(dbKey))
+            {
+                setClauses.Add($"{dbKey}=@{dbKey}");
+                dyn.Add(dbKey, kv.Value);
+            }
+        }
+        if (setClauses.Count == 0) return await GetEvent(id);
+        var sql = $"UPDATE events SET {string.Join(",", setClauses)} WHERE id=@id";
+        await conn.ExecuteAsync(sql, dyn);
+        return await GetEvent(id);
+    }
+
+    public async Task<EventRow?> UpdateEventStatus(string id, string status)
+    {
+        using var conn = _db.CreateConnection();
+    // Keep started_at as epoch ms when activating
+    await conn.ExecuteAsync("UPDATE events SET status=@status, started_at = CASE WHEN @status='active' THEN (CAST(strftime('%s','now') AS INTEGER) * 1000) ELSE started_at END WHERE id=@id", new { id, status });
+        return await GetEvent(id);
+    }
+
+    public async Task LockTeamSwitching(string eventId)
+    {
+        using var conn = _db.CreateConnection();
+        await conn.ExecuteAsync("UPDATE participants SET can_switch_team = 0 WHERE event_id=@eventId", new { eventId });
+    }
+
+    public async Task<IEnumerable<QuestionRow>> GetQuestionsByEvent(string eventId)
+    {
+        using var conn = _db.CreateConnection();
+    var sql = @"SELECT id Id, event_id EventId, type Type, question Question, options Options, correct_answer CorrectAnswer, explanation Explanation, points Points, time_limit TimeLimit, difficulty Difficulty, category Category, background_image_url BackgroundImageUrl, ai_generated AiGenerated, order_index OrderIndex, CAST(created_at AS INTEGER) CreatedAt FROM questions WHERE event_id = @eventId ORDER BY order_index ASC";
+        return await conn.QueryAsync<QuestionRow>(sql, new { eventId });
+    }
+
+    public async Task<QuestionRow?> GetQuestion(string questionId)
+    {
+        using var conn = _db.CreateConnection();
+    var sql = @"SELECT id Id, event_id EventId, type Type, question Question, options Options, correct_answer CorrectAnswer, explanation Explanation, points Points, time_limit TimeLimit, difficulty Difficulty, category Category, background_image_url BackgroundImageUrl, ai_generated AiGenerated, order_index OrderIndex, CAST(created_at AS INTEGER) CreatedAt FROM questions WHERE id = @questionId LIMIT 1";
+        return await conn.QuerySingleOrDefaultAsync<QuestionRow>(sql, new { questionId });
+    }
+
+    public async Task<IEnumerable<QuestionRow>> CreateQuestions(IEnumerable<QuestionRow> questions)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"INSERT INTO questions (id, event_id, type, question, options, correct_answer, explanation, points, time_limit, difficulty, category, background_image_url, ai_generated, order_index, created_at)
+VALUES (@Id, @EventId, @Type, @Question, @Options, @CorrectAnswer, @Explanation, @Points, @TimeLimit, @Difficulty, @Category, @BackgroundImageUrl, @AiGenerated, @OrderIndex, @CreatedAt);";
+        await conn.ExecuteAsync(sql, questions);
+        return questions;
+    }
+
+    public async Task<QuestionRow?> UpdateQuestion(string id, object update)
+    {
+        using var conn = _db.CreateConnection();
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { {"question","question"},{"type","type"},{"options","options"},{"correctAnswer","correct_answer"},{"difficulty","difficulty"},{"category","category"},{"explanation","explanation"},{"timeLimit","time_limit"},{"orderIndex","order_index"},{"aiGenerated","ai_generated"} };
+        var props = update.GetType().GetProperties();
+        var set = new List<string>();
+        var dyn = new DynamicParameters(new { id });
+        foreach (var p in props)
+        {
+            if (!map.TryGetValue(p.Name, out var col)) continue;
+            set.Add($"{col}=@{col}");
+            dyn.Add(col, p.GetValue(update));
+        }
+        if (set.Count == 0) return await GetQuestion(id);
+        await conn.ExecuteAsync($"UPDATE questions SET {string.Join(",", set)} WHERE id=@id", dyn);
+        return await GetQuestion(id);
+    }
+
+    public async Task<bool> DeleteQuestion(string id)
+    {
+        using var conn = _db.CreateConnection();
+        var rows = await conn.ExecuteAsync("DELETE FROM questions WHERE id=@id", new { id });
+        return rows > 0;
+    }
+
+    public async Task<IEnumerable<TeamRow>> GetTeamsByEvent(string eventId)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, event_id EventId, name Name, table_number TableNumber, max_members MaxMembers, created_at CreatedAt FROM teams WHERE event_id=@eventId ORDER BY name";
+        return await conn.QueryAsync<TeamRow>(sql, new { eventId });
+    }
+
+    public async Task<TeamRow> CreateTeam(TeamRow team)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"INSERT INTO teams (id, event_id, name, table_number, max_members, created_at) VALUES (@Id, @EventId, @Name, @TableNumber, @MaxMembers, @CreatedAt)";
+        await conn.ExecuteAsync(sql, team);
+        return team;
+    }
+
+    public async Task<TeamRow?> GetTeam(string id)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, event_id EventId, name Name, table_number TableNumber, max_members MaxMembers, created_at CreatedAt FROM teams WHERE id=@id";
+        return await conn.QuerySingleOrDefaultAsync<TeamRow>(sql, new { id });
+    }
+
+    public async Task<TeamRow?> GetTeamByNameOrTable(string eventId, string key)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, event_id EventId, name Name, table_number TableNumber, max_members MaxMembers, created_at CreatedAt
+FROM teams WHERE event_id=@eventId AND (name=@key OR table_number = CAST(@key as INT)) LIMIT 1";
+        return await conn.QuerySingleOrDefaultAsync<TeamRow>(sql, new { eventId, key });
+    }
+
+    public async Task<IEnumerable<ParticipantRow>> GetParticipantsByTeam(string teamId)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, event_id EventId, team_id TeamId, name Name, participant_token ParticipantToken, joined_at JoinedAt, last_active_at LastActiveAt, is_active IsActive, can_switch_team CanSwitchTeam FROM participants WHERE team_id=@teamId";
+        return await conn.QueryAsync<ParticipantRow>(sql, new { teamId });
+    }
+
+    public async Task<IEnumerable<ParticipantRow>> GetParticipantsByEvent(string eventId)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, event_id EventId, team_id TeamId, name Name, participant_token ParticipantToken, joined_at JoinedAt, last_active_at LastActiveAt, is_active IsActive, can_switch_team CanSwitchTeam FROM participants WHERE event_id=@eventId";
+        return await conn.QueryAsync<ParticipantRow>(sql, new { eventId });
+    }
+
+    public async Task<ParticipantRow> CreateParticipant(ParticipantRow p)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"INSERT INTO participants (id, event_id, team_id, name, participant_token, joined_at, last_active_at, is_active, can_switch_team) VALUES (@Id, @EventId, @TeamId, @Name, @ParticipantToken, @JoinedAt, @LastActiveAt, @IsActive, @CanSwitchTeam)";
+        await conn.ExecuteAsync(sql, p);
+        return p;
+    }
+
+    public async Task<ParticipantRow?> GetParticipantByToken(string token)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, event_id EventId, team_id TeamId, name Name, participant_token ParticipantToken, joined_at JoinedAt, last_active_at LastActiveAt, is_active IsActive, can_switch_team CanSwitchTeam FROM participants WHERE participant_token=@token LIMIT 1";
+        return await conn.QuerySingleOrDefaultAsync<ParticipantRow>(sql, new { token });
+    }
+
+    public async Task<ParticipantRow?> SwitchParticipantTeam(string participantId, string? teamId)
+    {
+        using var conn = _db.CreateConnection();
+        await conn.ExecuteAsync("UPDATE participants SET team_id=@teamId WHERE id=@participantId", new { teamId, participantId });
+        var sql = @"SELECT id Id, event_id EventId, team_id TeamId, name Name, participant_token ParticipantToken, joined_at JoinedAt, last_active_at LastActiveAt, is_active IsActive, can_switch_team CanSwitchTeam FROM participants WHERE id=@participantId";
+        return await conn.QuerySingleOrDefaultAsync<ParticipantRow>(sql, new { participantId });
+    }
+
+    public async Task<bool> DeleteParticipant(string id)
+    {
+        using var conn = _db.CreateConnection();
+        var rows = await conn.ExecuteAsync("DELETE FROM participants WHERE id=@id", new { id });
+        return rows > 0;
+    }
+
+    public async Task<IEnumerable<ResponseRow>> GetResponsesByQuestion(string questionId)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, participant_id ParticipantId, question_id QuestionId, answer Answer, is_correct IsCorrect, points Points, response_time ResponseTime, time_remaining TimeRemaining, submitted_at SubmittedAt FROM responses WHERE question_id=@questionId";
+        return await conn.QueryAsync<ResponseRow>(sql, new { questionId });
+    }
+
+    public async Task<IEnumerable<ResponseRow>> GetResponsesByParticipant(string participantId)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id Id, participant_id ParticipantId, question_id QuestionId, answer Answer, is_correct IsCorrect, points Points, response_time ResponseTime, time_remaining TimeRemaining, submitted_at SubmittedAt FROM responses WHERE participant_id=@participantId";
+        return await conn.QueryAsync<ResponseRow>(sql, new { participantId });
+    }
+
+    public async Task<ResponseRow> CreateResponse(ResponseRow r)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"INSERT INTO responses (id, participant_id, question_id, answer, is_correct, points, response_time, time_remaining, submitted_at) VALUES (@Id, @ParticipantId, @QuestionId, @Answer, @IsCorrect, @Points, @ResponseTime, @TimeRemaining, @SubmittedAt)";
+        await conn.ExecuteAsync(sql, r);
+        return r;
+    }
+
+    public async Task<IEnumerable<FunFactRow>> GetFunFactsByEvent(string eventId)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id, event_id, title, content, order_index, is_active, created_at FROM fun_facts WHERE event_id=@eventId ORDER BY order_index";
+        var results = await conn.QueryAsync(sql, new { eventId });
+        
+        return results.Select(r => new FunFactRow
+        {
+            Id = r.id,
+            EventId = r.event_id,
+            Title = r.title,
+            Content = r.content,
+            OrderIndex = (long)r.order_index,
+            IsActive = (long)r.is_active,
+            CreatedAt = r.created_at
+        });
+    }
+
+    public async Task<FunFactRow> CreateFunFact(FunFactRow f)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"INSERT INTO fun_facts (id, event_id, title, content, order_index, is_active, created_at) VALUES (@Id, @EventId, @Title, @Content, @OrderIndex, @IsActive, @CreatedAt)";
+        await conn.ExecuteAsync(sql, f);
+        return f;
+    }
+
+    public async Task<FunFactRow?> GetFunFact(string id)
+    {
+        using var conn = _db.CreateConnection();
+        var sql = @"SELECT id, event_id, title, content, order_index, is_active, created_at FROM fun_facts WHERE id=@id";
+        var result = await conn.QuerySingleOrDefaultAsync(sql, new { id });
+        
+        if (result == null) return null;
+        
+        return new FunFactRow
+        {
+            Id = result.id,
+            EventId = result.event_id,
+            Title = result.title,
+            Content = result.content,
+            OrderIndex = (long)result.order_index,
+            IsActive = (long)result.is_active,
+            CreatedAt = result.created_at
+        };
+    }
+
+    public async Task<FunFactRow?> UpdateFunFact(string id, object update)
+    {
+        using var conn = _db.CreateConnection();
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { {"title","title"},{"content","content"},{"orderIndex","order_index"},{"isActive","is_active"} };
+        var props = update.GetType().GetProperties();
+        var set = new List<string>();
+        var dyn = new DynamicParameters(new { id });
+        foreach (var p in props)
+        {
+            if (!map.TryGetValue(p.Name, out var col)) continue;
+            set.Add($"{col}=@{col}");
+            dyn.Add(col, p.GetValue(update));
+        }
+        if (set.Count == 0) return await GetFunFact(id);
+        await conn.ExecuteAsync($"UPDATE fun_facts SET {string.Join(",", set)} WHERE id=@id", dyn);
+        return await GetFunFact(id);
+    }
+
+    public async Task<bool> DeleteFunFact(string id)
+    {
+        using var conn = _db.CreateConnection();
+        var rows = await conn.ExecuteAsync("DELETE FROM fun_facts WHERE id=@id", new { id });
+        return rows > 0;
+    }
+
+    public async Task<object> GetEventStats(string hostId)
+    {
+        using var conn = _db.CreateConnection();
+        var totalEvents = await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM events WHERE host_id=@hostId", new { hostId });
+        var totalParticipants = await conn.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM participants WHERE event_id IN (SELECT id FROM events WHERE host_id=@hostId)", new { hostId });
+        var totalQuestions = await conn.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM questions WHERE event_id IN (SELECT id FROM events WHERE host_id=@hostId)", new { hostId });
+        // Placeholder for rating
+        var averageRating = 4.7;
+        return new { totalEvents, totalParticipants, totalQuestions, averageRating };
+    }
+}
