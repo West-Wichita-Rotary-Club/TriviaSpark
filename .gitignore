@@ -186,5 +186,8 @@ playwright/.cache/
 *.db-*
 data/
 
+# Temporary files
+temp/
+
 # Azure Functions (not typical for Web API, but safe)
 local.settings.json

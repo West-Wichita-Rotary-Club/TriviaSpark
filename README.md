@@ -9,16 +9,18 @@ TriviaSpark offers two distinct deployment options:
 1. **Local Development** - Complete server-side application with SQLite database, real-time features, and full event management
 2. **GitHub Pages Demo** - Read-only static site deployment for showcasing platform capabilities
 
+**Current Status**: The platform has recently migrated from Dapper to Entity Framework Core for improved type safety and maintainability. SignalR real-time features are temporarily disabled pending integration with the new EF Core data layer.
+
 ### Key Differences
 
 | Feature | Local Development | GitHub Pages |
 |---------|------------------|--------------|
 | Database | ✅ SQLite persistent | ❌ Read-only static |
-| Backend Server | ✅ ASP.NET Core Web API + SignalR | ❌ Static files only |
+| Backend Server | ⚠️ ASP.NET Core Web API + EF Core (SignalR disabled) | ❌ Static files only |
 | Data Persistence | ✅ Changes saved to .db file | ❌ No data persistence |
 | User Authentication | ✅ Sessions & accounts | ❌ No login system |
 | AI Generation | ✅ OpenAI integration | ❌ No backend API |
-| Real-time Updates | ✅ WebSocket connection | ❌ Static content |
+| Real-time Updates | ⚠️ SignalR connection (disabled) | ❌ Static content |
 | CRUD Operations | ✅ Create/Edit/Delete | ❌ View-only |
 
 **For development and production use**: Use local setup with SQLite database  
@@ -56,21 +58,22 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
 ### Backend Architecture
 
 - **ASP.NET Core 9 Web API** with C#
-- **SignalR** for real-time features (Hub at `/ws`)
-- **SQLite** data store via Dapper
-- **OpenAPI/Swagger** at `/swagger` for live API docs
+- **Entity Framework Core** for database operations with SQLite
+- **SignalR** for real-time features (Hub at `/ws`) - *Currently disabled, pending EF Core integration*
+- **SQLite** data store via Entity Framework Core
+- **OpenAPI/Swagger** at `/swagger` for live API documentation
 - **Session-based authentication** with secure cookies
-- Optional AI integrations (endpoints stubbed where applicable)
+- Optional AI integrations (OpenAI endpoints available where applicable)
 
 ### Database
 
 - **SQLite** with local file storage (`./data/trivia.db`) for development/production
+- **Entity Framework Core** for type-safe database operations and migrations
 - Optional **Turso/LibSQL** for distributed SQLite deployments
-- Backend data access via **Dapper** (C#)
-- Type-safe schema and seeding utilities in the repo use **Drizzle** (TypeScript) for scripts and shared types
 - **Local Persistence**: Data saved between restarts when running locally
 - **Static Deployment**: No database — read-only content embedded in the application
 - Comprehensive schema covering users, events, questions, participants, teams, and analytics
+- **Drizzle ORM** used in TypeScript scripts and shared type definitions
 
 ---
 
@@ -78,11 +81,11 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 22+ (Node.js 18+ supported)
 - npm or yarn
+- .NET 9 SDK for ASP.NET Core
 - SQLite (embedded - no external database required)
 - OpenAI API key (optional, for AI features)
-- Google Cloud Storage credentials (optional, for file uploads)
 
 ### Quick Start
 
@@ -108,24 +111,25 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
    # Configure your environment variables (SQLite is used by default)
    DATABASE_URL=file:./data/trivia.db
    OPENAI_API_KEY=your_openai_api_key_here
-   GOOGLE_CLOUD_STORAGE_BUCKET=your_gcs_bucket_name
    ```
 
 4. **Database setup (optional)**
 
    ```bash
-   # Create or update the SQLite schema with Drizzle scripts (optional)
+   # Entity Framework Core will create the database automatically
+   # Optionally seed with sample data using Drizzle scripts
    npm run db:push
+   npm run seed
    ```
 
 5. **Start development**
 
    ```bash
-   # Option A: Just run the API — it will run npm install/build automatically during build
+   # Recommended: Build frontend and run the API
+   npm run build
    dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
 
-   # Option B: Manually build SPA first, then run the API
-   npm run build
+   # Alternative: API will auto-build frontend during startup (may be slower)
    dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
    ```
 
@@ -154,7 +158,7 @@ The application will be available at `http://localhost:5000`.
 ### Core Functionality
 
 - **Event Management** - Create, configure, and manage trivia events
-- **Real-time Participation** - Live WebSocket connections for instant updates
+- **Real-time Participation** - Live SignalR connections for instant updates (*currently disabled*)
 - **Team Management** - Organize participants into teams with scoring
 - **Question Library** - Extensive question database with multiple categories
 - **AI Content Generation** - OpenAI-powered question and event copy creation
@@ -183,7 +187,7 @@ The application will be available at `http://localhost:5000`.
 - **Event Analytics** - Detailed participation metrics and insights
 - **Content Moderation** - Question approval and event oversight
 - **Export Capabilities** - Event data and participant reports
-- **API Documentation** - Complete REST API and WebSocket reference
+- **API Documentation** - Complete REST API and SignalR reference
 
 ---
 
@@ -192,12 +196,12 @@ The application will be available at `http://localhost:5000`.
 ### Local Development (Full Features)
 
 ```bash
-# Start the API (will also build the SPA into wwwroot during build)
+# Start the API (builds SPA into wwwroot automatically during startup)
 dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
 
-# App: http://localhost:5000
+# App: http://localhost:5000 (or other port as configured)
 # Swagger: http://localhost:5000/swagger
-# SignalR Hub: ws://localhost:5000/ws
+# SignalR Hub: ws://localhost:5000/ws (currently disabled)
 # Database: ./data/trivia.db
 ```
 
@@ -241,15 +245,21 @@ TriviaSpark/
 │   │   └── pages/             # Page components and routing
 │   └── index.html             # HTML template
 ├── TriviaSpark.Api/            # ASP.NET Core Web API + SignalR (hosts SPA in wwwroot)
-│   ├── Program.cs             # App bootstrap
-│   ├── ApiEndpoints.cs        # Minimal API routes
-│   ├── SignalR/TriviaHub.cs   # SignalR hub (real-time)
-│   └── Services/              # SQLite/Dapper storage and session
+│   ├── Program.cs             # App bootstrap and configuration
+│   ├── ApiEndpoints.EfCore.cs # Entity Framework Core API endpoints
+│   ├── Controllers/           # ASP.NET Core controllers
+│   ├── Data/                  # EF Core DbContext and data models
+│   ├── Services/              # Application services and business logic
+│   ├── SignalR/               # SignalR hubs (currently disabled)
+│   └── wwwroot/               # Built SPA files served by ASP.NET Core
 ├── shared/                     # Shared TypeScript types and schemas
-│   └── schema.ts              # Database schema definitions
+│   └── schema.ts              # Database schema definitions (Drizzle/Zod)
+├── scripts/                    # Database seeding and utility scripts
 ├── docs/                       # Static build output (GitHub Pages)
+├── copilot/                    # Generated documentation and project notes
+├── data/                       # SQLite database files
 ├── .github/workflows/          # GitHub Actions CI/CD
-├── package.json               # Dependencies and scripts
+├── package.json               # Frontend dependencies and scripts
 ├── vite.config.ts             # Vite build configuration
 └── tailwind.config.ts         # Tailwind CSS configuration
 ```
@@ -265,13 +275,11 @@ TriviaSpark/
 | `DATABASE_URL` | SQLite database path (default: file:./data/trivia.db) | No |
 | `TURSO_AUTH_TOKEN` | Auth token for Turso distributed SQLite (optional) | No |
 | `OPENAI_API_KEY` | OpenAI API key for content generation | No |
-| `GOOGLE_CLOUD_STORAGE_BUCKET` | GCS bucket for file uploads | No |
 | `NODE_ENV` | Environment mode (development/production) | No |
-| `PORT` | Server port (default: 5000) | No |
 
 ### Database Configuration
 
-The platform uses Drizzle ORM with SQLite. Two deployment options:
+The platform uses Entity Framework Core with SQLite. Two deployment options:
 
 **Local SQLite** (Default)
 
@@ -310,9 +318,9 @@ Optional OpenAI integration provides:
 ### API Surface
 
 - REST routes are served under `/api/*` from the ASP.NET Core API
-- Real-time updates via **SignalR** hub at `/ws`
-- Live API docs available at **`/swagger`** when the server is running
-- A complete, versioned API spec is maintained at `copilot/api-spec.md`
+- Real-time updates via **SignalR** hub at `/ws` (currently disabled, pending EF Core integration)
+- Live API documentation available at **`/swagger`** when the server is running
+- A complete, versioned API spec is maintained in the documentation
 
 ---
 
@@ -382,23 +390,24 @@ Key steps:
 ### Development Tools
 
 - **TypeScript** - Full type safety across the frontend and shared scripts
+- **Entity Framework Core** - Database migrations and type-safe queries
 - **ESLint** - Code quality and consistency
 - **Prettier** - Code formatting
-- **Drizzle Kit** - Database migration management
+- **Drizzle Kit** - Database schema management for scripts and seeding
 
 ### Testing Strategy
 
 - Component testing with React Testing Library
 - API endpoint testing
-- WebSocket connection testing
+- SignalR connection testing
 - Cross-browser compatibility testing
 
 ### Development Workflow
 
-1. Run `npm run dev` for hot-reload development
-2. Use `/api-docs` for API testing and documentation
+1. Run `npm run dev` for frontend-only development with hot-reload
+2. Use `/swagger` for API testing and documentation
 3. Access development tools via browser DevTools
-4. Monitor WebSocket connections for real-time feature development
+4. Monitor SignalR connections for real-time feature development (when enabled)
 
 ---
 
@@ -415,7 +424,7 @@ Key steps:
 
 - **Connection Pooling** - Efficient database connections
 - **Session Management** - Optimized session storage
-- **WebSocket Scaling** - Real-time connection management
+- **SignalR Scaling** - Real-time connection management
 - **API Rate Limiting** - Request throttling and protection
 
 ### Scalability Considerations
@@ -465,7 +474,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support & Contact
 
-- **Documentation**: Complete API docs available at `/api-docs`
+- **Documentation**: Complete API docs available at `/swagger`
 - **Issues**: [GitHub Issues](https://github.com/West-Wichita-Rotary-Club/TriviaSpark/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/West-Wichita-Rotary-Club/TriviaSpark/discussions)
 

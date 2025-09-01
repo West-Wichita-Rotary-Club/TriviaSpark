@@ -10,6 +10,7 @@ using TriviaSpark.Api.Data;
 // using TriviaSpark.Api.SignalR; // Disabled - SignalR integration pending
 using TriviaSpark.Api;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,7 @@ SQLitePCL.Batteries_V2.Init();
 
 builder.Services.Configure<JsonOptions>(opts =>
 {
-    opts.SerializerOptions.PropertyNamingPolicy = null; // keep exact casing
+    opts.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // use camelCase for frontend compatibility
     opts.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
@@ -58,7 +59,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddRouting();
 builder.Services.AddControllers().AddJsonOptions(opts =>
 {
-    opts.JsonSerializerOptions.PropertyNamingPolicy = null; // keep exact casing
+    opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // use camelCase for frontend compatibility
     opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 }); // Add MVC controllers support
 builder.Services.AddSpaStaticFiles(configuration =>

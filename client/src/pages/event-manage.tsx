@@ -210,8 +210,27 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
   console.log("Extracted eventId:", eventId, "from propEventId:", propEventId, "params:", params);
   console.log("EventManage - eventId:", eventId, "propEventId:", propEventId, "params:", params);
 
+  // Early return if no eventId
+  if (!eventId) {
+    console.error("No eventId provided to EventManage component");
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Brain className="text-champagne-400 h-8 w-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-wine-800 mb-2">Event Not Found</h1>
+          <p className="text-wine-600 mb-4">No event ID was provided.</p>
+          <Button onClick={() => setLocation("/dashboard")} variant="outline">
+            Return to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Get event details
-  const { data: event, isLoading: eventLoading } = useQuery<Event>({
+  const { data: event, isLoading: eventLoading, error: eventError } = useQuery<Event>({
     queryKey: ["/api/events", eventId],
     enabled: !!eventId,
     retry: false

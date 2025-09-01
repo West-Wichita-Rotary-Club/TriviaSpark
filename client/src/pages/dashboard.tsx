@@ -88,7 +88,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2" data-testid="welcome-heading">
-            Welcome back, {user?.user.fullName}!
+            Welcome back, {user?.user?.fullName}!
           </h2>
           <p className="text-gray-600" data-testid="welcome-description">
             Create unforgettable trivia experiences with AI-powered content generation

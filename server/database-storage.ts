@@ -34,6 +34,27 @@ import { randomUUID } from "crypto";
 import { type IStorage } from "./storage";
 
 export class DatabaseStorage implements IStorage {
+  // Helper function to parse question options
+  private parseQuestionOptions(question: Question): Question {
+    return {
+      ...question,
+      options:
+        typeof question.options === "string"
+          ? (() => {
+              try {
+                return JSON.parse(question.options);
+              } catch (error) {
+                console.warn(
+                  `Failed to parse options for question ${question.id}:`,
+                  error
+                );
+                return [];
+              }
+            })()
+          : question.options,
+    };
+  }
+
   // User methods
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -128,11 +149,14 @@ export class DatabaseStorage implements IStorage {
 
   // Question methods
   async getQuestionsByEvent(eventId: string): Promise<Question[]> {
-    return await db
+    const rawQuestions = await db
       .select()
       .from(questions)
       .where(eq(questions.eventId, eventId))
       .orderBy(asc(questions.orderIndex));
+
+    // Parse JSON options for each question
+    return rawQuestions.map((question) => this.parseQuestionOptions(question));
   }
 
   async createQuestion(insertQuestion: InsertQuestion): Promise<Question> {
@@ -150,7 +174,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(questions)
       .where(eq(questions.id, id));
-    return question!;
+    return this.parseQuestionOptions(question!);
   }
 
   async createQuestions(
@@ -175,7 +199,7 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(questions)
         .where(eq(questions.id, id));
-      if (question) createdQuestions.push(question);
+      if (question) createdQuestions.push(this.parseQuestionOptions(question));
     }
     return createdQuestions;
   }
@@ -185,7 +209,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(questions)
       .where(eq(questions.id, id));
-    return question;
+    return question ? this.parseQuestionOptions(question) : undefined;
   }
 
   async updateQuestion(
@@ -197,7 +221,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(questions)
       .where(eq(questions.id, id));
-    return question;
+    return question ? this.parseQuestionOptions(question) : undefined;
   }
 
   async deleteQuestion(id: string): Promise<boolean> {

@@ -107,7 +107,9 @@ public static class EfCoreApiEndpoints
                 if (user == null)
                     return Results.Unauthorized();
 
-                return Results.Ok(new { id = user.Id, username = user.Username, fullName = user.FullName, email = user.Email });
+                return Results.Ok(new { 
+                    user = new { id = user.Id, username = user.Username, fullName = user.FullName, email = user.Email }
+                });
             }
             catch (Exception ex)
             {

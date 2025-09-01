@@ -6,8 +6,8 @@ This document describes the automated database refresh scripts for TriviaSpark.
 
 Two scripts are provided to automate the complete database refresh process:
 
-- `refresh-db.ps1` - PowerShell script (recommended)
-- `refresh-db.bat` - Windows batch file (alternative)
+- `tools/refresh-db.ps1` - PowerShell script (recommended)
+- `tools/refresh-db.bat` - Windows batch file (alternative)
 
 ## What the Scripts Do
 
@@ -25,17 +25,17 @@ Both scripts perform the following operations in sequence:
 
 ```powershell
 # Full refresh with build
-.\refresh-db.ps1
+.\tools\refresh-db.ps1
 
 # Skip the build step (faster for development)
-.\refresh-db.ps1 -SkipBuild
+.\tools\refresh-db.ps1 -SkipBuild
 ```
 
 ### Batch Script
 
 ```cmd
 # Full refresh with build
-.\refresh-db.bat
+.\tools\refresh-db.bat
 ```
 
 ## Features
@@ -46,7 +46,7 @@ Both scripts perform the following operations in sequence:
 - ✅ Proper error handling and exit codes
 - ✅ Optional `-SkipBuild` parameter for faster development cycles
 - ✅ Detailed progress reporting
-- ✅ Comprehensive help documentation (`Get-Help .\refresh-db.ps1`)
+- ✅ Comprehensive help documentation (`Get-Help .\tools\refresh-db.ps1`)
 
 ### Batch Script Features
 
@@ -81,7 +81,7 @@ Use these scripts when you:
 For faster development iterations:
 
 ```powershell
-.\refresh-db.ps1 -SkipBuild
+.\tools\refresh-db.ps1 -SkipBuild
 ```
 
 This skips the build step, saving time when you only need to refresh the database.

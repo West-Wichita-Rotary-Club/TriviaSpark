@@ -313,23 +313,38 @@ export default function EventHost() {
                           </Badge>
                         </div>
                       </div>
-                      {question.options && question.options.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2 mt-3">
-                          {question.options.map((option: string, optionIndex: number) => (
-                            <div 
-                              key={optionIndex} 
-                              className={`p-2 text-sm rounded border ${
-                                option === question.correctAnswer 
-                                  ? 'border-emerald-300 bg-emerald-50 text-emerald-800' 
-                                  : 'border-gray-200 bg-gray-50'
-                              }`}
-                              data-testid={`option-${index}-${optionIndex}`}
-                            >
-                              {option}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {(() => {
+                        // Safely parse options - handle both string and array formats
+                        let parsedOptions: string[] = [];
+                        try {
+                          if (typeof question.options === 'string') {
+                            parsedOptions = JSON.parse(question.options);
+                          } else if (Array.isArray(question.options)) {
+                            parsedOptions = question.options;
+                          }
+                        } catch (error) {
+                          console.warn('Failed to parse question options:', error);
+                          parsedOptions = [];
+                        }
+                        
+                        return parsedOptions && parsedOptions.length > 0 && (
+                          <div className="grid grid-cols-2 gap-2 mt-3">
+                            {parsedOptions.map((option: string, optionIndex: number) => (
+                              <div 
+                                key={optionIndex} 
+                                className={`p-2 text-sm rounded border ${
+                                  option === question.correctAnswer 
+                                    ? 'border-emerald-300 bg-emerald-50 text-emerald-800' 
+                                    : 'border-gray-200 bg-gray-50'
+                                }`}
+                                data-testid={`option-${index}-${optionIndex}`}
+                              >
+                                {option}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>

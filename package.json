@@ -1,10 +1,10 @@
 {
-  "name": "rest-express",
+  "name": "trivia-spark",
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "setup": "node setup.mjs",
+    "setup": "node tools/setup.mjs",
     "dev": "vite --host",
     "build": "vite build",
     "build:static": "node scripts/extract-data.mjs && cross-env NODE_ENV=production STATIC_BUILD=true vite build",

@@ -18,22 +18,21 @@ TriviaSpark is an intelligent event trivia platform that transforms gatherings i
 
 ### Backend
 
-- **Express.js** server with TypeScript (ESM format)
-- **WebSocket** integration for real-time features
-- **Drizzle ORM** with SQLite database
+- **ASP.NET Core Web API** with C# for the main server
+- **SignalR** for real-time WebSocket functionality
+- **Entity Framework Core** with SQLite database
 - **OpenAI GPT-4o** integration for AI content generation
-- **Google Cloud Storage** for file uploads
 - **Session-based authentication** with secure cookie management
 
 ### Database
 
 - **SQLite** with local file storage (`./data/trivia.db`) for development/production
+- **Entity Framework Core** for type-safe database operations
 - **Turso/LibSQL** option for distributed deployments
-- **Drizzle ORM** for type-safe database operations
 
 ### Deployment Options
 
-1. **Local Development** - Full-featured with persistent SQLite database
+1. **Local Development** - Full-featured ASP.NET Core API with SPA serving from `wwwroot`
 2. **GitHub Pages** - Static site deployment (read-only demo)
 
 ## Coding Standards & Conventions
@@ -56,6 +55,29 @@ TriviaSpark is an intelligent event trivia platform that transforms gatherings i
 
 ### File Organization
 
+**CRITICAL: Repository Organization Standards**
+
+The repository follows a strict organizational structure. ALL new files must be placed in appropriate directories:
+
+#### Root Directory Structure
+
+```
+TriviaSpark/
+├── client/src/          # Frontend React application (detailed below)
+├── TriviaSpark.Api/     # ASP.NET Core Web API + SignalR
+├── tools/               # Development tools and scripts
+├── tests/               # Testing files organized by type
+├── copilot/             # Generated documentation
+├── scripts/             # Database seeding and utility scripts
+├── data/                # SQLite database files
+├── docs/                # Static build output (GitHub Pages)
+├── shared/              # Shared TypeScript types and schemas
+├── temp/                # Temporary files (gitignored)
+└── [config files]       # Configuration files (package.json, etc.)
+```
+
+#### Frontend Structure (client/src/)
+
 ```
 client/src/
 ├── components/           # Reusable UI components
@@ -70,6 +92,36 @@ client/src/
 └── pages/               # Page components and routing
 ```
 
+#### File Placement Rules
+
+**Development Tools & Scripts** → `tools/`
+
+- Test scripts (`test-*.mjs`, `test-*.js`)
+- Development utilities (`debug-*.js`, `setup.mjs`)
+- Database scripts (`refresh-db.*`)
+- Build and deployment tools
+
+**Testing Files** → `tests/`
+
+- HTTP test files → `tests/http/` (\*.http files)
+- Unit test files → `tests/unit/`
+- Integration tests → `tests/integration/`
+- E2E tests → `tests/e2e/`
+
+**Documentation** → `copilot/`
+
+- All generated documentation (.md files)
+- Technical specifications
+- Architecture documents
+- Code review reports
+
+**Temporary Files** → `temp/`
+
+- Cookies, sessions, cache files
+- Platform-specific files (replit.md)
+- Development artifacts
+- Files that should not be committed
+
 ### Component Structure
 
 - Use descriptive component names with PascalCase
@@ -80,11 +132,11 @@ client/src/
 
 ### API Development
 
-- RESTful API design patterns
+- RESTful API design patterns with ASP.NET Core
 - Proper HTTP status codes
-- Input validation using Zod schemas
+- Input validation using data annotations and custom validators
 - Error handling middleware
-- WebSocket events for real-time features
+- SignalR hubs for real-time features
 
 ## Key Features & Functionality
 
@@ -118,38 +170,96 @@ client/src/
 
 ## Development Environment
 
+### Build and Run Process
+
+**IMPORTANT: Always use this exact process for running the application:**
+
+1. **Build the frontend**: `npm run build` (builds React app to `TriviaSpark.Api/wwwroot`)
+2. **Run the server**: `dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj`
+
+The ASP.NET Core API serves the React SPA from its `wwwroot` directory. Never use other server options like `npm run dev` or separate frontend servers in production workflows.
+
 ### Scripts
 
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production deployment
-- `npm run build:static` - Build static version for GitHub Pages
+- `npm run build` - Build React frontend and deploy to ASP.NET Core `wwwroot`
+- `npm run build:static` - Build static version for GitHub Pages deployment only
+- `npm run dev` - Development only - separate Vite dev server (for rapid frontend development)
 - `npm run seed` - Seed database with sample data
 - `npm run check` - TypeScript type checking
+
+### Dotnet Commands
+
+- `dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj` - Run the full application
+- `dotnet build ./TriviaSpark.Api/TriviaSpark.Api.csproj` - Build the ASP.NET Core project
+- `dotnet publish ./TriviaSpark.Api/TriviaSpark.Api.csproj -c Release` - Create production build
 
 ### Environment Variables
 
 ```bash
 DATABASE_URL=file:./data/trivia.db
 OPENAI_API_KEY=your_openai_api_key_here
-GOOGLE_CLOUD_STORAGE_BUCKET=your_bucket_name
 NODE_ENV=development
-PORT=5000
 ```
+
+Note: ASP.NET Core uses `appsettings.json` and `appsettings.Development.json` for configuration.
 
 ### Development Workflow Guidelines
 
-1. **Documentation Location**: All generated documentation (.md files) should be placed in a `/copilot` folder at the project root
+1. **Documentation Location**: All generated documentation (.md files) MUST be placed in `/copilot` folder at the project root
 2. **Terminal Usage**: Reuse existing terminals whenever possible - do not create new terminals without asking the user first
 3. **Testing Protocol**: When making changes that affect functionality, ASK the user to run the site and test the changes before proceeding with additional modifications
+4. **File Organization**: ALWAYS place new files in the correct directory according to the repository structure
+5. **Repository Cleanliness**: Keep the root directory clean - only configuration files, documentation, and solution files belong in root
+
+### Development Tools Location
+
+All development tools are now organized in the `tools/` directory:
+
+- **Database Management**: `tools/refresh-db.ps1`, `tools/refresh-db.bat`
+- **Project Setup**: `tools/setup.mjs`
+- **Testing Scripts**: `tools/test-*.mjs`, `tools/test-*.js`
+- **Debug Utilities**: `tools/debug-*.js`
+
+**Usage**: Scripts should be run from project root:
+
+```bash
+# Database refresh
+.\tools\refresh-db.ps1
+
+# Project setup
+npm run setup  # calls tools/setup.mjs
+
+# Manual script execution
+node tools/test-api-endpoints.mjs
+```
 
 ## Code Generation Guidelines
 
 ### Documentation Standards
 
-- All generated documentation (.md files) must be placed in `/copilot` folder
+- All generated documentation (.md files) MUST be placed in `/copilot` folder
 - Use clear, descriptive filenames for documentation
 - Include proper markdown formatting and structure
 - Reference existing project documentation when appropriate
+
+### Repository Organization Enforcement
+
+- **NO files in root except**: Configuration files (package.json, tsconfig.json, etc.), Documentation (README.md, LICENSE), and Solution files (TriviaSpark.Api.sln)
+- **Development tools**: MUST go in `tools/` directory
+- **Test files**: MUST go in appropriate `tests/` subdirectories
+- **Temporary files**: MUST go in `temp/` directory (gitignored)
+- **Generated docs**: MUST go in `copilot/` directory
+
+### File Creation Best Practices
+
+Before creating any new file, determine the correct location based on its purpose:
+
+1. **Is it a development/testing script?** → `tools/`
+2. **Is it a test file?** → `tests/http/`, `tests/unit/`, etc.
+3. **Is it documentation?** → `copilot/`
+4. **Is it temporary/cache?** → `temp/`
+5. **Is it source code?** → `client/src/`, `TriviaSpark.Api/`, `shared/`
+6. **Is it configuration?** → Root directory (only if tool expects it there)
 
 ### Development Workflow
 
@@ -157,6 +267,17 @@ PORT=5000
 - **Testing Integration**: After implementing features or fixes, ask the user to run the site and test functionality before proceeding
 - **Code Review Protocol**: After any change with new code, perform a code review as an expert React developer, checking for best practices, performance, security, and maintainability
 - **Incremental Development**: Make changes in small, testable increments rather than large bulk modifications
+- **Repository Cleanliness**: Maintain organized file structure at all times - never place files in root unless they belong there according to the organization standards
+
+### Testing and HTTP Files
+
+All HTTP test files are now organized in `tests/http/`:
+
+- `tests/http/api-tests.http` - Main API endpoint tests
+- `tests/http/ef-core-v2-api-tests.http` - EF Core specific tests
+- `tests/http/efcore-test.http` - Additional EF Core tests
+
+Use VS Code REST Client extension to run these tests during development.
 
 ### When generating components:
 
@@ -170,19 +291,19 @@ PORT=5000
 
 ### When generating API routes:
 
-1. Use Express.js with TypeScript
+1. Use ASP.NET Core Controllers with C#
 2. Implement proper error handling
-3. Add input validation with Zod
+3. Add input validation using data annotations or custom validators
 4. Use proper HTTP status codes
-5. Include proper authentication checks
+5. Include proper authentication checks where needed
 6. Add comprehensive logging
 
 ### When generating database operations:
 
-1. Use Drizzle ORM syntax
+1. Use Entity Framework Core with C#
 2. Implement proper transaction handling
 3. Add proper error handling
-4. Use type-safe queries
+4. Use type-safe LINQ queries
 5. Include proper foreign key relationships
 
 ### When generating AI integration:
@@ -308,25 +429,42 @@ export function EventCard({ event, onEdit, onDelete }: EventCardProps) {
 
 ### API Route Structure
 
-```typescript
-app.get("/api/events/:id", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const event = await storage.getEvent(id);
-    res.json(event);
-  } catch (error) {
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+public class EventsController : ControllerBase
+{
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Event>> GetEvent(string id)
+    {
+        try
+        {
+            var eventItem = await _eventService.GetEventAsync(id);
+            return Ok(eventItem);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
+}
 ```
 
 ### WebSocket Event Handling
 
-```typescript
-wsManager.broadcast(eventId, {
-  type: "SCORE_UPDATE",
-  payload: { teamId, score, timestamp: Date.now() },
-});
+```csharp
+public class TriviaHub : Hub
+{
+    public async Task JoinEventGroup(string eventId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, eventId);
+    }
+
+    public async Task BroadcastScoreUpdate(string eventId, string teamId, int score)
+    {
+        await Clients.Group(eventId).SendAsync("ScoreUpdate", new { teamId, score, timestamp = DateTime.UtcNow });
+    }
+}
 ```
 
 ## Error Handling Patterns
@@ -378,3 +516,61 @@ wsManager.broadcast(eventId, {
 - Ensure mobile-friendly formatting
 
 This instruction file should guide GitHub Copilot to generate code that aligns with the TriviaSpark platform's architecture, coding standards, and best practices while maintaining consistency with the existing codebase.
+
+## Repository Organization Best Practices
+
+### Mandatory File Organization Rules
+
+1. **NEVER place development scripts in root** - All scripts go in `tools/`
+2. **NEVER place test files in root** - All tests go in `tests/` subdirectories
+3. **NEVER place temporary files in root** - All temp files go in `temp/` (gitignored)
+4. **ALWAYS document in copilot/** - All generated documentation goes in `copilot/`
+5. **ROOT is for essentials only** - Configuration, documentation, and solution files only
+
+### Quality Assurance Checklist
+
+Before completing any task, verify:
+
+- [ ] All new files are in correct directories
+- [ ] No development scripts or tests in root
+- [ ] Documentation is in `copilot/` folder
+- [ ] Temporary files are in `temp/` folder
+- [ ] Scripts are executable from project root with proper paths
+- [ ] README files exist in new directories
+- [ ] Updated references to moved files in documentation
+
+### Directory Purpose Enforcement
+
+| Directory          | Purpose                      | Examples                              |
+| ------------------ | ---------------------------- | ------------------------------------- |
+| Root               | Config, docs, solution files | package.json, README.md, \*.sln       |
+| `tools/`           | Development and test scripts | test-_.mjs, debug-_.js, refresh-db.\* |
+| `tests/`           | Testing files by type        | http/, unit/, integration/, e2e/      |
+| `copilot/`         | Generated documentation      | \*.md files, specs, reviews           |
+| `temp/`            | Temporary/cache files        | cookies.txt, platform files           |
+| `client/`          | React frontend source        | src/, components/, pages/             |
+| `TriviaSpark.Api/` | ASP.NET Core backend         | Controllers/, Services/, Data/        |
+
+### Script Path Standards
+
+All development scripts MUST be referenced with `tools/` prefix:
+
+```bash
+# Correct
+.\tools\refresh-db.ps1
+node tools/test-api-endpoints.mjs
+
+# Incorrect (old paths)
+.\refresh-db.ps1
+node test-api-endpoints.mjs
+```
+
+### Documentation Standards for Generated Files
+
+When creating documentation in `copilot/`:
+
+- Use descriptive filenames with hyphens
+- Include date context if time-sensitive
+- Reference the organized file structure
+- Update existing docs when moving files
+- Maintain cross-references between related docs
