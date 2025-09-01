@@ -406,6 +406,58 @@ public static class EfCoreApiEndpoints
         // Questions endpoints - migrated to EF Core
         api.MapGet("/events/{id}/questions", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req) =>
         {
+            // Helper function to parse options JSON to array
+            static object ParseQuestionOptions(Question question)
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(question.Options))
+                        return new string[0];
+                    
+                    var options = System.Text.Json.JsonSerializer.Deserialize<string[]>(question.Options);
+                    return new
+                    {
+                        Id = question.Id,
+                        EventId = question.EventId,
+                        Type = question.Type,
+                        Question = question.QuestionText,
+                        Options = options ?? new string[0],
+                        CorrectAnswer = question.CorrectAnswer,
+                        Explanation = question.Explanation,
+                        Points = question.Points,
+                        TimeLimit = question.TimeLimit,
+                        Difficulty = question.Difficulty,
+                        Category = question.Category,
+                        BackgroundImageUrl = question.BackgroundImageUrl,
+                        AiGenerated = question.AiGenerated,
+                        OrderIndex = question.OrderIndex,
+                        CreatedAt = ((DateTimeOffset)question.CreatedAt).ToUnixTimeSeconds().ToString()
+                    };
+                }
+                catch
+                {
+                    // Fallback if JSON parsing fails
+                    return new
+                    {
+                        Id = question.Id,
+                        EventId = question.EventId,
+                        Type = question.Type,
+                        Question = question.QuestionText,
+                        Options = new string[0],
+                        CorrectAnswer = question.CorrectAnswer,
+                        Explanation = question.Explanation,
+                        Points = question.Points,
+                        TimeLimit = question.TimeLimit,
+                        Difficulty = question.Difficulty,
+                        Category = question.Category,
+                        BackgroundImageUrl = question.BackgroundImageUrl,
+                        AiGenerated = question.AiGenerated,
+                        OrderIndex = question.OrderIndex,
+                        CreatedAt = ((DateTimeOffset)question.CreatedAt).ToUnixTimeSeconds().ToString()
+                    };
+                }
+            }
+
             // Special handling for demo/seed events
             if (id.StartsWith("seed-event-"))
             {
@@ -414,7 +466,8 @@ public static class EfCoreApiEndpoints
                     return Results.NotFound(new { error = "Event not found" });
 
                 var demoQuestions = await questionService.GetQuestionsForEventAsync(id);
-                return Results.Ok(demoQuestions);
+                var parsedDemoQuestions = demoQuestions.Select(ParseQuestionOptions).ToList();
+                return Results.Ok(parsedDemoQuestions);
             }
 
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
@@ -431,7 +484,8 @@ public static class EfCoreApiEndpoints
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
 
                 var questions = await questionService.GetQuestionsForEventAsync(id);
-                return Results.Ok(questions);
+                var parsedQuestions = questions.Select(ParseQuestionOptions).ToList();
+                return Results.Ok(parsedQuestions);
             }
             catch (Exception ex)
             {
