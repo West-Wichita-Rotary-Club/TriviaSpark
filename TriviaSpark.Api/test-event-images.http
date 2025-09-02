@@ -1,0 +1,80 @@
+### Test EventImages API
+
+# First, get all existing events to find a valid event ID
+GET https://localhost:5001/api/events
+Accept: application/json
+
+###
+
+# Then get questions for a specific event (replace with actual event ID)
+GET https://localhost:5001/api/events/{eventId}/questions
+Accept: application/json
+
+###
+
+# Search images for a question (replace with actual question ID)
+GET https://localhost:5001/api/event-images/search?questionId={questionId}&query=trivia&page=1&perPage=10
+Accept: application/json
+
+###
+
+# Get image for a specific question (if one exists)
+GET https://localhost:5001/api/event-images/question/{questionId}
+Accept: application/json
+
+###
+
+# Save an image for a question (requires image data from search results)
+POST https://localhost:5001/api/event-images
+Content-Type: application/json
+
+{
+  "questionId": "{questionId}",
+  "unsplashImageId": "example-image-id",
+  "imageUrl": "https://images.unsplash.com/photo-example",
+  "thumbnailUrl": "https://images.unsplash.com/photo-example?w=400",
+  "description": "Test image description",
+  "attributionText": "Photo by Test User on Unsplash",
+  "attributionUrl": "https://unsplash.com/@testuser",
+  "downloadTrackingUrl": "https://api.unsplash.com/photos/example/download",
+  "width": 1920,
+  "height": 1080,
+  "color": "#1a1a1a",
+  "sizeVariant": "regular",
+  "usageContext": "question_background",
+  "selectedByUserId": null,
+  "searchContext": "trivia question image"
+}
+
+###
+
+# Get all event images
+GET https://localhost:5001/api/event-images
+Accept: application/json
+
+###
+
+# Track image download (replace with actual image ID)
+PUT https://localhost:5001/api/event-images/{imageId}/track-download
+Content-Type: application/json
+
+###
+
+# Update image usage
+PUT https://localhost:5001/api/event-images/{imageId}/usage
+Content-Type: application/json
+
+{
+  "usageContext": "question_display",
+  "selectedByUserId": null
+}
+
+###
+
+# Delete an image
+DELETE https://localhost:5001/api/event-images/{imageId}
+
+###
+
+# Admin cleanup of expired images
+DELETE https://localhost:5001/api/event-images/cleanup/expired

@@ -1,0 +1,94 @@
+### EventImages API Tests for TriviaSpark
+### Base URL for local development
+@baseUrl = https://localhost:14165/api
+
+### Variables (replace with actual IDs from your database)
+@eventId = replace-with-actual-event-id
+@questionId = replace-with-actual-question-id
+@unsplashImageId = replace-with-actual-unsplash-image-id
+
+### Test 1: Get events to find a valid event ID
+GET {{baseUrl}}/events
+Accept: application/json
+
+### Test 2: Get questions for an event (use event ID from Test 1)
+GET {{baseUrl}}/events/{{eventId}}/questions
+Accept: application/json
+
+### Test 3: Search images for a question
+GET {{baseUrl}}/eventimages/search?questionId={{questionId}}&query=wine&size=regular
+Accept: application/json
+
+### Test 4: Search images by category
+GET {{baseUrl}}/eventimages/search/category?questionId={{questionId}}&category=wine&size=regular
+Accept: application/json
+
+### Test 5: Get current image for a question (may return 404 if no image exists)
+GET {{baseUrl}}/eventimages/question/{{questionId}}
+Accept: application/json
+
+### Test 6: Save an image for a question (use Unsplash image ID from search results)
+POST {{baseUrl}}/eventimages
+Content-Type: application/json
+
+{
+  "questionId": "{{questionId}}",
+  "unsplashImageId": "{{unsplashImageId}}",
+  "sizeVariant": "regular",
+  "usageContext": "question_image",
+  "selectedByUserId": "test-user-123",
+  "searchContext": "wine trivia testing"
+}
+
+### Test 7: Get the saved image (should work after Test 6)
+GET {{baseUrl}}/eventimages/question/{{questionId}}
+Accept: application/json
+
+### Test 8: Track image usage (required for Unsplash compliance)
+POST {{baseUrl}}/eventimages/question/{{questionId}}/track-usage
+
+### Test 9: Replace the existing image with a new one
+PUT {{baseUrl}}/eventimages/question/{{questionId}}/replace
+Content-Type: application/json
+
+{
+  "newUnsplashImageId": "new-unsplash-image-id",
+  "sizeVariant": "regular",
+  "selectedByUserId": "test-user-123"
+}
+
+### Test 10: Get all images for an event
+GET {{baseUrl}}/eventimages/event/{{eventId}}
+Accept: application/json
+
+### Test 11: Remove image from question
+DELETE {{baseUrl}}/eventimages/question/{{questionId}}
+
+### Test 12: Verify image was removed (should return 404)
+GET {{baseUrl}}/eventimages/question/{{questionId}}
+Accept: application/json
+
+### Test 13: Admin cleanup of expired images
+POST {{baseUrl}}/eventimages/admin/cleanup-expired
+
+### Additional Unsplash API Tests
+
+### Test 14: Search Unsplash directly
+GET {{baseUrl}}/unsplash/search?query=wine&page=1&perPage=5
+Accept: application/json
+
+### Test 15: Get specific Unsplash image details
+GET {{baseUrl}}/unsplash/images/sample-image-id
+Accept: application/json
+
+### Test 16: Get Unsplash image in selection format
+GET {{baseUrl}}/unsplash/images/sample-image-id/selection?size=regular
+Accept: application/json
+
+### Test 17: Track Unsplash download
+POST {{baseUrl}}/unsplash/track-download
+Content-Type: application/json
+
+{
+  "downloadUrl": "https://api.unsplash.com/photos/sample-id/download?ixid=sample-tracking-id"
+}

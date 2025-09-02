@@ -1,0 +1,60 @@
+### Unsplash API Tests for TriviaSpark
+### Base URL: https://localhost:14165/api/unsplash (when running locally)
+
+@baseUrl = https://localhost:14165/api
+
+### Test 1: Search for wine-related images
+GET {{baseUrl}}/unsplash/search?query=wine&page=1&perPage=10
+Accept: application/json
+
+### Test 2: Search by specific category
+GET {{baseUrl}}/unsplash/categories/wine?page=1&perPage=5
+Accept: application/json
+
+### Test 3: Get featured images
+GET {{baseUrl}}/unsplash/featured?page=1&perPage=10
+Accept: application/json
+
+### Test 4: Search with filters (color and orientation)
+GET {{baseUrl}}/unsplash/search?query=landscape&color=blue&orientation=landscape&perPage=5
+Accept: application/json
+
+### Test 5: Get specific image by ID (replace with actual image ID from search results)
+GET {{baseUrl}}/unsplash/images/sample-image-id
+Accept: application/json
+
+### Test 6: Get image selection format (replace with actual image ID)
+GET {{baseUrl}}/unsplash/images/sample-image-id/selection?size=regular
+Accept: application/json
+
+### Test 7: Get available categories
+GET {{baseUrl}}/unsplash/categories
+Accept: application/json
+
+### Test 8: Track download (replace with actual download URL)
+POST {{baseUrl}}/unsplash/track-download
+Content-Type: application/json
+
+{
+  "downloadUrl": "https://api.unsplash.com/photos/sample-id/download?ixid=sample-tracking-id"
+}
+
+### Test 9: Search for food-related images
+GET {{baseUrl}}/unsplash/categories/food?page=1&perPage=8
+Accept: application/json
+
+### Test 10: Search for science-related images with specific filters
+GET {{baseUrl}}/unsplash/search?query=laboratory science&orderBy=latest&perPage=12
+Accept: application/json
+
+### Test 11: Error handling - empty query
+GET {{baseUrl}}/unsplash/search?query=&page=1&perPage=10
+Accept: application/json
+
+### Test 12: Error handling - invalid category
+GET {{baseUrl}}/unsplash/categories/invalid-category?page=1&perPage=5
+Accept: application/json
+
+### Test 13: Pagination test - second page
+GET {{baseUrl}}/unsplash/search?query=nature&page=2&perPage=15
+Accept: application/json

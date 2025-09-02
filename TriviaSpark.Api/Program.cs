@@ -86,6 +86,10 @@ builder.Services.AddScoped<IEfCoreParticipantService, EfCoreParticipantService>(
 builder.Services.AddScoped<IEfCoreResponseService, EfCoreResponseService>();
 builder.Services.AddScoped<IEfCoreFunFactService, EfCoreFunFactService>();
 builder.Services.AddScoped<IEfCoreStorageService, EfCoreStorageService>();
+builder.Services.AddScoped<IEventImageService, EventImageService>();
+
+// External API services
+builder.Services.AddUnsplashService(builder.Configuration);
 
 var app = builder.Build();
 
