@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Calendar, Edit, Save, X } from "lucide-react";
+import { User, Mail, Phone, Calendar, Edit, Save, X, Brain } from "lucide-react";
 import { useState } from "react";
 import { formatDateInCST } from "@/lib/utils";
 
@@ -19,9 +20,10 @@ type ProfileForm = {
 
 export default function Profile() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: user, isLoading } = useQuery<{
+  const { data: user, isLoading, error: userError } = useQuery<{
     user: {
       id: string;
       username: string;
@@ -31,7 +33,27 @@ export default function Profile() {
     };
   }>({
     queryKey: ["/api/auth/me"],
+    retry: false
   });
+
+  // Redirect to home if not authenticated
+  if (userError || (!isLoading && !user)) {
+    setLocation("/");
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Brain className="text-champagne-400 h-8 w-8 animate-pulse" />
+          </div>
+          <p className="text-wine-700">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const {
     register,

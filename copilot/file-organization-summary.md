@@ -34,7 +34,6 @@
 **Created**: C:\GitHub\West-Wichita-Rotary-Club\TriviaSpark\temp\
 
 - `cookies.txt` - Temporary cookie file
-- `replit.md` - Replit-specific documentation
 
 ### Configuration Updates
 

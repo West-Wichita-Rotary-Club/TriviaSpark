@@ -95,6 +95,9 @@ type Event = {
   refundPolicy?: string | null;
   sponsorInformation?: string | null;
   
+  // Event settings
+  allowParticipants: boolean;
+  
   createdAt: string;
 };
 
@@ -169,6 +172,9 @@ type EventFormData = {
   cancellationPolicy?: string;
   refundPolicy?: string;
   sponsorInformation?: string;
+  
+  // Event settings
+  allowParticipants: boolean;
 };
 
 interface EventManageProps {
@@ -182,36 +188,47 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [dryRunActive, setDryRunActive] = useState(false);
-  const [showAnswer, setShowAnswer] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiTopic, setAiTopic] = useState("");
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [finalCountdown, setFinalCountdown] = useState(0); // 0 = no countdown, 1-3 = countdown number
-  const [answersLocked, setAnswersLocked] = useState(false);
-  const [timerActive, setTimerActive] = useState(false);
-  const [viewMode, setViewMode] = useState<'both' | 'presenter' | 'participant'>('both');
-  
-  const [participants, setParticipants] = useState<Array<{
-    id: string;
-    name: string;
-    selectedAnswer: string | null;
-    answerLocked: boolean;
-    score: number;
-  }>>([
-    { id: 'team1', name: 'Team 1', selectedAnswer: null, answerLocked: false, score: 0 },
-    { id: 'team2', name: 'Team 2', selectedAnswer: null, answerLocked: false, score: 0 }
-  ]);
-  const [showBetweenQuestions, setShowBetweenQuestions] = useState(false);
-  const [showFinalResults, setShowFinalResults] = useState(false);
   const [funFactsText, setFunFactsText] = useState('');
   const [editingFunFacts, setEditingFunFacts] = useState(false);
+
+  // Check authentication
+  const { data: user, isLoading: userLoading, error: userError } = useQuery<{
+    user: {
+      id: string;
+      username: string;
+      email: string;
+      fullName: string;
+    };
+  }>({
+    queryKey: ["/api/auth/me"],
+    retry: false
+  });
 
   const eventId = propEventId || params?.id;
   console.log("Extracted eventId:", eventId, "from propEventId:", propEventId, "params:", params);
   console.log("EventManage - eventId:", eventId, "propEventId:", propEventId, "params:", params);
+
+  // Redirect to home if not authenticated
+  if (userError || (!userLoading && !user)) {
+    setLocation("/");
+    return null;
+  }
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Brain className="text-champagne-400 h-8 w-8 animate-pulse" />
+          </div>
+          <p className="text-wine-700">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Early return if no eventId
   if (!eventId) {
@@ -262,7 +279,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
       eventType: event?.eventType || "",
       maxParticipants: event?.maxParticipants || 50,
       difficulty: event?.difficulty || "mixed",
-      eventDate: event?.eventDate || "",
+      eventDate: event?.eventDate ? getDateForInputInCST(event.eventDate) : "",
       eventTime: event?.eventTime || "",
       location: event?.location || "",
       sponsoringOrganization: event?.sponsoringOrganization || "",
@@ -279,7 +296,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
         eventType: event.eventType || "",
         maxParticipants: event.maxParticipants || 50,
         difficulty: event.difficulty || "mixed",
-        eventDate: event.eventDate || "",
+        eventDate: event.eventDate ? getDateForInputInCST(event.eventDate) : "",
         eventTime: event.eventTime || "",
         location: event.location || "",
         sponsoringOrganization: event.sponsoringOrganization || "",
@@ -307,6 +324,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
         cancellationPolicy: event.cancellationPolicy || undefined,
         refundPolicy: event.refundPolicy || undefined,
         sponsorInformation: event.sponsorInformation || undefined,
+        allowParticipants: event.allowParticipants || false,
       });
     }
   }, [event, reset]);
@@ -380,7 +398,12 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
   // Form submit handler
   const onSubmit = (data: EventFormData) => {
-    updateEventMutation.mutate(data);
+    // Convert date from YYYY-MM-DD format to ISO format for API
+    const processedData = {
+      ...data,
+      eventDate: data.eventDate ? createDateInCST(data.eventDate, data.eventTime).toISOString() : data.eventDate
+    };
+    updateEventMutation.mutate(processedData);
   };
 
   // Modal-based question editor with Unsplash image search
@@ -691,136 +714,12 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
     updateStatusMutation.mutate(status);
   };
 
-  const startDryRun = () => {
-    if (questions.length === 0) {
-      toast({
-        title: "No Questions",
-        description: "Add some questions to your event before running a dry run.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setDryRunActive(true);
-    setCurrentQuestionIndex(0);
-    setShowAnswer(false);
-    setAnswersLocked(false);
-    setTimeLeft(30);
-    setFinalCountdown(0);
-    setTimerActive(true);
-  };
-
-  const resetQuestionState = () => {
-    setShowAnswer(false);
-    setAnswersLocked(false);
-    setTimeLeft(30);
-    setFinalCountdown(0);
-    setShowBetweenQuestions(false);
-    setShowFinalResults(false);
-    setParticipants(prev => prev.map(p => ({
-      ...p,
-      selectedAnswer: null,
-      answerLocked: false
-    })));
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setShowBetweenQuestions(true);
-      setTimeout(() => {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        resetQuestionState();
-        setTimerActive(true);
-      }, 5000); // Show between-questions view for 5 seconds
-    } else {
-      // Show final results instead of ending immediately
-      setShowFinalResults(true);
-    }
-  };
-
-  const handleAnswerSelect = (teamId: string, answer: string) => {
-    setParticipants(prev => prev.map(p => {
-      if (p.id === teamId && !p.answerLocked && !answersLocked) {
-        return { ...p, selectedAnswer: answer };
-      }
-      return p;
-    }));
-  };
-
-  const handleLockAnswer = (teamId: string) => {
-    setParticipants(prev => {
-      const newParticipants = prev.map(p => {
-        if (p.id === teamId && p.selectedAnswer && !p.answerLocked && !answersLocked) {
-          // Simple scoring: if correct answer within 30 seconds, score = remaining time
-          const currentQuestion = questions[currentQuestionIndex];
-          const isCorrect = currentQuestion && 
-            p.selectedAnswer.toLowerCase().trim() === currentQuestion.correctAnswer.toLowerCase().trim();
-          const points = isCorrect && timeLeft > 0 ? timeLeft : 0;
-          
-          return {
-            ...p,
-            answerLocked: true,
-            score: p.score + points
-          };
-        }
-        return p;
-      });
-      
-      // Broadcast locked answer (optional, for real multiplayer later)
-      const lockedParticipant = newParticipants.find(p => p.id === teamId);
-      
-      // Check if all teams have now locked their answers
-      const allLocked = newParticipants.every(p => p.answerLocked);
-      if (allLocked) {
-        toast({
-          title: "All Teams Answered!",
-          description: "All participants have locked their answers. Revealing results...",
-        });
-      }
-      
-      return newParticipants;
-    });
-  };
-
   const handleSaveFunFacts = () => {
     // In a real app, this would save to the database
     setEditingFunFacts(false);
     toast({
       title: "Fun Facts Updated",
       description: "Event fun facts have been saved successfully.",
-    });
-  };
-
-  const toggleAnswer = () => {
-    if (!answersLocked) {
-      setShowAnswer(!showAnswer);
-      // Stop the timer if manually showing answer
-      if (!showAnswer) {
-        setTimerActive(false);
-      }
-    }
-  };
-
-  const stopDryRun = () => {
-    setDryRunActive(false);
-    setCurrentQuestionIndex(0);
-    resetQuestionState();
-    setTimeLeft(30);
-    setFinalCountdown(0);
-    setTimerActive(false);
-    setParticipants(prev => prev.map(p => ({ ...p, score: 0, selectedAnswer: null, answerLocked: false })));
-  };
-
-  const finishDryRun = () => {
-    setDryRunActive(false);
-    setCurrentQuestionIndex(0);
-    resetQuestionState();
-    setTimeLeft(30);
-    setFinalCountdown(0);
-    setTimerActive(false);
-    setParticipants(prev => prev.map(p => ({ ...p, score: 0, selectedAnswer: null, answerLocked: false })));
-    toast({
-      title: "Dry Run Complete",
-      description: "Great job! You've completed the trivia preview.",
     });
   };
 
@@ -945,68 +844,6 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
     });
   };
 
-  // Timer logic for dry run
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (timerActive && timeLeft > 0 && !showAnswer) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev === 4) {
-            // Start final countdown at 3
-            setFinalCountdown(3);
-            return prev - 1;
-          } else if (prev === 3) {
-            setFinalCountdown(2);
-            return prev - 1;
-          } else if (prev === 2) {
-            setFinalCountdown(1);
-            return prev - 1;
-          } else if (prev === 1) {
-            // Time's up - lock answers and show answer
-            setTimerActive(false);
-            setAnswersLocked(true);
-            setShowAnswer(true);
-            setFinalCountdown(0);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [timerActive, timeLeft, showAnswer]);
-
-  // Auto-close question when all teams have locked their answers
-  useEffect(() => {
-    if (dryRunActive && !showAnswer && !answersLocked && participants.length > 0) {
-      const allTeamsLocked = participants.every(p => p.answerLocked);
-      if (allTeamsLocked) {
-        // All teams have locked their answers, auto-close the question
-        setTimerActive(false);
-        setAnswersLocked(true);
-        
-        // Show answer after a brief delay
-        setTimeout(() => {
-          setShowAnswer(true);
-        }, 1000);
-      }
-    }
-  }, [participants, dryRunActive, showAnswer, answersLocked]);
-
-  // Reset final countdown when it reaches 0
-  useEffect(() => {
-    if (finalCountdown === 1) {
-      const timeout = setTimeout(() => {
-        setFinalCountdown(0);
-      }, 1000);
-      return () => clearTimeout(timeout);
-    }
-  }, [finalCountdown]);
-
 
   if (eventLoading) {
     return (
@@ -1035,8 +872,6 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
       </div>
     );
   }
-
-  const currentQuestion = questions[currentQuestionIndex];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50">
@@ -1076,7 +911,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="details" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8" data-testid="tabs-event-management">
+          <TabsList className="grid w-full grid-cols-7" data-testid="tabs-event-management">
             <TabsTrigger value="details" data-testid="tab-details">
               <Settings className="mr-2 h-4 w-4" />
               Details
@@ -1104,10 +939,6 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
             <TabsTrigger value="status" data-testid="tab-status">
               <Trophy className="mr-2 h-4 w-4" />
               Status
-            </TabsTrigger>
-            <TabsTrigger value="dryrun" data-testid="tab-dryrun">
-              <Play className="mr-2 h-4 w-4" />
-              Dry Run
             </TabsTrigger>
           </TabsList>
 
@@ -1655,575 +1486,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Dry Run Tab */}
-          <TabsContent value="dryrun">
-            <div className="space-y-4">
-              {/* View Mode Selector */}
-              <Card className="trivia-card">
-                <CardHeader>
-                  <CardTitle className="wine-text flex items-center justify-between">
-                    <span>Dry Run - Test Your Trivia</span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant={viewMode === 'both' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('both')}
-                        data-testid="button-view-both"
-                      >
-                        Split View
-                      </Button>
-                      <Button
-                        variant={viewMode === 'presenter' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('presenter')}
-                        data-testid="button-view-presenter"
-                      >
-                        Presenter
-                      </Button>
-                      <Button
-                        variant={viewMode === 'participant' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setViewMode('participant')}
-                        data-testid="button-view-participant"
-                      >
-                        Participant
-                      </Button>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                {!dryRunActive ? (
-                    <div className="text-center space-y-4">
-                      <p className="text-gray-600">
-                        Preview your trivia questions as participants would see them.
-                        {questions.length === 0 && " Add some questions first!"}
-                      </p>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-sm font-medium mb-2">Questions in this event:</p>
-                        <p className="text-2xl font-bold text-wine-700" data-testid="text-question-count">
-                          {questions.length}
-                        </p>
-                      </div>
-                      <Button
-                        onClick={startDryRun}
-                        disabled={questions.length === 0}
-                        className="trivia-button-primary"
-                        data-testid="button-start-dry-run"
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Start Dry Run
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {/* Dry Run Header */}
-                      <div className="flex items-center justify-between">
-                        <Badge variant="default" className="bg-blue-100 text-blue-800" data-testid="badge-dry-run">
-                          Dry Run Active - {viewMode === 'both' ? 'Split View' : viewMode === 'presenter' ? 'Presenter View' : 'Participant View'}
-                        </Badge>
-                        <div className="text-sm text-gray-600" data-testid="text-question-progress">
-                          Question {currentQuestionIndex + 1} of {questions.length}
-                        </div>
-                      </div>
-
-                      {/* Dual View Layout */}
-                      {viewMode === 'both' && currentQuestion && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* Presenter View */}
-                          <div className="space-y-4">
-                            <h4 className="text-lg font-semibold text-wine-700">👨‍🏫 Presenter View</h4>
-                            <PresenterView 
-                              question={currentQuestion} 
-                              timeLeft={timeLeft}
-                              finalCountdown={finalCountdown}
-                              showAnswer={showAnswer}
-                              answersLocked={answersLocked}
-                            />
-                          </div>
-                          
-                          {/* Participant View */}
-                          <div className="space-y-4">
-                            <h4 className="text-lg font-semibold text-wine-700">👥 Participants View</h4>
-                            <div className="space-y-6">
-                              {participants.map(participant => (
-                                <div key={participant.id} className="space-y-2">
-                                  <h5 className="text-md font-semibold text-wine-700">{participant.name} (Score: {participant.score})</h5>
-                                  <ParticipantView 
-                                    question={currentQuestion} 
-                                    timeLeft={timeLeft}
-                                    finalCountdown={finalCountdown}
-                                    showAnswer={showAnswer}
-                                    answersLocked={answersLocked}
-                                    selectedAnswer={participant.selectedAnswer}
-                                    answerLocked={participant.answerLocked}
-                                    onAnswerSelect={(answer) => handleAnswerSelect(participant.id, answer)}
-                                    onLockAnswer={() => handleLockAnswer(participant.id)}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Single View Layout */}
-                      {viewMode !== 'both' && currentQuestion && (
-                        viewMode === 'presenter' ? (
-                          <PresenterView 
-                            question={currentQuestion} 
-                            timeLeft={timeLeft}
-                            finalCountdown={finalCountdown}
-                            showAnswer={showAnswer}
-                            answersLocked={answersLocked}
-                          />
-                        ) : (
-                          <div className="space-y-4">
-                            <div className="text-center">
-                              <div className="space-y-2">
-                                {participants.map(participant => (
-                                  <Badge key={participant.id} variant="outline" className="text-lg px-4 py-2 mr-2">
-                                    {participant.name}: {participant.score} points
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                            <div className="space-y-6">
-                              {participants.map(participant => (
-                                <div key={participant.id} className="space-y-2">
-                                  <h5 className="text-md font-semibold text-wine-700">{participant.name}</h5>
-                                  <ParticipantView 
-                                    question={currentQuestion} 
-                                    timeLeft={timeLeft}
-                                    finalCountdown={finalCountdown}
-                                    showAnswer={showAnswer}
-                                    answersLocked={answersLocked}
-                                    selectedAnswer={participant.selectedAnswer}
-                                    answerLocked={participant.answerLocked}
-                                    onAnswerSelect={(answer) => handleAnswerSelect(participant.id, answer)}
-                                    onLockAnswer={() => handleLockAnswer(participant.id)}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      )}
-
-                      {/* Between Questions View */}
-                      {showBetweenQuestions && (
-                        <BetweenQuestionsView 
-                          participants={participants}
-                          currentQuestionIndex={currentQuestionIndex}
-                          totalQuestions={questions.length}
-                          funFacts={[
-                            "West Wichita Rotary Club has been serving the community since 1985 and has raised over $2 million for local charities! 🎉",
-                            "Did you know? The Pacific Northwest produces over 99% of American wine grapes, with Washington state being the second-largest wine producer in the US! 🍷",
-                            "Our trivia nights have helped fund 15 local scholarships, 3 community gardens, and countless meals for families in need. Every question answered makes a difference! 💝",
-                            "This is our 12th annual Coast to Cascades event! Together, we've welcomed over 600 guests and created lasting memories while supporting worthy causes. 🌟"
-                          ]}
-                        />
-                      )}
-
-                      {/* Final Results View */}
-                      {showFinalResults && (
-                        <FinalResultsView 
-                          participants={participants}
-                          totalQuestions={questions.length}
-                          onFinish={finishDryRun}
-                        />
-                      )}
-
-                      {/* Dry Run Controls */}
-                      {currentQuestion && (
-                        <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
-                          <div className="flex items-center gap-4">
-                            <Button
-                              onClick={toggleAnswer}
-                              variant="outline"
-                              disabled={answersLocked}
-                              data-testid="button-show-answer"
-                            >
-                              {showAnswer ? "Hide Answer" : "Show Answer"}
-                            </Button>
-                            {answersLocked && (
-                              <div className="text-sm text-gray-600">
-                                Time's up! Answer revealed automatically.
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex gap-3">
-                            <Button
-                              onClick={stopDryRun}
-                              variant="outline"
-                              data-testid="button-stop-dry-run"
-                            >
-                              <Pause className="mr-2 h-4 w-4" />
-                              Stop
-                            </Button>
-                            <Button
-                              onClick={nextQuestion}
-                              className="trivia-button-primary"
-                              data-testid="button-next-question"
-                            >
-                              {currentQuestionIndex < questions.length - 1 ? (
-                                <>
-                                  <SkipForward className="mr-2 h-4 w-4" />
-                                  Next Question
-                                </>
-                              ) : (
-                                "Finish Dry Run"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
         </Tabs>
-      </div>
-    </div>
-  );
-}
-
-// Presenter View Component - Shows question with controls and answer
-function PresenterView({ question, timeLeft, finalCountdown, showAnswer, answersLocked }: {
-  question: Question;
-  timeLeft: number;
-  finalCountdown: number;
-  showAnswer: boolean;
-  answersLocked: boolean;
-}) {
-  return (
-    <div className="relative bg-white p-6 rounded-lg border-2 border-wine-200 shadow-sm">
-      {/* Timer and Status */}
-      <div className="flex items-center justify-between mb-4">
-        <Badge variant="secondary" data-testid="badge-presenter-category">
-          {question.category}
-        </Badge>
-        <div className="flex items-center gap-4">
-          <div className={`flex items-center text-sm ${timeLeft <= 10 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
-            <Clock className="mr-1 h-3 w-3" />
-            {timeLeft}s
-          </div>
-          {answersLocked && (
-            <Badge variant="destructive" className="bg-red-100 text-red-800">
-              🔒 Locked
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      {/* Final Countdown Overlay */}
-      {finalCountdown > 0 && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10 rounded-lg">
-          <div className="text-6xl font-bold text-white animate-pulse" data-testid={`presenter-countdown-${finalCountdown}`}>
-            {finalCountdown}
-          </div>
-        </div>
-      )}
-      
-      {/* Question */}
-      <h3 className="text-lg font-semibold text-wine-800 mb-4" data-testid="presenter-question">
-        {question.question}
-      </h3>
-
-      {/* Options with Answer Highlighting */}
-      <div className="space-y-2">
-        {question.options.map((option, index) => (
-          <div
-            key={index}
-            className={`p-3 rounded-lg border text-sm transition-colors ${
-              showAnswer && option === question.correctAnswer
-                ? 'bg-green-100 border-green-300 font-medium'
-                : 'bg-gray-50 border-gray-200'
-            }`}
-            data-testid={`presenter-option-${index}`}
-          >
-            <span className="font-medium mr-2">{String.fromCharCode(65 + index)}.</span>
-            {option}
-            {showAnswer && option === question.correctAnswer && (
-              <span className="ml-2 text-green-600 font-semibold">✓ Correct Answer</span>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Answer Revealed Indicator */}
-      {showAnswer && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="text-sm font-medium text-green-800">
-            📱 Answer is now visible to participants
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Participant View Component - Shows what players see during the game
-function ParticipantView({ question, timeLeft, finalCountdown, showAnswer, answersLocked, selectedAnswer, answerLocked, onAnswerSelect, onLockAnswer }: {
-  question: Question;
-  timeLeft: number;
-  finalCountdown: number;
-  showAnswer: boolean;
-  answersLocked: boolean;
-  selectedAnswer: string | null;
-  answerLocked: boolean;
-  onAnswerSelect: (answer: string) => void;
-  onLockAnswer: () => void;
-}) {
-  return (
-    <div className="relative bg-gradient-to-br from-wine-50 to-champagne-50 p-6 rounded-lg border-2 border-wine-200 shadow-sm">
-      {/* Game Header */}
-      <div className="text-center mb-4">
-        <div className="flex items-center justify-center gap-4 mb-2">
-          <Badge variant="outline" className="border-wine-300 text-wine-700">
-            {question.category}
-          </Badge>
-          <div className={`text-lg font-bold ${timeLeft <= 10 ? 'text-red-600' : 'text-wine-600'}`}>
-            ⏰ {timeLeft}s
-          </div>
-        </div>
-      </div>
-
-      {/* Final Countdown Overlay - positioned to not block interactions */}
-      {finalCountdown > 0 && (
-        <div className="absolute top-4 right-4 bg-black bg-opacity-75 rounded-full w-16 h-16 flex items-center justify-center z-10">
-          <div className="text-2xl font-bold text-white animate-pulse" data-testid={`participant-countdown-${finalCountdown}`}>
-            {finalCountdown}
-          </div>
-        </div>
-      )}
-
-      {/* Question */}
-      <div className="text-center mb-6">
-        <h3 className="text-lg font-semibold text-wine-800" data-testid="participant-question">
-          {question.question}
-        </h3>
-      </div>
-
-      {/* Interactive Options */}
-      <div className="space-y-3">
-        {question.options.map((option, index) => (
-          <button
-            key={index}
-            disabled={answerLocked || answersLocked}
-            onClick={() => onAnswerSelect(option)}
-            className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 ${
-              selectedAnswer === option && !answerLocked && !answersLocked
-                ? 'bg-wine-100 border-wine-400 ring-2 ring-wine-300'
-                : answersLocked || answerLocked
-                ? showAnswer && option === question.correctAnswer
-                  ? 'bg-green-100 border-green-400 text-green-800 font-medium'
-                  : selectedAnswer === option
-                  ? 'bg-wine-50 border-wine-300 text-wine-800'
-                  : 'bg-gray-100 border-gray-300 text-gray-600'
-                : 'bg-white border-wine-200 hover:border-wine-300 hover:bg-wine-50 cursor-pointer'
-            }`}
-            data-testid={`participant-option-${index}`}
-          >
-            <span className={`inline-block w-8 h-8 rounded-full font-bold text-center leading-8 mr-3 ${
-              selectedAnswer === option && !answerLocked && !answersLocked
-                ? 'bg-wine-300 text-wine-800'
-                : 'bg-wine-200 text-wine-800'
-            }`}>
-              {String.fromCharCode(65 + index)}
-            </span>
-            {option}
-            {showAnswer && option === question.correctAnswer && (
-              <span className="float-right text-green-600 font-bold text-xl">✓</span>
-            )}
-            {selectedAnswer === option && answerLocked && (
-              <span className="float-right text-wine-600 font-bold text-xl">🔒</span>
-            )}
-          </button>
-        ))}
-      </div>
-
-      {/* Lock Answer Button */}
-      {selectedAnswer && !answerLocked && !answersLocked && (
-        <div className="mt-6 text-center">
-          <Button
-            onClick={onLockAnswer}
-            className="bg-wine-600 hover:bg-wine-700 text-white px-8 py-3 text-lg font-semibold"
-            data-testid="button-lock-answer"
-          >
-            🔒 Lock Answer (Score: {timeLeft} pts)
-          </Button>
-        </div>
-      )}
-
-      {/* Locked State Messages */}
-      {answerLocked && !answersLocked && (
-        <div className="mt-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-wine-100 border border-wine-200 rounded-full text-wine-800 font-medium">
-            ✅ Answer Locked! Waiting for time to end...
-          </div>
-        </div>
-      )}
-      {answersLocked && (
-        <div className="mt-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 border border-red-200 rounded-full text-red-800 font-medium">
-            🔒 Time's Up! Answers Revealed
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Final Results View Component - Shows final leaderboard and celebration
-function FinalResultsView({ participants, totalQuestions, onFinish }: {
-  participants: Array<{ id: string; name: string; score: number; selectedAnswer: string | null; answerLocked: boolean }>;
-  totalQuestions: number;
-  onFinish: () => void;
-}) {
-  // Sort participants by score for final leaderboard
-  const sortedParticipants = [...participants].sort((a, b) => b.score - a.score);
-  const winner = sortedParticipants[0];
-  const totalPossiblePoints = totalQuestions * 30; // Max 30 points per question
-
-  return (
-    <div className="space-y-8 text-center">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-yellow-100 to-yellow-200 p-8 rounded-lg border-2 border-yellow-300">
-        <h2 className="text-4xl font-bold text-yellow-800 mb-2">🎉 Trivia Complete! 🎉</h2>
-        <p className="text-yellow-700 text-lg">
-          All {totalQuestions} questions have been answered
-        </p>
-      </div>
-
-      {/* Winner Announcement */}
-      <div className="bg-gradient-to-r from-champagne-100 to-wine-100 p-8 rounded-lg border-2 border-wine-200">
-        <h3 className="text-3xl font-bold text-wine-800 mb-4">👑 Winner: {winner.name}! 👑</h3>
-        <div className="text-5xl font-bold text-wine-800 mb-2">{winner.score} points</div>
-        <p className="text-wine-600 text-lg">
-          Out of {totalPossiblePoints} possible points ({Math.round((winner.score / totalPossiblePoints) * 100)}% accuracy)
-        </p>
-      </div>
-
-      {/* Final Leaderboard */}
-      <div className="bg-white p-8 rounded-lg border-2 border-gray-200 shadow-lg">
-        <h4 className="text-2xl font-bold text-gray-800 mb-6">📊 Final Leaderboard</h4>
-        <div className="space-y-4">
-          {sortedParticipants.map((participant, index) => (
-            <div key={participant.id} className={`flex items-center justify-between p-4 rounded-lg ${
-              index === 0 ? 'bg-yellow-50 border-2 border-yellow-300' : 
-              index === 1 ? 'bg-gray-50 border-2 border-gray-300' : 
-              'bg-amber-50 border-2 border-amber-300'
-            }`}>
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-xl ${
-                  index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-amber-600'
-                }`}>
-                  {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                </div>
-                <div className="text-left">
-                  <div className="text-xl font-bold text-gray-800">{participant.name}</div>
-                  <div className="text-gray-600">
-                    {Math.round((participant.score / totalPossiblePoints) * 100)}% accuracy
-                  </div>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-gray-800">{participant.score}</div>
-                <div className="text-gray-600">points</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Statistics */}
-      <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
-        <h4 className="text-lg font-semibold text-blue-700 mb-3">📈 Event Statistics</h4>
-        <div className="grid grid-cols-2 gap-4 text-blue-800">
-          <div>
-            <div className="text-2xl font-bold">{totalQuestions}</div>
-            <div className="text-sm">Questions Asked</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold">{Math.round(participants.reduce((sum, p) => sum + p.score, 0) / participants.length)}</div>
-            <div className="text-sm">Average Score</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Finish Button */}
-      <div className="pt-4">
-        <Button
-          onClick={onFinish}
-          className="bg-wine-600 hover:bg-wine-700 text-white px-8 py-3 text-lg font-semibold"
-          data-testid="button-finish-dry-run"
-        >
-          🏁 Finish Dry Run
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// Between Questions View Component - Shows leaderboard and fun facts
-function BetweenQuestionsView({ participants, currentQuestionIndex, totalQuestions, funFacts }: {
-  participants: Array<{ id: string; name: string; score: number; selectedAnswer: string | null; answerLocked: boolean }>;
-  currentQuestionIndex: number;
-  totalQuestions: number;
-  funFacts: string[];
-}) {
-  // Sort participants by score for leaderboard
-  const sortedParticipants = [...participants].sort((a, b) => b.score - a.score);
-  const randomFunFact = funFacts[Math.floor(Math.random() * funFacts.length)];
-  return (
-    <div className="space-y-6 text-center">
-      {/* Progress */}
-      <div className="bg-wine-50 p-6 rounded-lg border-2 border-wine-200">
-        <h3 className="text-2xl font-bold text-wine-800 mb-2">
-          Question {currentQuestionIndex + 1} Complete!
-        </h3>
-        <p className="text-wine-600">
-          {totalQuestions - currentQuestionIndex - 1} questions remaining
-        </p>
-      </div>
-
-      {/* Leaderboard */}
-      <div className="bg-gradient-to-r from-champagne-100 to-wine-100 p-8 rounded-lg border-2 border-wine-200">
-        <h4 className="text-lg font-semibold text-wine-700 mb-4">🏆 Leaderboard</h4>
-        <div className="space-y-3">
-          {sortedParticipants.map((participant, index) => (
-            <div key={participant.id} className="flex items-center justify-between bg-white/50 p-3 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
-                  index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-amber-600'
-                }`}>
-                  {index + 1}
-                </div>
-                <span className="font-semibold text-wine-800">{participant.name}</span>
-              </div>
-              <div className="text-xl font-bold text-wine-800">{participant.score} pts</div>
-            </div>
-          ))}
-        </div>
-        <p className="text-wine-600 text-center mt-4">Keep it up! More points for faster answers!</p>
-      </div>
-
-      {/* Fun Fact */}
-      <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
-        <h4 className="text-lg font-semibold text-blue-700 mb-3">🎉 Did You Know?</h4>
-        <p className="text-blue-800 text-lg leading-relaxed">{randomFunFact}</p>
-      </div>
-
-      {/* Next Question Countdown */}
-      <div className="text-wine-600">
-        <p>Next question starting soon...</p>
-        <div className="flex justify-center mt-2">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-wine-600"></div>
-        </div>
       </div>
     </div>
   );

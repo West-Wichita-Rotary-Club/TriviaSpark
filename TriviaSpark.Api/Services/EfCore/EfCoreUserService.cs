@@ -14,6 +14,7 @@ public interface IEfCoreUserService
     Task<DapperUser> UpdateUserAsync(DapperUser user);
     Task<bool> DeleteUserAsync(string userId);
     Task<bool> ValidatePasswordAsync(string username, string password);
+    Task<int> GetUserCountAsync();
 }
 
 public class EfCoreUserService : IEfCoreUserService
@@ -82,6 +83,11 @@ public class EfCoreUserService : IEfCoreUserService
         // Note: In a real application, you'd use proper password hashing
         // For now, this matches the existing simple implementation
         return user.Password == password;
+    }
+
+    public async Task<int> GetUserCountAsync()
+    {
+        return await _context.Users.CountAsync();
     }
 
     private static DapperUser MapToDto(EfUser entity)

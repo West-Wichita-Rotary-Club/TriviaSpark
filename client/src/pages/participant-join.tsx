@@ -64,13 +64,7 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
         break;
         
       case 'event_status_changed':
-        if (latestMessage.data?.status === 'dry_run_started') {
-          setCurrentQuestion(latestMessage.data?.question);
-          setGameStatus('active');
-        } else if (latestMessage.data?.status === 'dry_run_stopped') {
-          setGameStatus('waiting');
-          setCurrentQuestion(null);
-        }
+        // Handle other event status changes if needed
         break;
     }
   }, [messages]);

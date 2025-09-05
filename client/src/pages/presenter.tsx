@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,19 @@ const SimpleProgress = ({ value, className }: { value: number; className?: strin
 import { Play, Pause, SkipForward, RotateCcw, Trophy, Users, Clock, ChevronRight, Star } from "lucide-react";
 
 export default function PresenterView() {
-  const [, params] = useRoute("/presenter/:id");
-  const [, demoRoute] = useRoute("/demo");
-  const eventId = params?.id;
-  const isDemoMode = demoRoute || !eventId;
+  const [, presenterParams] = useRoute("/presenter/:id");
+  const [, demoParams] = useRoute("/demo/:id");
+  const [, setLocation] = useLocation();
+  
+  // Check which route we're on and get the eventId accordingly
+  const eventId = presenterParams?.id || demoParams?.id;
+  const isDemoMode = !!demoParams;
+  
+  // Redirect to home if demo route is accessed without ID
+  if (demoParams !== null && !demoParams.id) {
+    setLocation("/");
+    return null;
+  }
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
@@ -61,6 +70,9 @@ export default function PresenterView() {
   const participants = isDemoMode ? [] : apiParticipants; // Demo mode has no live participants
   const teams = isDemoMode ? [] : apiTeams; // Demo mode has no live teams
   const funFacts = isDemoMode ? demoFunFacts : apiFunFacts;
+
+  // Check if participants are allowed for this event
+  const allowParticipants = event?.allowParticipants ?? false;
 
   const currentQuestion = questions?.[currentQuestionIndex];
   const progress = questions ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
@@ -163,14 +175,18 @@ export default function PresenterView() {
             </p>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6 text-right flex-shrink-0">
-            <div className="text-center">
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-champagne-300">{participants?.length || 0}</div>
-              <div className="text-xs sm:text-sm text-white/60">Participants</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-champagne-300">{teams?.length || 0}</div>
-              <div className="text-xs sm:text-sm text-white/60">Teams</div>
-            </div>
+            {allowParticipants && (
+              <>
+                <div className="text-center">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-champagne-300">{participants?.length || 0}</div>
+                  <div className="text-xs sm:text-sm text-white/60">Participants</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg sm:text-xl lg:text-2xl font-bold text-champagne-300">{teams?.length || 0}</div>
+                  <div className="text-xs sm:text-sm text-white/60">Teams</div>
+                </div>
+              </>
+            )}
             <div className="text-center">
               <div className="text-lg sm:text-xl lg:text-2xl font-bold text-champagne-300">{questions?.length || 0}</div>
               <div className="text-xs sm:text-sm text-white/60">Questions</div>
@@ -204,7 +220,9 @@ export default function PresenterView() {
               {isDemoMode ? "Experience our interactive trivia platform" : "Get ready for an amazing experience"}
             </p>
             <div className="text-base lg:text-lg text-champagne-300">
-              {isDemoMode ? "This is a shareable demo - no login required!" : `${participants?.length || 0} participants ready to play`}
+              {isDemoMode ? "This is a shareable demo - no login required!" : 
+               allowParticipants ? `${participants?.length || 0} participants ready to play` :
+               "Content-focused trivia experience"}
             </div>
           </div>
         )}
@@ -347,7 +365,7 @@ export default function PresenterView() {
           </div>
         )}
 
-        {gameState === "leaderboard" && (
+        {gameState === "leaderboard" && allowParticipants && (
           <div className="w-full max-w-5xl h-full flex flex-col" data-testid="view-leaderboard">
             <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white flex-1 flex flex-col">
               <CardHeader className="flex-shrink-0">
@@ -387,6 +405,22 @@ export default function PresenterView() {
                   ))}
                 </div>
               </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {gameState === "leaderboard" && !allowParticipants && (
+          <div className="w-full max-w-4xl text-center" data-testid="view-game-complete">
+            <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white">
+              <CardHeader>
+                <CardTitle className="text-3xl lg:text-5xl text-center flex items-center justify-center">
+                  <Trophy className="mr-2 lg:mr-4 h-8 w-8 lg:h-12 lg:w-12 text-yellow-400" />
+                  Game Complete!
+                </CardTitle>
+                <div className="text-lg lg:text-xl text-champagne-300 mt-4">
+                  Thanks for playing! Great job on completing the trivia questions.
+                </div>
+              </CardHeader>
             </Card>
           </div>
         )}
@@ -432,14 +466,16 @@ export default function PresenterView() {
               >
                 Show Answer
               </Button>
-              <Button
-                onClick={handleShowLeaderboard}
-                className="bg-wine-700 hover:bg-wine-600 text-white border border-wine-500 px-6 py-3"
-                data-testid="button-show-leaderboard"
-              >
-                <Trophy className="mr-2 h-4 w-4" />
-                Show Leaderboard
-              </Button>
+              {allowParticipants && (
+                <Button
+                  onClick={handleShowLeaderboard}
+                  className="bg-wine-700 hover:bg-wine-600 text-white border border-wine-500 px-6 py-3"
+                  data-testid="button-show-leaderboard"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  Show Leaderboard
+                </Button>
+              )}
             </>
           )}
 
@@ -454,14 +490,16 @@ export default function PresenterView() {
                 <ChevronRight className="mr-2 h-5 w-5" />
                 {questions && currentQuestionIndex >= questions.length - 1 ? "Finish Game" : "Next Question"}
               </Button>
-              <Button
-                onClick={handleShowLeaderboard}
-                className="bg-wine-700 hover:bg-wine-600 text-white border border-wine-500 px-6 py-3"
-                data-testid="button-show-leaderboard-from-answer"
-              >
-                <Trophy className="mr-2 h-4 w-4" />
-                Show Leaderboard
-              </Button>
+              {allowParticipants && (
+                <Button
+                  onClick={handleShowLeaderboard}
+                  className="bg-wine-700 hover:bg-wine-600 text-white border border-wine-500 px-6 py-3"
+                  data-testid="button-show-leaderboard-from-answer"
+                >
+                  <Trophy className="mr-2 h-4 w-4" />
+                  Show Leaderboard
+                </Button>
+              )}
               <Button
                 onClick={() => setAutoAdvance(!autoAdvance)}
                 size="sm"

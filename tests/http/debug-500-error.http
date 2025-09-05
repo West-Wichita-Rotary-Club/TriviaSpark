@@ -1,0 +1,158 @@
+### Debug 500 Error - Event Management Authentication
+### Focused testing for the failing /api/events/{id} endpoint
+### Use VS Code REST Client extension
+
+@baseUrl = https://localhost:14165
+@eventId = seed-event-coast-to-cascades
+
+### 1. Health Check - Verify server is running
+GET {{baseUrl}}/api/health
+
+###
+
+### 2. Check what users exist in database (via login attempts)
+### This should tell us what users are seeded
+
+### Try with seeded user from demo data
+# @name loginSeededUser
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "mark@westwichitarotary.org", 
+  "password": "rotary2024!"
+}
+
+###
+
+### 3. If login fails, try alternate credentials
+### Check what's in the actual database
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "mark@example.com",
+  "password": "password123"
+}
+
+###
+
+### 4. Register a new test user to ensure we have valid credentials
+# @name registerTestUser
+POST {{baseUrl}}/api/register
+Content-Type: application/json
+
+{
+  "email": "debug@test.com",
+  "password": "test123",
+  "name": "Debug User"
+}
+
+###
+
+### 5. Login with the newly registered user
+# @name loginTestUser  
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "debug@test.com",
+  "password": "test123"
+}
+
+###
+
+### 6. Get all events to see what exists and who owns them
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginTestUser.response.body.sessionId}}
+
+###
+
+### 7. Try to access the specific event that's failing
+### This is the endpoint returning 500 error
+GET {{baseUrl}}/api/events/{{eventId}}
+Content-Type: application/json
+Cookie: sessionId={{loginTestUser.response.body.sessionId}}
+
+###
+
+### 8. Test without authentication (should return 401)
+GET {{baseUrl}}/api/events/{{eventId}}
+Content-Type: application/json
+
+###
+
+### 9. Test with invalid session (should return 401)
+GET {{baseUrl}}/api/events/{{eventId}}
+Content-Type: application/json  
+Cookie: sessionId=invalid-session-123
+
+###
+
+### 10. Create a test event to ensure the system is working
+# @name createTestEvent
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginTestUser.response.body.sessionId}}
+
+{
+  "title": "Debug Test Event",
+  "description": "Testing event creation",
+  "eventType": "corporate", 
+  "maxParticipants": 25,
+  "difficulty": "easy",
+  "status": "draft"
+}
+
+###
+
+### 11. Try to access our newly created event
+GET {{baseUrl}}/api/events/{{createTestEvent.response.body.id}}
+Content-Type: application/json
+Cookie: sessionId={{loginTestUser.response.body.sessionId}}
+
+###
+
+### 12. Check if the seeded event exists in the database
+### by listing all events and looking for it
+GET {{baseUrl}}/api/events/home?limit=20
+Content-Type: application/json
+
+###
+
+### Alternative Login Attempts
+### Try different credential combinations that might be in the database
+
+### Attempt 1: Basic demo credentials
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "admin@triviaspark.com",
+  "password": "admin123"
+}
+
+###
+
+### Attempt 2: User from demo data
+POST {{baseUrl}}/api/login  
+Content-Type: application/json
+
+{
+  "email": "mark.henderson@westwichitarotary.org",
+  "password": "rotary2024"
+}
+
+###
+
+### Attempt 3: Simple test credentials
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com", 
+  "password": "test"
+}
+
+###

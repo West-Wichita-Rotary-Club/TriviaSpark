@@ -91,6 +91,10 @@ builder.Services.AddScoped<IEventImageService, EventImageService>();
 // External API services
 builder.Services.AddUnsplashService(builder.Configuration);
 
+// OpenAI service
+builder.Services.AddHttpClient<IOpenAIService, OpenAIService>();
+builder.Services.AddScoped<IOpenAIService, OpenAIService>();
+
 var app = builder.Build();
 
 

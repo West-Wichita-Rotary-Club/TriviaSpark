@@ -1,0 +1,171 @@
+### Slug-Based Event ID Testing
+### Testing the new descriptive slug-based IDs for events
+
+@baseUrl = https://localhost:14165
+@username = mark
+@password = mark123
+
+### 1. Login first to get session
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 2. Create event with simple title (should generate: wine-tasting-evening)
+# @name createEvent1
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Wine Tasting Evening",
+  "description": "A delightful evening of wine tasting",
+  "eventType": "wine",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "eventDate": "2025-12-15",
+  "eventTime": "19:00",
+  "location": "Test Venue"
+}
+
+### 3. Create event with complex title (should clean up special characters)
+# @name createEvent2
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Wine & Cheese Night!!! - A Special Event (2025)",
+  "description": "A special wine and cheese pairing event",
+  "eventType": "wine",
+  "maxParticipants": 30,
+  "difficulty": "easy",
+  "status": "draft",
+  "eventDate": "2025-12-20",
+  "eventTime": "18:30",
+  "location": "Cheese Shop"
+}
+
+### 4. Create event with very long title (should truncate appropriately)
+# @name createEvent3
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "The Ultimate Wine and Food Pairing Experience Featuring Premium Selections from Local Vineyards and Artisanal Food Producers in a Beautiful Setting",
+  "description": "An extensive wine and food pairing event",
+  "eventType": "wine",
+  "maxParticipants": 100,
+  "difficulty": "hard",
+  "status": "draft",
+  "eventDate": "2025-12-25",
+  "eventTime": "17:00",
+  "location": "Grand Hall"
+}
+
+### 5. Create duplicate title (should get unique slug with number suffix)
+# @name createEvent4
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Wine Tasting Evening",
+  "description": "Another wine tasting event",
+  "eventType": "corporate",
+  "maxParticipants": 25,
+  "difficulty": "easy",
+  "status": "draft",
+  "eventDate": "2025-12-30",
+  "eventTime": "20:00",
+  "location": "Different Venue"
+}
+
+### 6. Create event with numbers and mixed case
+# @name createEvent5
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "CORPORATE EVENT 2025 - Team Building Session #3",
+  "description": "Third team building session of the year",
+  "eventType": "corporate",
+  "maxParticipants": 40,
+  "difficulty": "medium",
+  "status": "draft",
+  "eventDate": "2026-01-05",
+  "eventTime": "09:00",
+  "location": "Conference Center"
+}
+
+### 7. Get all events to see the generated IDs
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+### 8. Test accessing event by slug ID (use the ID from createEvent1 response)
+GET {{baseUrl}}/api/events/wine-tasting-evening
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+### 9. Test creating teams with the slug-based event ID
+POST {{baseUrl}}/api/v2/events/wine-tasting-evening/teams
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "name": "Team Cabernet",
+  "tableNumber": 1,
+  "maxSize": 6
+}
+
+### 10. Test accessing the team we just created
+GET {{baseUrl}}/api/events/wine-tasting-evening/teams
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+### 11. Test edge case - event with only special characters (should default to "event")
+# @name createEventEdge
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "!!!@#$%^&*()",
+  "description": "Event with only special characters in title",
+  "eventType": "party",
+  "maxParticipants": 20,
+  "difficulty": "easy",
+  "status": "draft"
+}
+
+### 12. Test edge case - empty title (should default to "untitled-event")
+# @name createEventEmpty
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "",
+  "description": "Event with empty title",
+  "eventType": "educational",
+  "maxParticipants": 15,
+  "difficulty": "easy",
+  "status": "draft"
+}
+
+### Expected Results:
+### Event 1: "wine-tasting-evening"
+### Event 2: "wine-cheese-night-a-special-event-2025" (cleaned up)
+### Event 3: "the-ultimate-wine-and-food-pairing-experience-featuring" (truncated)
+### Event 4: "wine-tasting-evening-2" (duplicate with number suffix)
+### Event 5: "corporate-event-2025-team-building-session-3" (normalized case)
+### Event Edge: "event" (fallback for special chars)
+### Event Empty: "untitled-event" (fallback for empty title)

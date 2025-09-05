@@ -58,8 +58,21 @@ function App() {
                       {() => (import.meta.env.BASE_URL !== '/' ? <PresenterView /> : <Home />)}
                     </Route>
                     
-                    {/* Demo routes */}
-                    <Route path="/demo" component={PresenterView} />
+                    {/* Demo routes - require event ID */}
+                    <Route path="/demo/:id" component={PresenterView} />
+                    <Route path="/demo">
+                      {() => {
+                        React.useEffect(() => {
+                          window.location.replace("/");
+                        }, []);
+                        
+                        return (
+                          <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+                            <div className="text-wine-600">Redirecting to home...</div>
+                          </div>
+                        );
+                      }}
+                    </Route>
                     
                     {/* Auth routes */}
                     <Route path="/login" component={Login} />

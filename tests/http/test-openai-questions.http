@@ -1,0 +1,41 @@
+# Test OpenAI Question Generation
+# Make sure API is running and you're logged in first
+
+@scheme = http
+@host = localhost
+@port = 14166
+@baseUrl = {{scheme}}://{{host}}:{{port}}
+
+###
+# Step 1: Login first (required for authentication)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+# Step 2: Test Generate Questions with OpenAI
+POST {{baseUrl}}/api/events/generate-questions
+Content-Type: application/json
+
+{
+  "eventId": "seed-event-coast-to-cascades",
+  "topic": "Pacific Northwest geography and landmarks",
+  "type": "multiple_choice", 
+  "count": 3
+}
+
+###
+# Alternative test - Simple topic
+POST {{baseUrl}}/api/events/generate-questions
+Content-Type: application/json
+
+{
+  "eventId": "seed-event-coast-to-cascades",
+  "topic": "wine",
+  "type": "multiple_choice",
+  "count": 2
+}

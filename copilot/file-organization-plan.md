@@ -56,7 +56,6 @@ The root directory has many scattered files that should be organized for better 
 **Target Directory:** `temp/` or remove if safe
 
 - `cookies.txt` - Temporary cookie file
-- `replit.md` - Replit-specific documentation
 
 ### 6. Solution Files
 

@@ -1,0 +1,162 @@
+# Duplicate Event Testing - POST /api/events Should Return 400, Not 500
+
+# Prerequisites: 
+# 1. Server running on localhost:14166
+# 2. User "mark" exists with password "mark123"
+# 3. VS Code REST Client extension installed
+
+@scheme = http
+@host = localhost
+@port = 14166
+@baseUrl = {{scheme}}://{{host}}:{{port}}
+
+### 1. Login first
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+### 2. Create initial event
+# @name createEvent1
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Duplicate Test Event",
+  "description": "This is the first event to test duplicates",
+  "eventType": "corporate",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "eventDate": "2025-10-15T19:00:00.000Z",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue"
+}
+
+### 3. Attempt to create duplicate event (should return 400, not 500)
+# @name createEvent2
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Duplicate Test Event",
+  "description": "This should fail with 400 due to duplicate title",
+  "eventType": "corporate",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "eventDate": "2025-10-16T19:00:00.000Z",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue"
+}
+
+### 4. Try with slight title variation (case difference - should still be caught)
+# @name createEvent3
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "duplicate test event",
+  "description": "This should fail due to case-insensitive duplicate check",
+  "eventType": "corporate",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "eventDate": "2025-10-17T19:00:00.000Z",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue"
+}
+
+### 5. Try with whitespace variation (should still be caught)
+# @name createEvent4
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "  Duplicate Test Event  ",
+  "description": "This should fail due to trim-based duplicate check",
+  "eventType": "corporate",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "eventDate": "2025-10-18T19:00:00.000Z",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue"
+}
+
+### 6. Create event with different title (should succeed)
+# @name createEvent5
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Unique Test Event",
+  "description": "This should succeed as it has a unique title",
+  "eventType": "corporate",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "eventDate": "2025-10-19T19:00:00.000Z",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue"
+}
+
+### 7. Test QR code duplicate (should return 400)
+# @name createEvent6
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "QR Code Test Event",
+  "description": "Testing QR code duplication",
+  "eventType": "corporate",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "qrCode": "test-qr-code",
+  "eventDate": "2025-10-20T19:00:00.000Z",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue"
+}
+
+### 8. Try to create another event with same QR code (should return 400)
+# @name createEvent7
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Another QR Code Test",
+  "description": "This should fail due to duplicate QR code",
+  "eventType": "corporate",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "qrCode": "test-qr-code",
+  "eventDate": "2025-10-21T19:00:00.000Z",
+  "eventTime": "7:00 PM",
+  "location": "Test Venue"
+}
+
+### Expected Results:
+# createEvent1: 201 Created - First event should succeed
+# createEvent2: 400 Bad Request - Duplicate title
+# createEvent3: 400 Bad Request - Case-insensitive duplicate
+# createEvent4: 400 Bad Request - Whitespace-trimmed duplicate
+# createEvent5: 201 Created - Unique title should succeed
+# createEvent6: 201 Created - First QR code should succeed
+# createEvent7: 400 Bad Request - Duplicate QR code
+
+### Cleanup - List events to see what was created
+GET {{baseUrl}}/api/events
+Cookie: sessionId={{loginUser.response.body.sessionId}}

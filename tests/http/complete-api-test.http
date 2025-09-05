@@ -1,0 +1,320 @@
+### TriviaSpark API Complete Test Suite
+### This file tests all major API endpoints including authentication flow
+### Use VS Code REST Client extension to run these tests
+
+### Variables
+@baseUrl = http://localhost:14166
+@eventId = seed-event-coast-to-cascades
+@userId = mark-user-id
+
+### 1. Health Check (No Auth Required) - Expected: 200 OK
+GET {{baseUrl}}/api/health
+Content-Type: application/json
+
+###
+
+### 2. Login (Get Session) - Fixed with username instead of email
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+
+### 3. Dashboard Stats (Requires Auth) - Fixed to use loginUser session
+GET {{baseUrl}}/api/dashboard/stats
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 4. Get User Events (Requires Auth) - Fixed to use loginUser session
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 5. Get Specific Event (Requires Auth) - This was failing with 500, now fixed to use loginUser session
+GET {{baseUrl}}/api/events/{{eventId}}
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 6. Update Event (Requires Auth) - PUT endpoint we expanded, fixed to use loginUser session
+PUT {{baseUrl}}/api/events/{{eventId}}
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Updated Coast to Cascades Wine & Trivia Evening",
+  "description": "An updated elegant evening combining Pacific Northwest wines",
+  "eventType": "wine_dinner",
+  "maxParticipants": 100,
+  "difficulty": "mixed",
+  "eventDate": "2025-09-13",
+  "eventTime": "6:30 PM",
+  "location": "Newman University, Wichita, KS",
+  "sponsoringOrganization": "West Wichita Rotary Club",
+  "allowParticipants": false,
+  "prizeInformation": "Wine bottles and gift certificates"
+}
+
+###
+
+### 7. Create New Event (Requires Auth)
+POST {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Test Event",
+  "description": "A test event for API testing",
+  "eventType": "corporate",
+  "maxParticipants": 30,
+  "difficulty": "easy",
+  "status": "draft"
+}
+
+###
+
+### 8. Get Event Teams (Requires Auth)
+GET {{baseUrl}}/api/events/{{eventId}}/teams
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 9. Create Team (Requires Auth)
+POST {{baseUrl}}/api/events/{{eventId}}/teams
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "name": "Test Team",
+  "captain": "Test Captain"
+}
+
+###
+
+### 10. Get Event Questions (Requires Auth)
+GET {{baseUrl}}/api/events/{{eventId}}/questions
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 11. Get Event Participants (Requires Auth)
+GET {{baseUrl}}/api/events/{{eventId}}/participants
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 12. Get Event Fun Facts (Requires Auth)
+GET {{baseUrl}}/api/events/{{eventId}}/fun-facts
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 13. Create Fun Fact (Requires Auth)
+POST {{baseUrl}}/api/events/{{eventId}}/fun-facts
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "title": "Wine Tasting Fun Fact",
+  "content": "Did you know that wine tasting involves all five senses?",
+  "orderIndex": 1,
+  "isActive": true
+}
+
+###
+
+### 14. Get Event Analytics (Requires Auth)
+GET {{baseUrl}}/api/events/{{eventId}}/analytics
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 15. Get Event Leaderboard (Requires Auth)
+GET {{baseUrl}}/api/events/{{eventId}}/leaderboard?type=current
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 16. Update Event Status (Requires Auth)
+PATCH {{baseUrl}}/api/events/{{eventId}}/status
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "status": "active"
+}
+
+###
+
+### 17. Generate Event Copy (Requires Auth - OpenAI)
+POST {{baseUrl}}/api/events/{{eventId}}/generate-copy
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "type": "welcome",
+  "context": "Wine tasting event for charity fundraiser"
+}
+
+###
+
+### 18. Generate Questions (Requires Auth - OpenAI)
+POST {{baseUrl}}/api/events/generate-questions
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+{
+  "eventId": "{{eventId}}",
+  "topic": "wine",
+  "type": "multiple_choice",
+  "count": 5
+}
+
+###
+
+### 19. Public Events for Homepage (No Auth Required)
+GET {{baseUrl}}/api/events/home?limit=10
+Content-Type: application/json
+
+###
+
+### 20. User Registration (No Auth Required)
+POST {{baseUrl}}/api/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123",
+  "name": "Test User"
+}
+
+###
+
+### 21. Logout (Requires Auth)
+POST {{baseUrl}}/api/logout
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### Authentication Test Flow
+### Run these in sequence to test complete auth flow:
+
+### Step 1: Register a new user
+# @name registerUser
+POST {{baseUrl}}/api/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "testpass123",
+  "name": "Test User"
+}
+
+###
+
+### Step 2: Login with the seeded user credentials - Fixed with username
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+
+### Step 3: Use the session from login response
+### Extract sessionId from login response and use it in subsequent requests
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### Step 4: Test the problematic endpoint with valid session
+GET {{baseUrl}}/api/events/{{eventId}}
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### Testing with Invalid/Missing Session
+### These should return 401 Unauthorized
+
+### No session cookie
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+
+###
+
+### Invalid session cookie
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId=invalid-session-id
+
+###
+
+### Database Testing Endpoints
+
+### Check if user exists in database
+GET {{baseUrl}}/api/dashboard/stats
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### Test with the original user from seeded data - Fixed with username
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+
+### Use seeded user session for event access - Fixed with username
+# @name loginSeededUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+
+### Test event access with seeded user
+GET {{baseUrl}}/api/events/{{eventId}}
+Content-Type: application/json
+Cookie: sessionId={{loginSeededUser.response.body.sessionId}}
+
+###
+
+### Debug Event Ownership
+### Check if the event exists and who owns it
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginSeededUser.response.body.sessionId}}
+
+###

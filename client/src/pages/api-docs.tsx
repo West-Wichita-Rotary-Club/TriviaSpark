@@ -59,7 +59,7 @@ const ApiDocs = () => {
                 <CardContent className="space-y-4">
                   <div>
                     <h3 className="font-semibold mb-2">Base URL</h3>
-                    <code className="bg-gray-100 px-3 py-1 rounded">https://your-domain.replit.app/api</code>
+                    <code className="bg-gray-100 px-3 py-1 rounded">https://your-domain.com/api</code>
                   </div>
                   
                   <div>

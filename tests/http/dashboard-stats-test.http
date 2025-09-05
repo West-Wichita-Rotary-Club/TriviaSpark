@@ -1,0 +1,39 @@
+### Dashboard Stats Test
+### Testing the updated dashboard stats endpoint with accurate counts
+
+@baseUrl = https://localhost:14165
+@username = mark
+@password = mark123
+
+### 1. Login first to get session
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 2. Get Dashboard Stats - Should show accurate counts now
+GET {{baseUrl}}/api/dashboard/stats
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+### Expected Response:
+### {
+###   "totalEvents": [actual count of events for user],
+###   "activeEvents": [count of active/started events],
+###   "totalParticipants": [count of participants across all user events],
+###   "totalUsers": [system-wide user count]
+### }
+
+### 3. Get User Events to verify the count
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+### 4. Get participants for a specific event to verify participant count
+GET {{baseUrl}}/api/events/seed-event-coast-to-cascades/participants
+Content-Type: application/json
+Cookie: sessionId={{loginUser.response.body.sessionId}}

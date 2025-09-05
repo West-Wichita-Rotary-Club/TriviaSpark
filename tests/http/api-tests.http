@@ -61,7 +61,7 @@ Content-Type: application/json
   "maxParticipants": 40,
   "difficulty": "mixed",
   "status": "draft",
-  "eventDate": "{{now}}",
+  "eventDate": "2025-09-15T19:00:00.000Z",
   "eventTime": "7:00 PM",
   "location": "Test Venue",
   "sponsoringOrganization": "TriviaSpark"

@@ -6,6 +6,7 @@ using TriviaSpark.Api.Services.EfCore;
 // using TriviaSpark.Api.SignalR; // Disabled - SignalR integration pending
 using TriviaSpark.Api.Data;
 using TriviaSpark.Api.Data.Entities;
+using TriviaSpark.Api.Utils;
 
 namespace TriviaSpark.Api;
 
@@ -95,6 +96,82 @@ public static class EfCoreApiEndpoints
             return Results.Ok(new { message = "Logged out successfully" });
         });
 
+        api.MapPost("/register", async ([FromBody] RegisterRequest body, IEfCoreUserService userService, ISessionService sessions, HttpResponse res) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password) || string.IsNullOrWhiteSpace(body.Name))
+                return Results.BadRequest(new { error = "Email, password, and name are required" });
+
+            try
+            {
+                // Check if user already exists
+                var existingUserByEmail = await userService.GetUserByEmailAsync(body.Email);
+                if (existingUserByEmail != null)
+                    return Results.BadRequest(new { error = "A user with this email already exists" });
+
+                // Generate username from email
+                var username = body.Email.Split('@')[0].ToLowerInvariant();
+                var existingUserByUsername = await userService.GetUserByUsernameAsync(username);
+                if (existingUserByUsername != null)
+                {
+                    // Make username unique by appending a number
+                    var counter = 1;
+                    var originalUsername = username;
+                    do
+                    {
+                        username = $"{originalUsername}{counter}";
+                        existingUserByUsername = await userService.GetUserByUsernameAsync(username);
+                        counter++;
+                    } while (existingUserByUsername != null && counter < 100);
+                    
+                    if (existingUserByUsername != null)
+                        return Results.BadRequest(new { error = "Unable to generate unique username" });
+                }
+
+                var newUser = new Services.User
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Username = username,
+                    Email = body.Email,
+                    FullName = body.Name,
+                    Password = body.Password, // In production, hash this password
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var created = await userService.CreateUserAsync(newUser);
+                
+                // Auto-login the new user
+                var sessionId = sessions.Create(created.Id);
+                res.Cookies.Append("sessionId", sessionId, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false, // Set to true in production with HTTPS
+                    SameSite = SameSiteMode.Strict,
+                    MaxAge = TimeSpan.FromHours(24)
+                });
+
+                return Results.Created($"/api/users/{created.Id}", new
+                {
+                    user = new { id = created.Id, username = created.Username, fullName = created.FullName, email = created.Email },
+                    sessionId,
+                    message = "User registered successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        api.MapPost("/logout", (ISessionService sessions, HttpRequest req, HttpResponse res) =>
+        {
+            if (req.Cookies.TryGetValue("sessionId", out var sessionId))
+            {
+                sessions.Delete(sessionId);
+            }
+            res.Cookies.Delete("sessionId");
+            return Results.Ok(new { message = "Logged out successfully" });
+        });
+
         api.MapGet("/auth/me", async (ISessionService sessions, IEfCoreUserService userService, HttpRequest req) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
@@ -143,8 +220,8 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        // Dashboard endpoints - placeholder for now
-        api.MapGet("/dashboard/stats", async (ISessionService sessions, HttpRequest req) =>
+        // Dashboard endpoints - actual statistics
+        api.MapGet("/dashboard/stats", async (ISessionService sessions, IEfCoreEventService eventService, IEfCoreParticipantService participantService, IEfCoreUserService userService, HttpRequest req) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -152,8 +229,28 @@ public static class EfCoreApiEndpoints
 
             try
             {
-                // Placeholder stats - implement later
-                var stats = new { totalEvents = 0, activeEvents = 0, totalParticipants = 0 };
+                // Get all events for this user
+                var userEvents = await eventService.GetEventsForHostAsync(userId);
+                var totalEvents = userEvents.Count;
+                var activeEvents = userEvents.Count(e => e.Status == "active" || e.Status == "started");
+
+                // Get total participants across all user's events
+                var totalParticipants = 0;
+                foreach (var eventItem in userEvents)
+                {
+                    var eventParticipants = await participantService.GetParticipantsByEventAsync(eventItem.Id);
+                    totalParticipants += eventParticipants.Count(p => p.IsActive);
+                }
+
+                // Get total user count (system-wide stat for admin view)
+                var totalUsers = await userService.GetUserCountAsync();
+
+                var stats = new { 
+                    totalEvents, 
+                    activeEvents, 
+                    totalParticipants,
+                    totalUsers
+                };
                 return Results.Ok(stats);
             }
             catch (Exception ex)
@@ -268,9 +365,37 @@ public static class EfCoreApiEndpoints
 
             try
             {
+                // Check for duplicate event title for this host
+                var existingEvents = await eventService.GetEventsForHostAsync(userId);
+                var duplicateTitle = existingEvents.FirstOrDefault(e => 
+                    e.Title.Trim().Equals(body.Title.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                    e.Status != "cancelled"
+                );
+                if (duplicateTitle != null)
+                    return Results.BadRequest(new { error = "An active event with this title already exists" });
+
+                // Generate unique slug-based ID from title
+                var baseSlug = SlugGenerator.GenerateSlug(body.Title);
+                var existingSlugs = existingEvents.Select(e => e.Id).ToList();
+                var uniqueSlug = SlugGenerator.MakeUniqueSlug(baseSlug, existingSlugs);
+
+                // Double-check slug uniqueness across all users (defensive programming)
+                var existingEventWithSlug = await eventService.GetEventByIdAsync(uniqueSlug);
+                if (existingEventWithSlug != null)
+                    return Results.BadRequest(new { error = "Unable to generate unique identifier for this event title" });
+
+                // Check for duplicate QR code if provided
+                if (!string.IsNullOrWhiteSpace(body.QrCode))
+                {
+                    var allEvents = await eventService.GetPublicUpcomingEventsAsync(1000); // Get large set to check QR codes
+                    var duplicateQr = allEvents.FirstOrDefault(e => e.QrCode == body.QrCode);
+                    if (duplicateQr != null)
+                        return Results.BadRequest(new { error = "This QR code is already in use" });
+                }
+
                 var newEvent = new Event
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = uniqueSlug,
                     Title = body.Title,
                     Description = body.Description,
                     HostId = userId,
@@ -278,17 +403,29 @@ public static class EfCoreApiEndpoints
                     MaxParticipants = body.MaxParticipants,
                     Difficulty = body.Difficulty ?? "medium",
                     Status = body.Status ?? "draft",
-                    QrCode = body.QrCode ?? Guid.NewGuid().ToString("N")[..8],
+                    QrCode = body.QrCode ?? SlugGenerator.GenerateSlug(body.Title, 12), // Use shorter slug for QR codes
                     EventDate = body.EventDate,
                     EventTime = body.EventTime,
                     Location = body.Location,
                     SponsoringOrganization = body.SponsoringOrganization,
-                    Settings = body.Settings,
+                    Settings = body.Settings ?? "{}",
+                    // Provide defaults for previously required fields that are now nullable
+                    PrimaryColor = "#7C2D12", // wine color
+                    SecondaryColor = "#FEF3C7", // champagne color
+                    FontFamily = "Inter",
                     CreatedAt = DateTime.UtcNow
                 };
 
                 var created = await eventService.CreateEventAsync(newEvent);
                 return Results.Created($"/api/v2/events/{created.Id}", created);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            {
+                // Database constraint violation (like duplicate ID/key)
+                if (ex.InnerException?.Message?.Contains("UNIQUE constraint failed") == true)
+                    return Results.BadRequest(new { error = "An event with this information already exists" });
+                
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
             catch (Exception ex)
             {
@@ -315,11 +452,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in GET /events/{id}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPut("/events/{id}", async (string id, [FromBody] object body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapPut("/events/{id}", async (string id, [FromBody] System.Text.Json.JsonElement body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -334,9 +473,78 @@ public static class EfCoreApiEndpoints
                 if (eventEntity.HostId != userId)
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
 
-                // Update event - for now, just return the existing event
-                // TODO: Implement proper event update logic
-                return Results.Ok(eventEntity);
+                // Update properties from the request body
+                if (body.TryGetProperty("title", out var titleProp) && titleProp.ValueKind != System.Text.Json.JsonValueKind.Null)
+                    eventEntity.Title = titleProp.GetString() ?? "";
+                    
+                if (body.TryGetProperty("description", out var descProp) && descProp.ValueKind != System.Text.Json.JsonValueKind.Null)
+                    eventEntity.Description = descProp.GetString() ?? "";
+                    
+                if (body.TryGetProperty("eventType", out var eventTypeProp) && eventTypeProp.ValueKind != System.Text.Json.JsonValueKind.Null)
+                    eventEntity.EventType = eventTypeProp.GetString() ?? "";
+                    
+                if (body.TryGetProperty("maxParticipants", out var maxParticipantsProp) && maxParticipantsProp.ValueKind != System.Text.Json.JsonValueKind.Null)
+                    eventEntity.MaxParticipants = maxParticipantsProp.GetInt32();
+                    
+                if (body.TryGetProperty("difficulty", out var difficultyProp) && difficultyProp.ValueKind != System.Text.Json.JsonValueKind.Null)
+                    eventEntity.Difficulty = difficultyProp.GetString() ?? "";
+                    
+                if (body.TryGetProperty("eventDate", out var eventDateProp))
+                    eventEntity.EventDate = eventDateProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : 
+                        (DateTime.TryParse(eventDateProp.GetString(), out var parsedEventDate) ? parsedEventDate : null);
+                    
+                if (body.TryGetProperty("eventTime", out var eventTimeProp))
+                    eventEntity.EventTime = eventTimeProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : eventTimeProp.GetString();
+                    
+                if (body.TryGetProperty("location", out var locationProp))
+                    eventEntity.Location = locationProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : locationProp.GetString();
+                    
+                if (body.TryGetProperty("sponsoringOrganization", out var sponsorProp))
+                    eventEntity.SponsoringOrganization = sponsorProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : sponsorProp.GetString();
+                    
+                if (body.TryGetProperty("allowParticipants", out var allowProp) && allowProp.ValueKind != System.Text.Json.JsonValueKind.Null)
+                    eventEntity.AllowParticipants = allowProp.GetBoolean();
+                    
+                if (body.TryGetProperty("prizeInformation", out var prizeProp))
+                    eventEntity.PrizeInformation = prizeProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : prizeProp.GetString();
+                    
+                if (body.TryGetProperty("eventRules", out var eventRulesProp))
+                    eventEntity.EventRules = eventRulesProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : eventRulesProp.GetString();
+                    
+                if (body.TryGetProperty("specialInstructions", out var specialInstructionsProp))
+                    eventEntity.SpecialInstructions = specialInstructionsProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : specialInstructionsProp.GetString();
+                    
+                if (body.TryGetProperty("accessibilityInfo", out var accessibilityProp))
+                    eventEntity.AccessibilityInfo = accessibilityProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : accessibilityProp.GetString();
+                    
+                if (body.TryGetProperty("dietaryAccommodations", out var dietaryProp))
+                    eventEntity.DietaryAccommodations = dietaryProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : dietaryProp.GetString();
+                    
+                if (body.TryGetProperty("dressCode", out var dressProp))
+                    eventEntity.DressCode = dressProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : dressProp.GetString();
+                    
+                if (body.TryGetProperty("ageRestrictions", out var ageProp))
+                    eventEntity.AgeRestrictions = ageProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : ageProp.GetString();
+                    
+                if (body.TryGetProperty("technicalRequirements", out var techProp))
+                    eventEntity.TechnicalRequirements = techProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : techProp.GetString();
+                    
+                if (body.TryGetProperty("registrationDeadline", out var regDeadlineProp))
+                    eventEntity.RegistrationDeadline = regDeadlineProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : 
+                        (DateTime.TryParse(regDeadlineProp.GetString(), out var parsedRegDate) ? parsedRegDate : null);
+                    
+                if (body.TryGetProperty("cancellationPolicy", out var cancelProp))
+                    eventEntity.CancellationPolicy = cancelProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : cancelProp.GetString();
+                    
+                if (body.TryGetProperty("refundPolicy", out var refundProp))
+                    eventEntity.RefundPolicy = refundProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : refundProp.GetString();
+                    
+                if (body.TryGetProperty("sponsorInformation", out var sponsorInfoProp))
+                    eventEntity.SponsorInformation = sponsorInfoProp.ValueKind == System.Text.Json.JsonValueKind.Null ? null : sponsorInfoProp.GetString();
+
+                // Save the updated event
+                var updatedEvent = await eventService.UpdateEventAsync(eventEntity);
+                return Results.Ok(updatedEvent);
             }
             catch (Exception ex)
             {
@@ -404,10 +612,21 @@ public static class EfCoreApiEndpoints
                 if (eventEntity.HostId != userId)
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
 
-                // TODO: Check for duplicate team name or table number
-                // var existing = await teamService.GetTeamByNameOrTableAsync(id, body.Name, body.TableNumber);
-                // if (existing != null)
-                //     return Results.BadRequest(new { error = "Team name or table number already exists" });
+                // Check for duplicate team name in this event
+                var existingTeams = await teamService.GetTeamsForEventAsync(id);
+                var duplicateName = existingTeams.FirstOrDefault(t => 
+                    t.Name.Trim().Equals(body.Name.Trim(), StringComparison.OrdinalIgnoreCase)
+                );
+                if (duplicateName != null)
+                    return Results.BadRequest(new { error = "A team with this name already exists in this event" });
+
+                // Check for duplicate table number in this event (if provided)
+                if (body.TableNumber.HasValue)
+                {
+                    var duplicateTable = existingTeams.FirstOrDefault(t => t.TableNumber == body.TableNumber.Value);
+                    if (duplicateTable != null)
+                        return Results.BadRequest(new { error = $"Table number {body.TableNumber} is already assigned in this event" });
+                }
 
                 var newTeam = new Team
                 {
@@ -687,6 +906,15 @@ public static class EfCoreApiEndpoints
                 if (eventEntity.Status == "cancelled")
                     return Results.BadRequest(new { error = "Event has been cancelled" });
 
+                // Check for duplicate participant name in this event
+                var existingParticipants = await participantService.GetParticipantsByEventAsync(eventEntity.Id);
+                var duplicateParticipant = existingParticipants.FirstOrDefault(p => 
+                    p.Name.Trim().Equals(body.Name.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                    p.IsActive
+                );
+                if (duplicateParticipant != null)
+                    return Results.BadRequest(new { error = "A participant with this name is already registered for this event" });
+
                 string? teamId = null;
 
                 // Handle team actions
@@ -876,6 +1104,9 @@ public static class EfCoreApiEndpoints
             if (!isValid || userId == null)
                 return Results.Unauthorized();
 
+            if (string.IsNullOrWhiteSpace(body.Title))
+                return Results.BadRequest(new { error = "Fun fact title is required" });
+
             try
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
@@ -884,6 +1115,15 @@ public static class EfCoreApiEndpoints
 
                 if (eventEntity.HostId != userId)
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+                // Check for duplicate fun fact title in this event
+                var existingFunFacts = await funFactService.GetFunFactsForEventAsync(id);
+                var duplicateTitle = existingFunFacts.FirstOrDefault(f => 
+                    f.Title.Trim().Equals(body.Title.Trim(), StringComparison.OrdinalIgnoreCase) &&
+                    f.IsActive
+                );
+                if (duplicateTitle != null)
+                    return Results.BadRequest(new { error = "A fun fact with this title already exists for this event" });
 
                 var funFact = new FunFact
                 {
@@ -1157,6 +1397,78 @@ public static class EfCoreApiEndpoints
         });
 
         // Questions generation and bulk endpoints
+        api.MapPost("/events/generate-questions", async ([FromBody] GenerateQuestionsRequest body, ISessionService sessions, IEfCoreEventService eventService, IOpenAIService openAIService, HttpRequest req) =>
+        {
+            var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!isValid || userId == null)
+                return Results.Unauthorized();
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(body.EventId))
+                    return Results.BadRequest(new { error = "EventId is required" });
+
+                if (string.IsNullOrWhiteSpace(body.Topic))
+                    return Results.BadRequest(new { error = "Topic is required" });
+
+                if (body.Count <= 0 || body.Count > 50)
+                    return Results.BadRequest(new { error = "Count must be between 1 and 50" });
+
+                var eventEntity = await eventService.GetEventByIdAsync(body.EventId);
+                if (eventEntity == null)
+                    return Results.NotFound(new { error = "Event not found" });
+
+                if (eventEntity.HostId != userId)
+                    return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+                // Create event context for better question generation
+                var eventContext = $"This is a {eventEntity.EventType} event";
+                if (!string.IsNullOrEmpty(eventEntity.Description))
+                    eventContext += $" - {eventEntity.Description}";
+                if (!string.IsNullOrEmpty(eventEntity.Location))
+                    eventContext += $" taking place at {eventEntity.Location}";
+
+                // Generate questions using OpenAI
+                var generatedQuestions = await openAIService.GenerateQuestionsAsync(
+                    body.EventId, 
+                    body.Topic, 
+                    body.Type ?? "medium", // Use type as difficulty if not specified separately
+                    body.Count,
+                    eventContext
+                );
+
+                // Convert to API response format
+                var questions = generatedQuestions.Select(q => new
+                {
+                    question = q.Question,
+                    type = "multiple_choice", // Always multiple choice for now
+                    options = q.Options,
+                    correctAnswer = q.CorrectAnswer,
+                    difficulty = q.Difficulty,
+                    category = q.Category,
+                    explanation = q.Explanation,
+                    aiGenerated = true
+                }).ToList();
+
+                return Results.Ok(new { 
+                    questions = questions, 
+                    count = questions.Count,
+                    eventId = body.EventId,
+                    topic = body.Topic,
+                    type = body.Type ?? "multiple_choice",
+                    generatedBy = "OpenAI GPT-4o"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem("Failed to generate questions. Please try again.", statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
         api.MapPost("/questions/generate", async ([FromBody] GenerateQuestionsRequest body, IEfCoreEventService eventService, IEfCoreQuestionService questionService) =>
         {
             try
@@ -1201,6 +1513,30 @@ public static class EfCoreApiEndpoints
                 var eventEntity = await eventService.GetEventByIdAsync(body.EventId);
                 if (eventEntity == null)
                     return Results.NotFound(new { error = "Event not found" });
+
+                // Check for duplicate questions in the event
+                var existingQuestions = await questionService.GetQuestionsForEventAsync(body.EventId);
+                var existingQuestionTexts = existingQuestions
+                    .Select(q => q.QuestionText.Trim().ToLowerInvariant())
+                    .ToHashSet();
+
+                // Check for duplicates in the incoming questions
+                var incomingQuestionTexts = new HashSet<string>();
+                foreach (var q in body.Questions)
+                {
+                    if (string.IsNullOrWhiteSpace(q.Question))
+                        return Results.BadRequest(new { error = "All questions must have question text" });
+
+                    var normalizedText = q.Question.Trim().ToLowerInvariant();
+                    
+                    // Check against existing questions in database
+                    if (existingQuestionTexts.Contains(normalizedText))
+                        return Results.BadRequest(new { error = $"Question already exists in this event: {q.Question.Substring(0, Math.Min(50, q.Question.Length))}..." });
+                    
+                    // Check for duplicates within the current batch
+                    if (!incomingQuestionTexts.Add(normalizedText))
+                        return Results.BadRequest(new { error = $"Duplicate question in batch: {q.Question.Substring(0, Math.Min(50, q.Question.Length))}..." });
+                }
 
                 var questions = new List<Question>();
                 var nextOrderIndex = await questionService.GetNextOrderIndexAsync(body.EventId);
@@ -1322,6 +1658,7 @@ public static class EfCoreApiEndpoints
 
 // DTOs for API compatibility
 public record LoginRequest(string Username, string Password);
+public record RegisterRequest(string Email, string Password, string Name);
 public record ProfileUpdate(string FullName, string Email, string Username);
 public record CreateEventRequest(string Title, string? Description, string EventType, int MaxParticipants, string Difficulty, string? Status, string? QrCode, DateTime? EventDate, string? EventTime, string? Location, string? SponsoringOrganization, string? Settings);
 public record EventStatusUpdate(string Status);
@@ -1346,6 +1683,6 @@ class CorsFilter : IEndpointFilter
 }
 
 // New DTOs specific to EF Core endpoints
-public record GenerateQuestionsRequest(string EventId, string Topic, string Type, int Count);
+public record GenerateQuestionsRequest(string EventId, string Topic, string? Type, int Count);
 public record BulkInsertQuestionsRequest(string EventId, List<BulkQuestionData> Questions);
 public record BulkQuestionData(string Question, string Type, List<string>? Options, string CorrectAnswer, string? Difficulty, string? Category, string? Explanation, bool? AiGenerated);

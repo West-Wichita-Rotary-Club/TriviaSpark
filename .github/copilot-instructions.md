@@ -103,7 +103,7 @@ client/src/
 
 **Testing Files** → `tests/`
 
-- HTTP test files → `tests/http/` (\*.http files)
+- HTTP test files → `tests/http/` (ALL \*.http files MUST go here)
 - Unit test files → `tests/unit/`
 - Integration tests → `tests/integration/`
 - E2E tests → `tests/e2e/`
@@ -118,7 +118,6 @@ client/src/
 **Temporary Files** → `temp/`
 
 - Cookies, sessions, cache files
-- Platform-specific files (replit.md)
 - Development artifacts
 - Files that should not be committed
 
@@ -256,10 +255,11 @@ Before creating any new file, determine the correct location based on its purpos
 
 1. **Is it a development/testing script?** → `tools/`
 2. **Is it a test file?** → `tests/http/`, `tests/unit/`, etc.
-3. **Is it documentation?** → `copilot/`
-4. **Is it temporary/cache?** → `temp/`
-5. **Is it source code?** → `client/src/`, `TriviaSpark.Api/`, `shared/`
-6. **Is it configuration?** → Root directory (only if tool expects it there)
+3. **Is it an HTTP test file (.http)?** → `tests/http/` (ALWAYS)
+4. **Is it documentation?** → `copilot/`
+5. **Is it temporary/cache?** → `temp/`
+6. **Is it source code?** → `client/src/`, `TriviaSpark.Api/`, `shared/`
+7. **Is it configuration?** → Root directory (only if tool expects it there)
 
 ### Development Workflow
 
@@ -523,9 +523,10 @@ This instruction file should guide GitHub Copilot to generate code that aligns w
 
 1. **NEVER place development scripts in root** - All scripts go in `tools/`
 2. **NEVER place test files in root** - All tests go in `tests/` subdirectories
-3. **NEVER place temporary files in root** - All temp files go in `temp/` (gitignored)
-4. **ALWAYS document in copilot/** - All generated documentation goes in `copilot/`
-5. **ROOT is for essentials only** - Configuration, documentation, and solution files only
+3. **NEVER place .http files outside tests/http/** - ALL .http files go in `tests/http/`
+4. **NEVER place temporary files in root** - All temp files go in `temp/` (gitignored)
+5. **ALWAYS document in copilot/** - All generated documentation goes in `copilot/`
+6. **ROOT is for essentials only** - Configuration, documentation, and solution files only
 
 ### Quality Assurance Checklist
 
@@ -533,6 +534,7 @@ Before completing any task, verify:
 
 - [ ] All new files are in correct directories
 - [ ] No development scripts or tests in root
+- [ ] ALL .http files are in `tests/http/` folder
 - [ ] Documentation is in `copilot/` folder
 - [ ] Temporary files are in `temp/` folder
 - [ ] Scripts are executable from project root with proper paths

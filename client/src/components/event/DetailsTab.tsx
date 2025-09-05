@@ -163,6 +163,34 @@ export function DetailsTab({ event, onUpdate, isLoading }: DetailsTabProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Event Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Event Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="allowParticipants"
+              checked={event.allowParticipants || false}
+              onChange={(e) => onUpdate({ allowParticipants: e.target.checked })}
+              className="rounded border-gray-300"
+              data-testid="checkbox-allow-participants"
+              aria-describedby="allowParticipants-description"
+            />
+            <Label htmlFor="allowParticipants">Allow Participants</Label>
+          </div>
+          <p id="allowParticipants-description" className="text-sm text-gray-500 mt-1">
+            When enabled, participants can join teams and compete in the trivia. When disabled, 
+            this becomes a content-focused presentation without participant interaction.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

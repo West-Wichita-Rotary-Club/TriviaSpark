@@ -88,17 +88,9 @@ export default function Home() {
                 Preview real events on the platform and launch a live demo presenter view instantly.
               </p>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setLocation("/demo")}
-              className="border-wine-200 text-wine-700 hover:bg-wine-50"
-              data-testid="button-generic-demo"
-            >
-              <Play className="mr-2 h-4 w-4" /> Quick Demo
-            </Button>
           </div>
 
-          <UpcomingEvents onLaunchDemo={(id) => setLocation(`/presenter/${id}`)} />
+          <UpcomingEvents onLaunchDemo={(id) => setLocation(`/demo/${id}`)} />
         </div>
       </div>
 
@@ -283,7 +275,7 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
           <Brain className="mx-auto h-10 w-10 text-wine-400 mb-4" />
             <p className="text-gray-600 mb-4">No upcoming events to show yet.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => onLaunchDemo("demo")}>Launch Demo</Button>
+              <Button onClick={() => onLaunchDemo("seed-event-coast-to-cascades")}>Launch Demo</Button>
               <Button variant="outline" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Create One</Button>
             </div>
         </div>

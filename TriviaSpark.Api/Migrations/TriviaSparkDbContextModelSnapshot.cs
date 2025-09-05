@@ -30,6 +30,10 @@ namespace TriviaSpark.Api.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("age_restrictions");
 
+                    b.Property<bool>("AllowParticipants")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("allow_participants");
+
                     b.Property<string>("BackgroundImageUrl")
                         .HasColumnType("TEXT")
                         .HasColumnName("background_image_url");
@@ -93,7 +97,6 @@ namespace TriviaSpark.Api.Migrations
                         .HasColumnName("event_type");
 
                     b.Property<string>("FontFamily")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("font_family");
 
@@ -115,7 +118,6 @@ namespace TriviaSpark.Api.Migrations
                         .HasColumnName("max_participants");
 
                     b.Property<string>("PrimaryColor")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("primary_color");
 
@@ -136,12 +138,10 @@ namespace TriviaSpark.Api.Migrations
                         .HasColumnName("registration_deadline");
 
                     b.Property<string>("SecondaryColor")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("secondary_color");
 
                     b.Property<string>("Settings")
-                        .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("settings");
 

@@ -21,6 +21,9 @@ const rootDir = join(__dirname, '..');
 
 console.log('🌱 Seeding database with mock data from storage.ts...');
 
+// Check for force flag
+const forceFlag = process.argv.includes('-force') || process.argv.includes('--force');
+
 // Database configuration
 const DATABASE_URL = process.env.DATABASE_URL || 'file:./data/trivia.db';
 const dbPath = join(rootDir, 'data', 'trivia.db');
@@ -39,14 +42,30 @@ try {
   });
 
   console.log('🔍 Checking existing data...');
-  const existingUsers = await client.execute('SELECT COUNT(*) as count FROM users');
-  const existingEvents = await client.execute('SELECT COUNT(*) as count FROM events');
   
-  if (existingUsers.rows[0].count > 0 || existingEvents.rows[0].count > 0) {
-    console.log('⚠️  Database already contains data. Skipping seed to avoid duplicates.');
-    console.log('   To reseed, delete the database file and run "npm run dev" first.');
-    await client.close();
-    process.exit(0);
+  if (!forceFlag) {
+    const existingUsers = await client.execute('SELECT COUNT(*) as count FROM users');
+    const existingEvents = await client.execute('SELECT COUNT(*) as count FROM events');
+    
+    if (existingUsers.rows[0].count > 0 || existingEvents.rows[0].count > 0) {
+      console.log('⚠️  Database already contains data. Skipping seed to avoid duplicates.');
+      console.log('   To reseed, use "npm run seed" (which resets the database) or add -force flag.');
+      await client.close();
+      process.exit(0);
+    }
+  } else {
+    console.log('🔄 Force flag detected - proceeding with seeding even if data exists...');
+    
+    // Clear existing data in dependency order
+    await client.execute('DELETE FROM responses WHERE 1=1');
+    await client.execute('DELETE FROM participants WHERE 1=1');
+    await client.execute('DELETE FROM teams WHERE 1=1');
+    await client.execute('DELETE FROM fun_facts WHERE 1=1');
+    await client.execute('DELETE FROM questions WHERE 1=1');
+    await client.execute('DELETE FROM events WHERE 1=1');
+    await client.execute('DELETE FROM users WHERE 1=1');
+    
+    console.log('🗑️  Existing data cleared');
   }
 
   console.log('👥 Seeding users...');
@@ -88,8 +107,8 @@ try {
       prize_information, event_rules, special_instructions, accessibility_info, dietary_accommodations,
       dress_code, age_restrictions, technical_requirements, registration_deadline, cancellation_policy,
       refund_policy, sponsor_information, settings, event_date, event_time, location, sponsoring_organization,
-      created_at, started_at, completed_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      allow_participants, created_at, started_at, completed_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       eventId,
       "Coast to Cascades Wine & Trivia Evening",
@@ -137,6 +156,7 @@ try {
       "6:30 PM",
       "Riverside Conference Center",
       "West Wichita Rotary Club",
+      1, // allow_participants - 1 means true, 0 means false
       new Date().getTime(), // Use current timestamp for created_at
       null,
       null

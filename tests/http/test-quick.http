@@ -1,0 +1,26 @@
+# Simple API Test
+# Test the endpoints that were failing before
+
+@baseUrl = http://localhost:14166
+
+###
+# Health check
+GET {{baseUrl}}/api/health
+
+###
+# Get all events (was failing with NULL ordinal errors)
+GET {{baseUrl}}/api/events
+
+###
+# Login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+# Get events after login
+GET {{baseUrl}}/api/events

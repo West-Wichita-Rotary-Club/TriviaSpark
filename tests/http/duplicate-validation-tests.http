@@ -1,0 +1,276 @@
+### Duplicate Validation Tests
+### Testing comprehensive duplicate checks for data integrity protection
+
+@baseUrl = https://localhost:14165
+@username = mark
+@password = mark123
+
+### 1. Login first to get session
+# @name loginUser
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### Extract sessionId for subsequent requests
+@sessionId = {{loginUser.response.body.sessionId}}
+
+### 2. Create a base event for testing
+# @name createEvent
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "title": "Duplicate Test Event",
+  "description": "Testing duplicate validation",
+  "eventType": "wine",
+  "maxParticipants": 50,
+  "difficulty": "medium",
+  "status": "draft",
+  "qrCode": "TEST123",
+  "eventDate": "2025-01-15",
+  "eventTime": "19:00",
+  "location": "Test Venue"
+}
+
+### Extract eventId for testing
+@eventId = {{createEvent.response.body.id}}
+
+### 3. TEST: Try to create duplicate event with same title (should fail)
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "title": "Duplicate Test Event",
+  "description": "This should fail due to duplicate title",
+  "eventType": "corporate",
+  "maxParticipants": 30,
+  "difficulty": "easy",
+  "status": "draft",
+  "qrCode": "DIFFERENT123",
+  "eventDate": "2025-01-16",
+  "eventTime": "18:00",
+  "location": "Different Venue"
+}
+### Expected: 400 Bad Request with error: "An active event with this title already exists"
+
+### 4. TEST: Try to create event with duplicate QR code (should fail)
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "title": "Different Title Event",
+  "description": "This should fail due to duplicate QR code",
+  "eventType": "party",
+  "maxParticipants": 40,
+  "difficulty": "hard",
+  "status": "draft",
+  "qrCode": "TEST123",
+  "eventDate": "2025-01-17",
+  "eventTime": "20:00",
+  "location": "Another Venue"
+}
+### Expected: 400 Bad Request with error: "This QR code is already in use"
+
+### 5. Create a team for duplicate testing
+# @name createTeam
+POST {{baseUrl}}/api/v2/events/{{eventId}}/teams
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "name": "Team Alpha",
+  "tableNumber": 5,
+  "maxSize": 4
+}
+
+### Extract teamId for testing
+@teamId = {{createTeam.response.body.id}}
+
+### 6. TEST: Try to create duplicate team name (should fail)
+POST {{baseUrl}}/api/v2/events/{{eventId}}/teams
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "name": "Team Alpha",
+  "tableNumber": 6,
+  "maxSize": 4
+}
+### Expected: 400 Bad Request with error: "A team with this name already exists in this event"
+
+### 7. TEST: Try to create duplicate table number (should fail)
+POST {{baseUrl}}/api/v2/events/{{eventId}}/teams
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "name": "Team Beta",
+  "tableNumber": 5,
+  "maxSize": 6
+}
+### Expected: 400 Bad Request with error: "Table number 5 is already assigned in this event"
+
+### 8. Join event as participant for duplicate testing
+POST {{baseUrl}}/api/v2/events/join/TEST123
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "teamAction": "join",
+  "teamIdentifier": "Team Alpha"
+}
+
+### 9. TEST: Try to join with duplicate participant name (should fail)
+POST {{baseUrl}}/api/v2/events/join/TEST123
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "teamAction": "none"
+}
+### Expected: 400 Bad Request with error: "A participant with this name is already registered for this event"
+
+### 10. Create a fun fact for duplicate testing
+POST {{baseUrl}}/api/v2/events/{{eventId}}/fun-facts
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "title": "Interesting Wine Fact",
+  "content": "This is a fascinating fact about wine that everyone should know.",
+  "orderIndex": 1,
+  "isActive": true
+}
+
+### 11. TEST: Try to create duplicate fun fact title (should fail)
+POST {{baseUrl}}/api/v2/events/{{eventId}}/fun-facts
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "title": "Interesting Wine Fact",
+  "content": "This should fail due to duplicate title.",
+  "orderIndex": 2,
+  "isActive": true
+}
+### Expected: 400 Bad Request with error: "A fun fact with this title already exists for this event"
+
+### 12. Create questions for bulk duplicate testing
+POST {{baseUrl}}/api/v2/questions/bulk
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}",
+  "questions": [
+    {
+      "question": "What year was the first wine produced?",
+      "type": "multiple_choice",
+      "options": ["6000 BC", "4000 BC", "2000 BC", "1000 AD"],
+      "correctAnswer": "6000 BC",
+      "explanation": "Archaeological evidence suggests wine production began around 6000 BC.",
+      "difficulty": "medium",
+      "category": "History",
+      "aiGenerated": false
+    },
+    {
+      "question": "Which country produces the most wine?",
+      "type": "multiple_choice", 
+      "options": ["France", "Italy", "Spain", "USA"],
+      "correctAnswer": "Italy",
+      "explanation": "Italy is the world's largest wine producer.",
+      "difficulty": "easy",
+      "category": "Geography",
+      "aiGenerated": false
+    }
+  ]
+}
+
+### 13. TEST: Try to bulk insert questions with duplicates from database (should fail)
+POST {{baseUrl}}/api/v2/questions/bulk
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}",
+  "questions": [
+    {
+      "question": "What year was the first wine produced?",
+      "type": "multiple_choice",
+      "options": ["5000 BC", "3000 BC", "1000 BC", "500 AD"],
+      "correctAnswer": "5000 BC",
+      "explanation": "Different explanation for same question.",
+      "difficulty": "hard",
+      "category": "History",
+      "aiGenerated": true
+    }
+  ]
+}
+### Expected: 400 Bad Request with error: "Question already exists in this event: What year was the first wine produced?..."
+
+### 14. TEST: Try to bulk insert questions with duplicates within batch (should fail)  
+POST {{baseUrl}}/api/v2/questions/bulk
+Content-Type: application/json
+
+{
+  "eventId": "{{eventId}}",
+  "questions": [
+    {
+      "question": "What is a sommelier?",
+      "type": "multiple_choice",
+      "options": ["Wine expert", "Grape picker", "Vineyard owner", "Wine seller"],
+      "correctAnswer": "Wine expert",
+      "explanation": "A sommelier is a trained wine professional.",
+      "difficulty": "easy",
+      "category": "General",
+      "aiGenerated": false
+    },
+    {
+      "question": "What is a sommelier?",
+      "type": "true_false",
+      "options": ["True", "False"],
+      "correctAnswer": "True",
+      "explanation": "Duplicate question in same batch.",
+      "difficulty": "easy",
+      "category": "General",
+      "aiGenerated": false
+    }
+  ]
+}
+### Expected: 400 Bad Request with error: "Duplicate question in batch: What is a sommelier?..."
+
+### 15. TEST: Case insensitive validation - try creating team with different case
+POST {{baseUrl}}/api/v2/events/{{eventId}}/teams
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "name": "TEAM ALPHA",
+  "tableNumber": 7,
+  "maxSize": 4
+}
+### Expected: 400 Bad Request with error: "A team with this name already exists in this event"
+
+### 16. TEST: Whitespace handling - try creating event with padded title
+POST {{baseUrl}}/api/v2/events
+Content-Type: application/json
+Cookie: sessionId={{sessionId}}
+
+{
+  "title": "  Duplicate Test Event  ",
+  "description": "This should fail due to duplicate title with whitespace",
+  "eventType": "educational",
+  "maxParticipants": 25,
+  "difficulty": "medium",
+  "status": "draft",
+  "qrCode": "WHITESPACE123",
+  "eventDate": "2025-01-18",
+  "eventTime": "17:00",
+  "location": "Whitespace Venue"
+}
+### Expected: 400 Bad Request with error: "An active event with this title already exists"
