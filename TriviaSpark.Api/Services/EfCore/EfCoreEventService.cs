@@ -9,6 +9,7 @@ public interface IEfCoreEventService
     Task<IList<Event>> GetEventsForHostAsync(string hostId);
     Task<IList<Event>> GetUpcomingEventsAsync(string hostId);
     Task<IList<Event>> GetActiveEventsAsync(string hostId);
+    Task<IList<Event>> GetPublicUpcomingEventsAsync(int limit = 8);
     Task<Event?> GetEventByIdAsync(string eventId);
     Task<Event> CreateEventAsync(Event eventEntity);
     Task<Event> UpdateEventAsync(Event eventEntity);
@@ -52,6 +53,26 @@ public class EfCoreEventService : IEfCoreEventService
         return await _context.Events
             .Where(e => e.HostId == hostId && e.Status == "active")
             .OrderByDescending(e => e.StartedAt ?? e.CreatedAt)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Public-facing list of upcoming or recently active events (no authentication required).
+    /// Only exposes events that are either active now or drafts with a future (or unspecified) date.
+    /// Excludes cancelled and completed events.
+    /// </summary>
+    public async Task<IList<Event>> GetPublicUpcomingEventsAsync(int limit = 8)
+    {
+        var now = DateTime.UtcNow;
+        var maxDate = new DateTime(2099, 12, 31);
+        return await _context.Events
+            .Where(e => e.Status != "cancelled" && e.Status != "completed" &&
+                        (e.Status == "active" || e.Status == "draft") &&
+                        (e.EventDate == null || e.EventDate >= now.AddHours(-3))) // allow very recent past
+            .OrderBy(e => e.EventDate ?? maxDate)
+            .ThenByDescending(e => e.CreatedAt)
+            .Take(limit)
+            .AsNoTracking()
             .ToListAsync();
     }
 

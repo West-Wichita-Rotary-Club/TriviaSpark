@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { demoEvent, demoQuestions, demoFunFacts } from "@/data/demoData";
 // Custom progress component to avoid React hook issues
 const SimpleProgress = ({ value, className }: { value: number; className?: string }) => (
   <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
@@ -17,7 +18,10 @@ import { Play, Pause, SkipForward, RotateCcw, Trophy, Users, Clock, ChevronRight
 
 export default function PresenterView() {
   const [, params] = useRoute("/presenter/:id");
+  const [, demoRoute] = useRoute("/demo");
   const eventId = params?.id;
+  const isDemoMode = demoRoute || !eventId;
+  
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [gameState, setGameState] = useState<"waiting" | "question" | "answer" | "leaderboard">("waiting");
@@ -25,30 +29,38 @@ export default function PresenterView() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
   
-  const { data: event } = useQuery<any>({
+  // Use demo data when in demo mode, otherwise use API data
+  const { data: apiEvent } = useQuery<any>({
     queryKey: ["/api/events", eventId],
-    enabled: !!eventId,
+    enabled: !!eventId && !isDemoMode,
   });
 
-  const { data: questions } = useQuery<any[]>({
+  const { data: apiQuestions } = useQuery<any[]>({
     queryKey: ["/api/events", eventId, "questions"],
-    enabled: !!eventId,
+    enabled: !!eventId && !isDemoMode,
   });
 
-  const { data: participants } = useQuery<any[]>({
+  const { data: apiParticipants } = useQuery<any[]>({
     queryKey: ["/api/events", eventId, "participants"],
-    enabled: !!eventId,
+    enabled: !!eventId && !isDemoMode,
   });
 
-  const { data: teams } = useQuery<any[]>({
+  const { data: apiTeams } = useQuery<any[]>({
     queryKey: ["/api/events", eventId, "teams"],
-    enabled: !!eventId,
+    enabled: !!eventId && !isDemoMode,
   });
 
-  const { data: funFacts } = useQuery<any[]>({
+  const { data: apiFunFacts } = useQuery<any[]>({
     queryKey: ["/api/events", eventId, "fun-facts"],
-    enabled: !!eventId,
+    enabled: !!eventId && !isDemoMode,
   });
+
+  // Use demo data or API data based on mode
+  const event = isDemoMode ? demoEvent : apiEvent;
+  const questions = isDemoMode ? demoQuestions : apiQuestions;
+  const participants = isDemoMode ? [] : apiParticipants; // Demo mode has no live participants
+  const teams = isDemoMode ? [] : apiTeams; // Demo mode has no live teams
+  const funFacts = isDemoMode ? demoFunFacts : apiFunFacts;
 
   const currentQuestion = questions?.[currentQuestionIndex];
   const progress = questions ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0;
@@ -136,11 +148,18 @@ export default function PresenterView() {
       <div className="flex-shrink-0 p-4 lg:p-6 border-b border-white/20">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div className="flex-1 min-w-0">
+            {isDemoMode && (
+              <div className="flex items-center gap-3 mb-2">
+                <Badge variant="outline" className="bg-champagne-500/20 border-champagne-400 text-champagne-200">
+                  ✨ DEMO
+                </Badge>
+              </div>
+            )}
             <h1 className="text-xl sm:text-2xl lg:text-4xl xl:text-5xl font-bold text-champagne-200 truncate" data-testid="text-event-title">
               {event.title}
             </h1>
             <p className="text-xs sm:text-sm lg:text-xl text-white/80 truncate" data-testid="text-event-description">
-              {event.description}
+              {isDemoMode ? "TriviaSpark Preview • Shareable Demo • No Login Required" : event.description}
             </p>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6 text-right flex-shrink-0">
@@ -176,12 +195,16 @@ export default function PresenterView() {
         {gameState === "waiting" && (
           <div className="text-center w-full max-w-4xl" data-testid="view-waiting">
             <div className="w-20 h-20 lg:w-32 lg:h-32 wine-gradient rounded-full flex items-center justify-center mx-auto mb-6 lg:mb-8">
-              <Trophy className="h-10 w-10 lg:h-16 lg:w-16 text-white" />
+              {isDemoMode ? <Play className="h-10 w-10 lg:h-16 lg:w-16 text-white" /> : <Trophy className="h-10 w-10 lg:h-16 lg:w-16 text-white" />}
             </div>
-            <h2 className="text-4xl lg:text-6xl xl:text-7xl font-bold mb-3 lg:mb-4 text-champagne-200">Welcome to Trivia!</h2>
-            <p className="text-lg lg:text-2xl xl:text-3xl text-white/80 mb-6 lg:mb-8">Get ready for an amazing experience</p>
+            <h2 className="text-4xl lg:text-6xl xl:text-7xl font-bold mb-3 lg:mb-4 text-champagne-200">
+              {isDemoMode ? "TriviaSpark Demo" : "Welcome to Trivia!"}
+            </h2>
+            <p className="text-lg lg:text-2xl xl:text-3xl text-white/80 mb-6 lg:mb-8">
+              {isDemoMode ? "Experience our interactive trivia platform" : "Get ready for an amazing experience"}
+            </p>
             <div className="text-base lg:text-lg text-champagne-300">
-              {participants?.length || 0} participants ready to play
+              {isDemoMode ? "This is a shareable demo - no login required!" : `${participants?.length || 0} participants ready to play`}
             </div>
           </div>
         )}
@@ -380,7 +403,7 @@ export default function PresenterView() {
                 data-testid="button-start-game"
               >
                 <Play className="mr-2 h-5 w-5" />
-                Start Game
+                {isDemoMode ? "Start Demo" : "Start Game"}
               </Button>
             </>
           )}

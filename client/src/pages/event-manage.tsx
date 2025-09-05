@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   formatDateInCST, 
@@ -110,6 +111,8 @@ type Question = {
   timeLimit: number;
   orderIndex: number;
   aiGenerated?: boolean;
+  explanation?: string;
+  backgroundImageUrl?: string | null;
 };
 
 type FunFact = {
@@ -250,125 +253,439 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
     retry: false
   });
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    reset,
-    formState: { errors, isDirty }
-  } = useForm<EventFormData>({
+  // ---------------- Event Form & Mutations (restored after refactor) ----------------
+  // React Hook Form setup for the event details tabs
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors, isDirty } } = useForm<EventFormData>({
     defaultValues: {
-      title: "",
-      description: "",
-      eventType: "",
-      maxParticipants: 50,
-      difficulty: "medium",
-      eventDate: "",
-      eventTime: "",
-      location: "",
-      sponsoringOrganization: ""
+      title: event?.title || "",
+      description: event?.description || "",
+      eventType: event?.eventType || "",
+      maxParticipants: event?.maxParticipants || 50,
+      difficulty: event?.difficulty || "mixed",
+      eventDate: event?.eventDate || "",
+      eventTime: event?.eventTime || "",
+      location: event?.location || "",
+      sponsoringOrganization: event?.sponsoringOrganization || "",
+      // (Optional extended fields can be added here if later exposed in UI)
     }
   });
 
-  // Populate form when event loads
+  // Sync form when event data loads/changes
   useEffect(() => {
     if (event) {
-      const formData: EventFormData = {
+      reset({
         title: event.title || "",
         description: event.description || "",
         eventType: event.eventType || "",
         maxParticipants: event.maxParticipants || 50,
-        difficulty: event.difficulty || "medium",
-        eventDate: event.eventDate ? getDateForInputInCST(event.eventDate) : "",
+        difficulty: event.difficulty || "mixed",
+        eventDate: event.eventDate || "",
         eventTime: event.eventTime || "",
         location: event.location || "",
-        sponsoringOrganization: event.sponsoringOrganization || ""
-      };
-      reset(formData);
+        sponsoringOrganization: event.sponsoringOrganization || "",
+        logoUrl: event.logoUrl || undefined,
+        backgroundImageUrl: event.backgroundImageUrl || undefined,
+        eventCopy: event.eventCopy || undefined,
+        welcomeMessage: event.welcomeMessage || undefined,
+        thankYouMessage: event.thankYouMessage || undefined,
+        primaryColor: event.primaryColor || undefined,
+        secondaryColor: event.secondaryColor || undefined,
+        fontFamily: event.fontFamily || undefined,
+        contactEmail: event.contactEmail || undefined,
+        contactPhone: event.contactPhone || undefined,
+        websiteUrl: event.websiteUrl || undefined,
+        socialLinks: event.socialLinks || undefined,
+        prizeInformation: event.prizeInformation || undefined,
+        eventRules: event.eventRules || undefined,
+        specialInstructions: event.specialInstructions || undefined,
+        accessibilityInfo: event.accessibilityInfo || undefined,
+        dietaryAccommodations: event.dietaryAccommodations || undefined,
+        dressCode: event.dressCode || undefined,
+        ageRestrictions: event.ageRestrictions || undefined,
+        technicalRequirements: event.technicalRequirements || undefined,
+        registrationDeadline: event.registrationDeadline || undefined,
+        cancellationPolicy: event.cancellationPolicy || undefined,
+        refundPolicy: event.refundPolicy || undefined,
+        sponsorInformation: event.sponsorInformation || undefined,
+      });
     }
   }, [event, reset]);
 
-  // Update event mutation
+  // Update Event mutation
   const updateEventMutation = useMutation({
-    mutationFn: async (data: EventFormData) => {
+    mutationFn: async (data: Partial<EventFormData>) => {
       const response = await fetch(`/api/events/${eventId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-        credentials: 'include',
+        credentials: 'include'
       });
-      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update event");
+        try {
+          const err = await response.json();
+          throw new Error(err.error || 'Failed to update event');
+        } catch {
+          throw new Error('Failed to update event');
+        }
       }
-      
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events", eventId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       toast({
-        title: "Event Updated",
-        description: "Event details have been saved successfully.",
+        title: 'Event Updated',
+        description: 'Event details saved successfully.'
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: "Update Failed",
-        description: (error as Error).message,
-        variant: "destructive",
+        title: 'Update Failed',
+        description: error.message || 'An error occurred while saving the event.',
+        variant: 'destructive'
       });
     }
   });
 
-  // Update status mutation
+  // Status update mutation (used by status tab & quick actions)
   const updateStatusMutation = useMutation({
     mutationFn: async (status: string) => {
       const response = await fetch(`/api/events/${eventId}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
-        credentials: 'include',
+        credentials: 'include'
       });
-      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update status");
+        try {
+          const err = await response.json();
+          throw new Error(err.error || 'Failed to update status');
+        } catch {
+          throw new Error('Failed to update status');
+        }
       }
-      
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events", eventId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      toast({
-        title: "Status Updated",
-        description: `Event status changed to ${data.status}.`,
-      });
+      toast({ title: 'Status Updated', description: 'Event status changed.' });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: "Status Update Failed",
-        description: (error as Error).message,
-        variant: "destructive",
+        title: 'Status Update Failed',
+        description: error.message || 'Could not update event status.',
+        variant: 'destructive'
       });
     }
   });
 
+  // Form submit handler
   const onSubmit = (data: EventFormData) => {
-    // Convert date string to Date object for database, ensuring CST interpretation
-    const formattedData = {
-      ...data,
-      eventDate: data.eventDate ? createDateInCST(data.eventDate, data.eventTime) : null,
-    } as any; // Type assertion to handle Date conversion
-    updateEventMutation.mutate(formattedData);
+    updateEventMutation.mutate(data);
   };
+
+  // Modal-based question editor with Unsplash image search
+  function EditQuestionForm({ question, onSave, onCancel, isLoading }: {
+    question: Question;
+    onSave: (q: Question) => void;
+    onCancel: () => void;
+    isLoading: boolean;
+  }) {
+      type UnsplashImage = {
+        id: string;
+        description?: string;
+        alt_description?: string;
+        urls: { thumb: string; small: string; regular: string; full: string };
+        links: { html: string; download_location?: string };
+        user: { name: string; links: { html: string } };
+      };
+      const [editForm, setEditForm] = useState({
+        question: question.question || "",
+        correctAnswer: question.correctAnswer || "",
+        options: Array.isArray(question.options) ? [...question.options] : [],
+        points: question.points || 100,
+        timeLimit: question.timeLimit || 30,
+        difficulty: question.difficulty || "medium",
+        category: question.category || "",
+        explanation: question.explanation || "",
+        orderIndex: question.orderIndex || 1,
+        backgroundImageUrl: question.backgroundImageUrl || ""
+      });
+      const [unsplashQuery, setUnsplashQuery] = useState("");
+      const [unsplashResults, setUnsplashResults] = useState<UnsplashImage[]>([]);
+      const [unsplashLoading, setUnsplashLoading] = useState(false);
+      const [unsplashError, setUnsplashError] = useState<string | null>(null);
+      const [selectedImage, setSelectedImage] = useState<UnsplashImage | null>(null);
+      const [trackingDownload, setTrackingDownload] = useState(false);
+
+      const updateOption = (index: number, value: string) => {
+        const newOptions = [...editForm.options];
+        newOptions[index] = value;
+        setEditForm({ ...editForm, options: newOptions });
+      };
+
+      const handleUnsplashSearch = async () => {
+        if (!unsplashQuery.trim()) return;
+        setUnsplashLoading(true);
+        setUnsplashError(null);
+        try {
+          const res = await fetch(`/api/unsplash/search?query=${encodeURIComponent(unsplashQuery)}&perPage=12`);
+          if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.error || "Search failed");
+          }
+          const data = await res.json();
+          setUnsplashResults(data.results || []);
+        } catch (e:any) {
+          setUnsplashError(e.message);
+        } finally {
+          setUnsplashLoading(false);
+        }
+      };
+
+      const handleSelectImage = (img: UnsplashImage) => {
+        setSelectedImage(img);
+        setEditForm(f => ({ ...f, backgroundImageUrl: img.urls.regular }));
+      };
+
+      const trackDownloadIfNeeded = async () => {
+        if (!selectedImage?.links?.download_location) return;
+        try {
+          setTrackingDownload(true);
+          await fetch("/api/unsplash/track-download", {
+            method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ downloadUrl: selectedImage.links.download_location })
+          });
+        } catch { /* ignore */ }
+        finally { setTrackingDownload(false); }
+      };
+
+      const handleSave = async () => {
+        const updatedQuestion: Question = {
+          ...question,
+          question: editForm.question,
+          correctAnswer: editForm.correctAnswer,
+          options: editForm.options,
+          points: editForm.points,
+          timeLimit: editForm.timeLimit,
+          difficulty: editForm.difficulty,
+          category: editForm.category,
+          explanation: editForm.explanation,
+          orderIndex: editForm.orderIndex,
+          backgroundImageUrl: editForm.backgroundImageUrl || null
+        };
+        onSave(updatedQuestion);
+        // fire and forget download tracking
+        trackDownloadIfNeeded();
+      };
+
+      return (
+        <div className="space-y-6">
+          <div>
+            <Label>Question</Label>
+            <Textarea
+              value={editForm.question}
+              onChange={(e) => setEditForm({ ...editForm, question: e.target.value })}
+              className="mt-1"
+              rows={3}
+              data-testid="textarea-edit-question"
+            />
+          </div>
+          {question.type === 'multiple_choice' && (
+            <div>
+              <Label>Options</Label>
+              <div className="space-y-2 mt-1">
+                {editForm.options.map((option, index) => (
+                  <div key={index} className="flex gap-2">
+                    <span className="w-8 h-10 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    <Input
+                      value={option}
+                      onChange={(e) => updateOption(index, e.target.value)}
+                      placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                      data-testid={`input-edit-option-${index}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div>
+              <Label>Correct Answer</Label>
+              <Input
+                value={editForm.correctAnswer}
+                onChange={(e) => setEditForm({ ...editForm, correctAnswer: e.target.value })}
+                className="mt-1"
+                data-testid="input-edit-correct-answer"
+              />
+            </div>
+            <div>
+              <Label>Points</Label>
+              <Input
+                type="number"
+                value={editForm.points}
+                onChange={(e) => setEditForm({ ...editForm, points: parseInt(e.target.value) || 0 })}
+                className="mt-1"
+                min={10}
+                max={500}
+                data-testid="input-edit-points"
+              />
+            </div>
+            <div>
+              <Label>Time Limit (s)</Label>
+              <Input
+                type="number"
+                value={editForm.timeLimit}
+                onChange={(e) => setEditForm({ ...editForm, timeLimit: parseInt(e.target.value) || 30 })}
+                className="mt-1"
+                min={5}
+                max={300}
+                data-testid="input-edit-timeLimit"
+              />
+            </div>
+            <div>
+              <Label>Difficulty</Label>
+              <Select value={editForm.difficulty} onValueChange={(v) => setEditForm({ ...editForm, difficulty: v })}>
+                <SelectTrigger className="mt-1" data-testid="select-edit-difficulty">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Category</Label>
+              <Input
+                value={editForm.category}
+                onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                className="mt-1"
+                placeholder="wine, geography, etc"
+                data-testid="input-edit-category"
+              />
+            </div>
+            <div>
+              <Label>Order #</Label>
+              <Input
+                type="number"
+                value={editForm.orderIndex}
+                onChange={(e) => setEditForm({ ...editForm, orderIndex: parseInt(e.target.value) || 1 })}
+                className="mt-1"
+                min={1}
+                data-testid="input-edit-orderIndex"
+              />
+            </div>
+          </div>
+          <div>
+            <Label>Explanation (shown after answering)</Label>
+              <Textarea
+                value={editForm.explanation}
+                onChange={(e) => setEditForm({ ...editForm, explanation: e.target.value })}
+                rows={3}
+                className="mt-1"
+                data-testid="textarea-edit-explanation"
+              />
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>Background Image</Label>
+              {editForm.backgroundImageUrl && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setEditForm({ ...editForm, backgroundImageUrl: "" }); setSelectedImage(null); }}
+                  data-testid="button-remove-image"
+                >Remove</Button>
+              )}
+            </div>
+            {editForm.backgroundImageUrl ? (
+              <div className="relative">
+                <img
+                  src={editForm.backgroundImageUrl}
+                  alt="Selected background"
+                  className="rounded-md w-full h-40 object-cover border"
+                  data-testid="image-selected-preview"
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No image selected.</p>
+            )}
+            <div className="border rounded-md p-3 space-y-3 bg-gray-50">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search Unsplash (e.g., Oregon coast)"
+                  value={unsplashQuery}
+                  onChange={(e) => setUnsplashQuery(e.target.value)}
+                  data-testid="input-unsplash-query"
+                />
+                <Button type="button" onClick={handleUnsplashSearch} disabled={unsplashLoading} data-testid="button-unsplash-search">
+                  {unsplashLoading ? 'Searching...' : 'Search'}
+                </Button>
+              </div>
+              {unsplashError && <p className="text-sm text-red-600" data-testid="error-unsplash">{unsplashError}</p>}
+              {unsplashResults.length > 0 && (
+                <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto" data-testid="grid-unsplash-results">
+                  {unsplashResults.map((img, i) => (
+                    <button
+                      key={img.id}
+                      type="button"
+                      onClick={() => handleSelectImage(img)}
+                      className={`group relative border rounded-md overflow-hidden focus:outline-none ${selectedImage?.id === img.id ? 'ring-2 ring-wine-500' : 'hover:ring-2 hover:ring-wine-300'}`}
+                      data-testid={`unsplash-result-${i}`}
+                    >
+                      <img src={img.urls.thumb} alt={img.alt_description || img.description || 'img'} className="w-full h-16 object-cover" />
+                      {selectedImage?.id === img.id && (
+                        <span className="absolute inset-0 bg-wine-600/40 flex items-center justify-center text-white text-xs font-medium">Selected</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {selectedImage && (
+                <p className="text-[11px] text-gray-600" data-testid="text-unsplash-attribution">
+                  Photo by <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>{selectedImage.user.name}</a> on <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>Unsplash</a>
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="pt-2">
+            <Button
+              onClick={handleSave}
+              disabled={isLoading || trackingDownload}
+              className="flex-1"
+              data-testid="button-save-question"
+            >
+              {isLoading ? (
+                <>
+                  <Save className="mr-2 h-4 w-4 animate-pulse" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={onCancel}
+              variant="outline"
+              disabled={isLoading}
+              data-testid="button-cancel-edit"
+            >
+              Cancel
+            </Button>
+          </DialogFooter>
+        </div>
+      );
+    }
+  
+      // END EditQuestionForm
 
   const handleStatusChange = (status: string) => {
     updateStatusMutation.mutate(status);
@@ -690,128 +1007,6 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
     }
   }, [finalCountdown]);
 
-  // EditQuestionForm component
-  function EditQuestionForm({ question, onSave, onCancel, isLoading }: {
-    question: Question;
-    onSave: (question: Question) => void;
-    onCancel: () => void;
-    isLoading: boolean;
-  }) {
-    const [editForm, setEditForm] = useState({
-      question: question.question,
-      correctAnswer: question.correctAnswer,
-      options: Array.isArray(question.options) ? [...question.options] : [],
-      points: question.points || 100,
-      timeLimit: question.timeLimit || 30
-    });
-
-    const updateOption = (index: number, value: string) => {
-      const newOptions = [...editForm.options];
-      newOptions[index] = value;
-      setEditForm({ ...editForm, options: newOptions });
-    };
-
-    const handleSave = () => {
-      const updatedQuestion = {
-        ...question,
-        question: editForm.question,
-        correctAnswer: editForm.correctAnswer,
-        options: editForm.options,
-        points: editForm.points,
-        timeLimit: editForm.timeLimit
-      };
-      onSave(updatedQuestion);
-    };
-
-    return (
-      <div className="space-y-4">
-        <div>
-          <Label>Question</Label>
-          <Textarea
-            value={editForm.question}
-            onChange={(e) => setEditForm({ ...editForm, question: e.target.value })}
-            className="mt-1"
-            rows={2}
-            data-testid="textarea-edit-question"
-          />
-        </div>
-        
-        {question.type === 'multiple_choice' && (
-          <div>
-            <Label>Options</Label>
-            <div className="space-y-2 mt-1">
-              {editForm.options.map((option, index) => (
-                <div key={index} className="flex gap-2">
-                  <span className="w-8 h-10 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">
-                    {String.fromCharCode(65 + index)}
-                  </span>
-                  <Input
-                    value={option}
-                    onChange={(e) => updateOption(index, e.target.value)}
-                    placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                    data-testid={`input-edit-option-${index}`}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label>Correct Answer</Label>
-            <Input
-              value={editForm.correctAnswer}
-              onChange={(e) => setEditForm({ ...editForm, correctAnswer: e.target.value })}
-              className="mt-1"
-              data-testid="input-edit-correct-answer"
-            />
-          </div>
-          <div>
-            <Label>Points</Label>
-            <Input
-              type="number"
-              value={editForm.points}
-              onChange={(e) => setEditForm({ ...editForm, points: parseInt(e.target.value) || 100 })}
-              className="mt-1"
-              min="10"
-              max="500"
-              data-testid="input-edit-points"
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <Button
-            onClick={handleSave}
-            disabled={isLoading}
-            className="flex-1"
-            data-testid="button-save-question"
-          >
-            {isLoading ? (
-              <>
-                <Save className="mr-2 h-4 w-4 animate-pulse" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={onCancel}
-            variant="outline"
-            disabled={isLoading}
-            data-testid="button-cancel-edit"
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   if (eventLoading) {
     return (
@@ -1180,6 +1375,15 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                 <CardHeader>
                   <CardTitle className="wine-text flex items-center justify-between">
                     <span>Event Questions ({questions.length})</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLocation(`/events/${eventId}/manage/trivia`)}
+                      data-testid="button-full-trivia-manage"
+                      className="ml-4"
+                    >
+                      Open Full Manager
+                    </Button>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1197,89 +1401,108 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                           className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                           data-testid={`question-${index}`}
                         >
-                          {editingQuestion?.id === question.id ? (
-                            <EditQuestionForm
-                              question={editingQuestion}
-                              onSave={(updatedQuestion) => updateQuestionMutation.mutate(updatedQuestion)}
-                              onCancel={() => setEditingQuestion(null)}
-                              isLoading={updateQuestionMutation.isPending}
-                            />
-                          ) : (
-                            <div className="space-y-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <Badge variant="secondary" className="text-xs">
-                                      #{index + 1}
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Badge variant="secondary" className="text-xs">
+                                    #{index + 1}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {question.type.replace('_', ' ')}
+                                  </Badge>
+                                  {question.aiGenerated && (
+                                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
+                                      <Brain className="mr-1 h-3 w-3" />
+                                      AI
                                     </Badge>
-                                    <Badge variant="outline" className="text-xs">
-                                      {question.type.replace('_', ' ')}
-                                    </Badge>
-                                    {question.aiGenerated && (
-                                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600">
-                                        <Brain className="mr-1 h-3 w-3" />
-                                        AI
-                                      </Badge>
-                                    )}
-                                    <Badge variant="outline" className="text-xs">
-                                      {question.points || 100} pts
-                                    </Badge>
-                                  </div>
-                                  <h4 className="font-medium text-gray-900 mb-2">
-                                    {question.question}
-                                  </h4>
-                                  {Array.isArray(question.options) && question.options.length > 0 && (
-                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                      {question.options.map((option, optIndex) => (
-                                        <div
-                                          key={optIndex}
-                                          className={`text-sm p-2 rounded ${
-                                            option === question.correctAnswer
-                                              ? 'bg-green-100 text-green-800 font-medium'
-                                              : 'bg-gray-100 text-gray-700'
-                                          }`}
-                                        >
-                                          {String.fromCharCode(65 + optIndex)}. {option}
-                                        </div>
-                                      ))}
-                                    </div>
                                   )}
-                                  <p className="text-sm text-green-600 font-medium">
-                                    Correct Answer: {question.correctAnswer}
-                                  </p>
+                                  <Badge variant="outline" className="text-xs">
+                                    {question.points || 100} pts
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {question.timeLimit}s
+                                  </Badge>
                                 </div>
-                                <div className="flex gap-2 ml-4">
-                                  <Button
-                                    onClick={() => setEditingQuestion(question)}
-                                    variant="ghost"
-                                    size="sm"
-                                    data-testid={`button-edit-${index}`}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    onClick={() => {
-                                      if (confirm('Are you sure you want to delete this question?')) {
-                                        deleteQuestionMutation.mutate(question.id);
-                                      }
-                                    }}
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    data-testid={`button-delete-${index}`}
-                                  >
+                                <h4 className="font-medium text-gray-900 mb-2">
+                                  {question.question}
+                                </h4>
+                                {Array.isArray(question.options) && question.options.length > 0 && (
+                                  <div className="grid grid-cols-2 gap-2 mb-2">
+                                    {question.options.map((option, optIndex) => (
+                                      <div
+                                        key={optIndex}
+                                        className={`text-sm p-2 rounded ${
+                                          option === question.correctAnswer
+                                            ? 'bg-green-100 text-green-800 font-medium'
+                                            : 'bg-gray-100 text-gray-700'
+                                        }`}
+                                      >
+                                        {String.fromCharCode(65 + optIndex)}. {option}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                <p className="text-sm text-green-600 font-medium">
+                                  Correct Answer: {question.correctAnswer}
+                                </p>
+                                {question.explanation && (
+                                  <p className="text-xs text-gray-500 line-clamp-2">{question.explanation}</p>
+                                )}
+                              </div>
+                              <div className="flex gap-2 ml-4">
+                                <Button
+                                  onClick={() => setEditingQuestion(question)}
+                                  variant="ghost"
+                                  size="sm"
+                                  data-testid={`button-edit-${index}`}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    if (confirm('Are you sure you want to delete this question?')) {
+                                      deleteQuestionMutation.mutate(question.id);
+                                    }
+                                  }}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  data-testid={`button-delete-${index}`}
+                                >
                                     <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                                </Button>
                               </div>
                             </div>
-                          )}
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
                 </CardContent>
               </Card>
+
+              {/* Question Edit Modal */}
+              <Dialog open={!!editingQuestion} onOpenChange={(open) => { if (!open) setEditingQuestion(null); }}>
+                <DialogContent className="max-w-3xl" data-testid="dialog-edit-question">
+                  {editingQuestion && (
+                    <>
+                      <DialogHeader>
+                        <DialogTitle>Edit Question</DialogTitle>
+                        <DialogDescription>
+                          Modify question content, scoring, ordering, and optional background image.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <EditQuestionForm
+                        question={editingQuestion}
+                        onSave={(updatedQuestion) => updateQuestionMutation.mutate(updatedQuestion)}
+                        onCancel={() => setEditingQuestion(null)}
+                        isLoading={updateQuestionMutation.isPending}
+                      />
+                    </>
+                  )}
+                </DialogContent>
+              </Dialog>
             </div>
           </TabsContent>
 

@@ -181,6 +181,31 @@ public static class EfCoreApiEndpoints
         });
 
         // Events endpoints - migrated to EF Core
+        // Public anonymous events list for homepage (sanitized)
+        api.MapGet("/events/home", async ([FromQuery] int? limit, IEfCoreEventService eventService) =>
+        {
+            try
+            {
+                var events = await eventService.GetPublicUpcomingEventsAsync(Math.Clamp(limit ?? 8, 1, 24));
+                // Project only safe, minimal fields needed by homepage
+                var projection = events.Select(e => new {
+                    id = e.Id,
+                    title = e.Title,
+                    description = e.Description,
+                    eventDate = e.EventDate,
+                    eventTime = e.EventTime,
+                    location = e.Location,
+                    status = e.Status,
+                    difficulty = e.Difficulty
+                });
+                return Results.Ok(projection);
+            }
+            catch (Exception ex)
+            {
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }).AllowAnonymous();
+
         api.MapGet("/events", async (ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);

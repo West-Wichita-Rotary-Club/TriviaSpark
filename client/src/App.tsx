@@ -16,14 +16,13 @@ const EventManage = React.lazy(() => {
   console.log("Attempting to lazy load EventManage...");
   return import("@/pages/event-manage");
 });
+const EventTriviaManage = React.lazy(() => import("@/pages/event-trivia-manage"));
 const Dashboard = React.lazy(() => import("@/pages/dashboard"));
 const EventHost = React.lazy(() => import("@/pages/event-host"));
 const EventJoin = React.lazy(() => import("@/pages/event-join"));
 const Profile = React.lazy(() => import("@/pages/profile"));
 const ApiDocs = React.lazy(() => import("@/pages/api-docs"));
 const PresenterView = React.lazy(() => import("@/pages/presenter"));
-const PresenterDemo = React.lazy(() => import("@/pages/presenter-demo"));
-const StaticPresenterDemo = React.lazy(() => import("@/pages/presenter-demo-static"));
 const Insights = React.lazy(() => import("@/pages/insights"));
 
 // Lazy load layout components only when needed
@@ -56,12 +55,11 @@ function App() {
 
                     {/* Some hosts may request /index.html explicitly; treat as home */}
                     <Route path="/index.html">
-                      {() => (import.meta.env.BASE_URL !== '/' ? <StaticPresenterDemo /> : <Home />)}
+                      {() => (import.meta.env.BASE_URL !== '/' ? <PresenterView /> : <Home />)}
                     </Route>
                     
                     {/* Demo routes */}
-                    <Route path="/demo" component={StaticPresenterDemo} />
-                    <Route path="/presenter-demo/:id" component={StaticPresenterDemo} />
+                    <Route path="/demo" component={PresenterView} />
                     
                     {/* Auth routes */}
                     <Route path="/login" component={Login} />
@@ -88,6 +86,29 @@ function App() {
                           </>
                         );
                       }}
+                    </Route>
+
+                    {/* Full Trivia Management route */}
+                    <Route path="/events/:id/manage/trivia">
+                      {(params) => (
+                        <>
+                          {console.log('[Route Match] /events/:id/manage/trivia matched with', params)}
+                          <Header />
+                          <EventTriviaManage eventId={params?.id} />
+                          <Footer />
+                        </>
+                      )}
+                    </Route>
+                    {/* Alternate trailing slash variant (some servers/users may hit this) */}
+                    <Route path="/events/:id/manage/trivia/">
+                      {(params) => (
+                        <>
+                          {console.log('[Route Match] /events/:id/manage/trivia/ matched with', params)}
+                          <Header />
+                          <EventTriviaManage eventId={params?.id} />
+                          <Footer />
+                        </>
+                      )}
                     </Route>
                     
                     {/* Event hosting route */}

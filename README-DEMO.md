@@ -9,7 +9,7 @@ The demo is automatically deployed to GitHub Pages at: `https://west-wichita-rot
 ## 📁 Project Structure
 
 - **`/docs`** - Static build output for GitHub Pages
-- **`client/src/pages/presenter-demo-static.tsx`** - Static demo component with embedded data
+- **`client/src/pages/presenter.tsx`** - Unified presenter component with demo mode support
 - **`client/src/data/demoData.ts`** - Static demo data (event, questions, fun facts)
 - **`.github/workflows/deploy.yml`** - GitHub Actions workflow for automatic deployment
 
@@ -69,7 +69,6 @@ The demo features a wine country trivia event with:
 ## 🔗 Direct Access Routes
 
 - **Main Demo**: `/demo` - Default demo experience
-- **Event-Specific**: `/presenter-demo/seed-event-coast-to-cascades` - Direct access to the demo event
 
 ## 🚀 TriviaSpark Platform
 

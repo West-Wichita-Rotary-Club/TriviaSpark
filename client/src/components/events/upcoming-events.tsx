@@ -147,12 +147,6 @@ export default function UpcomingEvents() {
                         Present
                       </Button>
                     </Link>
-                    <Link href={`/presenter-demo/${event.id}`}>
-                      <Button size="sm" variant="outline" className="text-xs bg-champagne-50 border-champagne-300 text-champagne-700 hover:bg-champagne-100">
-                        <Monitor className="mr-1 h-3 w-3" />
-                        Demo
-                      </Button>
-                    </Link>
                   </div>
                 </div>
               );

@@ -12,6 +12,20 @@ import {
   Shield 
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Calendar, MapPin, Play } from "lucide-react"; // additional icons
+
+// Local Event type (aligns with events page but trimmed for homepage use)
+interface EventSummary {
+  id: string;
+  title: string;
+  description: string;
+  eventDate: string | null;
+  eventTime: string | null;
+  location: string | null;
+  status: string;
+  difficulty?: string;
+}
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -59,6 +73,32 @@ export default function Home() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Upcoming Events + Demo Section */}
+      <div id="upcoming" className="py-20 bg-gray-50" data-testid="section-upcoming-events">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold wine-text mb-3" data-testid="text-upcoming-title">
+                Upcoming Events
+              </h2>
+              <p className="text-gray-600 max-w-xl" data-testid="text-upcoming-subtitle">
+                Preview real events on the platform and launch a live demo presenter view instantly.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/demo")}
+              className="border-wine-200 text-wine-700 hover:bg-wine-50"
+              data-testid="button-generic-demo"
+            >
+              <Play className="mr-2 h-4 w-4" /> Quick Demo
+            </Button>
+          </div>
+
+          <UpcomingEvents onLaunchDemo={(id) => setLocation(`/presenter/${id}`)} />
         </div>
       </div>
 
@@ -192,6 +232,108 @@ export default function Home() {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ----------------- Helper Components -----------------
+
+interface UpcomingEventsProps {
+  onLaunchDemo: (eventId: string) => void;
+}
+
+function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
+  const { data: events, isLoading, error } = useQuery<EventSummary[]>({
+    queryKey: ["/api/events/home"],
+    queryFn: async () => {
+      const res = await fetch("/api/events/home");
+      if (!res.ok) throw new Error("Failed to load public events");
+      return res.json();
+    },
+    retry: false,
+  });
+
+  // Filter for events that are scheduled/active and in the future (or no date but active)
+  const upcoming = (events || [])
+    .filter(e => {
+      if (!e) return false;
+      const future = e.eventDate ? (new Date(e.eventDate).getTime() >= Date.now() - 1000 * 60 * 60 * 3) : true; // allow recent ones
+      const statusOk = ["active", "scheduled", "draft"].includes(e.status?.toLowerCase());
+      return future && statusOk;
+    })
+    .slice(0, 4);
+
+  return (
+    <div>
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="loading-upcoming">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="animate-pulse h-48 rounded-xl bg-gradient-to-br from-wine-100/40 to-champagne-100/40 border border-wine-100/50" />
+          ))}
+        </div>
+      )}
+      {!isLoading && error && (
+        <div className="p-6 border rounded-xl bg-white shadow-sm max-w-xl" data-testid="error-upcoming">
+          <p className="text-sm text-gray-600 mb-3">Unable to load events right now.</p>
+          <Button size="sm" onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      )}
+      {!isLoading && !error && upcoming.length === 0 && (
+        <div className="p-8 border rounded-xl bg-white text-center shadow-sm" data-testid="empty-upcoming">
+          <Brain className="mx-auto h-10 w-10 text-wine-400 mb-4" />
+            <p className="text-gray-600 mb-4">No upcoming events to show yet.</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={() => onLaunchDemo("demo")}>Launch Demo</Button>
+              <Button variant="outline" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Create One</Button>
+            </div>
+        </div>
+      )}
+      {!isLoading && !error && upcoming.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="grid-upcoming">
+          {upcoming.map(ev => (
+            <Card key={ev.id} className="trivia-card flex flex-col" data-testid={`home-event-card-${ev.id}`}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg line-clamp-2" title={ev.title}>{ev.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col">
+                <p className="text-sm text-gray-600 mb-3 line-clamp-3" data-testid={`home-event-desc-${ev.id}`}>{ev.description}</p>
+                <div className="space-y-1 text-xs text-gray-500 mb-4">
+                  {(ev.eventDate || ev.eventTime) && (
+                    <div className="flex items-center gap-1" data-testid={`home-event-datetime-${ev.id}`}>
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {ev.eventDate ? new Date(ev.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'TBD'}
+                        {ev.eventTime ? ` • ${ev.eventTime}` : ''}
+                      </span>
+                    </div>
+                  )}
+                  {ev.location && (
+                    <div className="flex items-center gap-1" data-testid={`home-event-location-${ev.id}`}>
+                      <MapPin className="h-3 w-3" />
+                      <span className="truncate">{ev.location}</span>
+                    </div>
+                  )}
+                  {ev.difficulty && (
+                    <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide" data-testid={`home-event-diff-${ev.id}`}>
+                      <span className="px-1.5 py-0.5 rounded bg-wine-100 text-wine-700 font-medium">{ev.difficulty}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-auto">
+                  <Button 
+                    size="sm"
+                    className="w-full trivia-button-primary"
+                    onClick={() => onLaunchDemo(ev.id)}
+                    data-testid={`button-demo-${ev.id}`}
+                  >
+                    <Play className="mr-2 h-4 w-4" /> Demo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
