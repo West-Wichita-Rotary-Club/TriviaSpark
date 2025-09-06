@@ -71,6 +71,11 @@ export const events = sqliteTable("events", {
   refundPolicy: text("refund_policy"),
   sponsorInformation: text("sponsor_information"), // JSON string of sponsor details
 
+  // Event configuration
+  allowParticipants: integer("allow_participants", { mode: "boolean" }).default(
+    true
+  ),
+
   settings: text("settings").default("{}"), // JSON string for theme, timing, etc.
   createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
