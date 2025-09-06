@@ -1,0 +1,15 @@
+### Check questions for seed-event-coast-to-cascades
+GET https://localhost:14165/api/events/seed-event-coast-to-cascades/questions
+Accept: application/json
+
+### Check if the event exists
+GET https://localhost:14165/api/events/seed-event-coast-to-cascades
+Accept: application/json
+
+### Check all events
+GET https://localhost:14165/api/events
+Accept: application/json
+
+### Check all questions in the database  
+GET https://localhost:14165/api/questions
+Accept: application/json
