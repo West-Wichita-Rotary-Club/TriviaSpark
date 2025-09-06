@@ -1,0 +1,21 @@
+###
+# EventImage endpoint tests
+
+### Test GET EventImage for existing question
+GET https://localhost:14165/api/questions/1/eventimage
+Accept: application/json
+
+### Test GET EventImage for non-existent question  
+GET https://localhost:14165/api/questions/999/eventimage
+Accept: application/json
+
+### Test PUT EventImage (save/update)
+PUT https://localhost:14165/api/questions/1/eventimage
+Content-Type: application/json
+
+{
+  "unsplashImageId": "test-image-123",
+  "sizeVariant": "regular",
+  "usageContext": "question_background",
+  "searchContext": "test search"
+}

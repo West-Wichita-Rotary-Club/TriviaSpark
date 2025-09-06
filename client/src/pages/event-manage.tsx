@@ -406,21 +406,22 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
     updateEventMutation.mutate(processedData);
   };
 
+  type UnsplashImage = {
+    id: string;
+    description?: string;
+    alt_description?: string;
+    urls: { thumb: string; small: string; regular: string; full: string };
+    links: { html: string; download_location?: string };
+    user: { name: string; links: { html: string } };
+  };
+
   // Modal-based question editor with Unsplash image search
   function EditQuestionForm({ question, onSave, onCancel, isLoading }: {
     question: Question;
-    onSave: (q: Question) => void;
+    onSave: (q: Question, selectedImage?: UnsplashImage) => void;
     onCancel: () => void;
     isLoading: boolean;
   }) {
-      type UnsplashImage = {
-        id: string;
-        description?: string;
-        alt_description?: string;
-        urls: { thumb: string; small: string; regular: string; full: string };
-        links: { html: string; download_location?: string };
-        user: { name: string; links: { html: string } };
-      };
       const [editForm, setEditForm] = useState({
         question: question.question || "",
         correctAnswer: question.correctAnswer || "",
@@ -439,6 +440,76 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
       const [unsplashError, setUnsplashError] = useState<string | null>(null);
       const [selectedImage, setSelectedImage] = useState<UnsplashImage | null>(null);
       const [trackingDownload, setTrackingDownload] = useState(false);
+
+      // Query to fetch event image for this question
+      const { data: eventImageData, refetch: refetchEventImage } = useQuery({
+        queryKey: ["/api/questions", question.id, "eventimage"],
+        queryFn: async () => {
+          const response = await fetch(`/api/questions/${question.id}/eventimage`, {
+            credentials: 'include',
+          });
+          if (!response.ok) {
+            throw new Error("Failed to fetch event image");
+          }
+          return response.json();
+        },
+      });
+
+      // Event image form state
+      const [eventImageForm, setEventImageForm] = useState({
+        unsplashImageId: "",
+        sizeVariant: "regular",
+        usageContext: "question_background", 
+        searchContext: ""
+      });
+
+      // Update event image form when data is loaded
+      useEffect(() => {
+        if (eventImageData?.eventImage) {
+          const img = eventImageData.eventImage;
+          setEventImageForm({
+            unsplashImageId: img.unsplashImageId || "",
+            sizeVariant: img.sizeVariant || "regular",
+            usageContext: img.usageContext || "question_background",
+            searchContext: img.searchContext || ""
+          });
+        }
+      }, [eventImageData]);
+
+      // Mutation for saving event image
+      const saveEventImageMutation = useMutation({
+        mutationFn: async () => {
+          const response = await fetch(`/api/questions/${question.id}/eventimage`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(eventImageForm),
+            credentials: 'include',
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to save event image");
+          }
+          
+          return response.json();
+        },
+        onSuccess: () => {
+          refetchEventImage();
+          toast({
+            title: "Event Image Saved",
+            description: "Event image record has been saved successfully.",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Save Failed", 
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      });
 
       const updateOption = (index: number, value: string) => {
         const newOptions = [...editForm.options];
@@ -468,6 +539,14 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
       const handleSelectImage = (img: UnsplashImage) => {
         setSelectedImage(img);
         setEditForm(f => ({ ...f, backgroundImageUrl: img.urls.regular }));
+        
+        // Auto-populate EventImage form with selected image data
+        setEventImageForm({
+          unsplashImageId: img.id,
+          sizeVariant: "regular",
+          usageContext: "question_background",
+          searchContext: unsplashQuery || ""
+        });
       };
 
       const trackDownloadIfNeeded = async () => {
@@ -484,6 +563,8 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
       };
 
       const handleSave = async () => {
+        console.log('handleSave called, selectedImage:', selectedImage);
+        
         const updatedQuestion: Question = {
           ...question,
           question: editForm.question,
@@ -497,7 +578,21 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
           orderIndex: editForm.orderIndex,
           backgroundImageUrl: editForm.backgroundImageUrl || null
         };
-        onSave(updatedQuestion);
+        
+        console.log('Calling onSave with question and selectedImage:', { question: updatedQuestion, selectedImage });
+        onSave(updatedQuestion, selectedImage || undefined);
+        
+        // Save EventImage record if form has data
+        if (eventImageForm.unsplashImageId) {
+          console.log('Saving EventImage record with form data:', eventImageForm);
+          try {
+            await saveEventImageMutation.mutateAsync();
+          } catch (error) {
+            console.error('Failed to save EventImage record:', error);
+            // Don't fail the whole save if EventImage save fails
+          }
+        }
+        
         // fire and forget download tracking
         trackDownloadIfNeeded();
       };
@@ -676,6 +771,137 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
               )}
             </div>
           </div>
+
+          {/* Event Image Management Form */}
+          <Card className="mt-4 border-2 border-wine-300">
+            <CardHeader className="pb-3 bg-wine-50">
+              <CardTitle className="text-sm font-medium text-wine-800">🖼️ Event Image Management</CardTitle>
+              <p className="text-xs text-wine-600">Configure and manage image metadata for this question</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="unsplashImageId" className="text-xs">Unsplash Image ID</Label>
+                  <Input
+                    id="unsplashImageId"
+                    value={eventImageForm.unsplashImageId}
+                    onChange={(e) => setEventImageForm(prev => ({ ...prev, unsplashImageId: e.target.value }))}
+                    placeholder="Enter Unsplash image ID"
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sizeVariant" className="text-xs">Size Variant</Label>
+                  <Select 
+                    value={eventImageForm.sizeVariant} 
+                    onValueChange={(value) => setEventImageForm(prev => ({ ...prev, sizeVariant: value }))}
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="thumb">Thumb</SelectItem>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="regular">Regular</SelectItem>
+                      <SelectItem value="full">Full</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="usageContext" className="text-xs">Usage Context</Label>
+                  <Select 
+                    value={eventImageForm.usageContext} 
+                    onValueChange={(value) => setEventImageForm(prev => ({ ...prev, usageContext: value }))}
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue placeholder="Select usage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="question_background">Question Background</SelectItem>
+                      <SelectItem value="event_banner">Event Banner</SelectItem>
+                      <SelectItem value="category_icon">Category Icon</SelectItem>
+                      <SelectItem value="promotional_material">Promotional Material</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="searchContext" className="text-xs">Search Context</Label>
+                  <Input
+                    id="searchContext"
+                    value={eventImageForm.searchContext}
+                    onChange={(e) => setEventImageForm(prev => ({ ...prev, searchContext: e.target.value }))}
+                    placeholder="Search terms used"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Display existing image data if available */}
+              {eventImageData?.eventImage && (
+                <div className="border-t pt-4">
+                  <Label className="text-xs font-medium text-muted-foreground">Current Image Info</Label>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    <div>Created: {new Date(eventImageData.eventImage.createdAt).toLocaleString()}</div>
+                    <div>Downloaded: {eventImageData.eventImage.downloadTracked ? 'Yes' : 'No'}</div>
+                    {eventImageData.eventImage.attributionText && (
+                      <div className="col-span-2">
+                        Attribution: <a 
+                          href={eventImageData.eventImage.attributionUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-wine-600 hover:underline"
+                        >
+                          {eventImageData.eventImage.attributionText}
+                        </a>
+                      </div>
+                    )}
+                    {eventImageData.eventImage.imageUrl && (
+                      <div className="col-span-2">
+                        <img 
+                          src={eventImageData.eventImage.thumbnailUrl || eventImageData.eventImage.imageUrl} 
+                          alt="Current image" 
+                          className="w-16 h-16 object-cover rounded border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Form Actions */}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (selectedImage) {
+                      setEventImageForm({
+                        unsplashImageId: selectedImage.id,
+                        sizeVariant: "regular",
+                        usageContext: "question_background",
+                        searchContext: unsplashQuery || ""
+                      });
+                    }
+                  }}
+                  disabled={!selectedImage}
+                  className="text-xs"
+                >
+                  Populate from Selected Image
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => saveEventImageMutation.mutate()}
+                  disabled={saveEventImageMutation.isPending || !eventImageForm.unsplashImageId}
+                  className="text-xs"
+                >
+                  {saveEventImageMutation.isPending ? "Saving..." : "Save Image Record"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <DialogFooter className="pt-2">
             <Button
               onClick={handleSave}
@@ -766,13 +992,44 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
   // Update question mutation
   const updateQuestionMutation = useMutation({
-    mutationFn: async (question: Question) => {
+    mutationFn: async ({ question, selectedImage }: { question: Question; selectedImage?: UnsplashImage }) => {
+      const requestBody: any = {
+        question: question.question,
+        type: question.type,
+        options: question.options,
+        correctAnswer: question.correctAnswer,
+        difficulty: question.difficulty,
+        category: question.category,
+        explanation: question.explanation,
+        timeLimit: question.timeLimit,
+        orderIndex: question.orderIndex,
+        aiGenerated: question.aiGenerated,
+        backgroundImageUrl: question.backgroundImageUrl
+      };
+
+      // Add selectedImage data if provided
+      if (selectedImage) {
+        console.log('Adding selectedImage to request:', selectedImage);
+        requestBody.selectedImage = {
+          id: selectedImage.id,
+          author: selectedImage.user.name,
+          authorUrl: selectedImage.user.links.html,
+          photoUrl: selectedImage.urls.regular,
+          downloadUrl: selectedImage.links.download_location || ''
+        };
+        console.log('Final requestBody.selectedImage:', requestBody.selectedImage);
+      } else {
+        console.log('No selectedImage provided to mutation');
+      }
+
+      console.log('Sending PUT request with body:', requestBody);
+
       const response = await fetch(`/api/questions/${question.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(question),
+        body: JSON.stringify(requestBody),
         credentials: 'include',
       });
       
@@ -1283,6 +1540,16 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                               </div>
                               <div className="flex gap-2 ml-4">
                                 <Button
+                                  onClick={() => setLocation(`/events/${event.id}/manage/trivia/${question.id}`)}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-wine-600 border-wine-300 hover:bg-wine-50"
+                                  data-testid={`button-edit-full-${index}`}
+                                >
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit with Image Form
+                                </Button>
+                                <Button
                                   onClick={() => setEditingQuestion(question)}
                                   variant="ghost"
                                   size="sm"
@@ -1326,7 +1593,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                       </DialogHeader>
                       <EditQuestionForm
                         question={editingQuestion}
-                        onSave={(updatedQuestion) => updateQuestionMutation.mutate(updatedQuestion)}
+                        onSave={(updatedQuestion, selectedImage) => updateQuestionMutation.mutate({ question: updatedQuestion, selectedImage })}
                         onCancel={() => setEditingQuestion(null)}
                         isLoading={updateQuestionMutation.isPending}
                       />

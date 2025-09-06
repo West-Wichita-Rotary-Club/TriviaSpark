@@ -16,9 +16,11 @@ public class OpenAIService : IOpenAIService
 
     public OpenAIService(HttpClient httpClient, IConfiguration configuration, ILogger<OpenAIService> logger)
     {
-        _apiKey = configuration["OPENAI_API_KEY"] ?? 
+        // Try User Secrets first, then environment variables, then configuration files
+        _apiKey = configuration["OpenAI:ApiKey"] ?? 
+                 configuration["OPENAI_API_KEY"] ?? 
                  Environment.GetEnvironmentVariable("OPENAI_API_KEY") ??
-                 throw new InvalidOperationException("OpenAI API key not found. Please set OPENAI_API_KEY in configuration or environment variables.");
+                 throw new InvalidOperationException("OpenAI API key not found. Please set using: dotnet user-secrets set \"OpenAI:ApiKey\" \"your-key\" or set OPENAI_API_KEY environment variable.");
         
         _httpClient = httpClient;
         _httpClient.BaseAddress = new Uri("https://api.openai.com/v1/");

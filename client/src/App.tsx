@@ -112,6 +112,19 @@ function App() {
                         </>
                       )}
                     </Route>
+                    
+                    {/* Specific Question Editing route */}
+                    <Route path="/events/:id/manage/trivia/:questionId">
+                      {(params) => (
+                        <>
+                          {console.log('[Route Match] /events/:id/manage/trivia/:questionId matched with', params)}
+                          <Header />
+                          <EventTriviaManage eventId={params?.id} questionId={params?.questionId} />
+                          <Footer />
+                        </>
+                      )}
+                    </Route>
+                    
                     {/* Alternate trailing slash variant (some servers/users may hit this) */}
                     <Route path="/events/:id/manage/trivia/">
                       {(params) => (

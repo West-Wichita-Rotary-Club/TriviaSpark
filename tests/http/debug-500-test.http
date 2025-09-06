@@ -1,0 +1,61 @@
+### Debug 500 Error - Specific Event Endpoint Test
+### Testing the failing endpoint from the error message
+
+@baseUrl = https://localhost:14165
+@eventId = seed-event-coast-to-cascades
+
+### 1. Test the failing endpoint directly
+GET {{baseUrl}}/api/events/{{eventId}}
+
+###
+
+### 2. Check health endpoint first
+GET {{baseUrl}}/api/health
+
+###
+
+### 3. Login first to get session
+# @name loginUser
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "mark@triviaspark.com",
+  "password": "mark123"
+}
+
+###
+
+### 4. Test the failing endpoint with authentication
+GET {{baseUrl}}/api/events/{{eventId}}
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 5. Test all events endpoint
+GET {{baseUrl}}/api/events
+Cookie: sessionId={{loginUser.response.body.sessionId}}
+
+###
+
+### 6. Check if database has the event
+GET {{baseUrl}}/api/events
+Content-Type: application/json
+
+###
+
+### 7. Test alternative login credentials
+# @name loginAlt
+POST {{baseUrl}}/api/login
+Content-Type: application/json
+
+{
+  "email": "mark@westwichitarotary.org",
+  "password": "rotary2024!"
+}
+
+###
+
+### 8. Test with alternative login
+GET {{baseUrl}}/api/events/{{eventId}}
+Cookie: sessionId={{loginAlt.response.body.sessionId}}

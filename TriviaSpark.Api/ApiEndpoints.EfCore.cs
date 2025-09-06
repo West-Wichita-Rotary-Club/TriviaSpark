@@ -766,7 +766,7 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapPut("/questions/{id}", async (string id, [FromBody] UpdateQuestion body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req) =>
+        api.MapPut("/questions/{id}", async (string id, [FromBody] UpdateQuestion body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, ILogger<Program> logger, HttpRequest req) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -774,6 +774,12 @@ public static class EfCoreApiEndpoints
 
             try
             {
+                logger.LogInformation("Updating question {QuestionId}, SelectedImage provided: {HasSelectedImage}", id, body.SelectedImage != null);
+                if (body.SelectedImage != null)
+                {
+                    logger.LogInformation("SelectedImage details: Id={ImageId}, Author={Author}", body.SelectedImage.Id, body.SelectedImage.Author);
+                }
+
                 var question = await questionService.GetQuestionByIdAsync(id);
                 if (question == null)
                     return Results.NotFound(new { error = "Question not found" });
@@ -793,12 +799,30 @@ public static class EfCoreApiEndpoints
                 question.TimeLimit = body.TimeLimit ?? question.TimeLimit;
                 question.OrderIndex = body.OrderIndex ?? question.OrderIndex;
                 question.AiGenerated = body.AiGenerated ?? question.AiGenerated;
+                question.BackgroundImageUrl = body.BackgroundImageUrl ?? question.BackgroundImageUrl;
+
+                // Handle EventImage creation if SelectedImage data is provided
+                if (body.SelectedImage != null)
+                {
+                    logger.LogInformation("Creating EventImage for question {QuestionId} with image {ImageId}", question.Id, body.SelectedImage.Id);
+                    var createImageRequest = new CreateEventImageRequest
+                    {
+                        QuestionId = question.Id,
+                        UnsplashImageId = body.SelectedImage.Id,
+                        SizeVariant = "regular",
+                        UsageContext = "question_background",
+                        SelectedByUserId = userId
+                    };
+                    var eventImage = await eventImageService.SaveImageForQuestionAsync(createImageRequest);
+                    logger.LogInformation("EventImage creation result: {Success}", eventImage != null ? "Success" : "Failed");
+                }
 
                 var updated = await questionService.UpdateQuestionAsync(question);
                 return Results.Ok(updated);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error updating question {QuestionId}", id);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
@@ -821,6 +845,77 @@ public static class EfCoreApiEndpoints
 
                 var success = await questionService.DeleteQuestionAsync(id);
                 return success ? Results.NoContent() : Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
+            catch (Exception ex)
+            {
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        // EventImages for questions
+        api.MapGet("/questions/{id}/eventimage", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, HttpRequest req) =>
+        {
+            var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!isValid || userId == null)
+                return Results.Unauthorized();
+
+            try
+            {
+                var question = await questionService.GetQuestionByIdAsync(id);
+                if (question == null)
+                    return Results.NotFound(new { error = "Question not found" });
+
+                var eventEntity = await eventService.GetEventByIdAsync(question.EventId);
+                if (eventEntity == null || eventEntity.HostId != userId)
+                    return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+                var eventImage = await eventImageService.GetImageForQuestionAsync(id);
+                if (eventImage == null)
+                    return Results.Ok(new { eventImage = (object?)null });
+
+                var response = eventImageService.ToEventImageResponse(eventImage);
+                return Results.Ok(new { eventImage = response });
+            }
+            catch (Exception ex)
+            {
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        // PUT endpoint to save/update EventImage for a question
+        api.MapPut("/questions/{id}/eventimage", async (string id, [FromBody] SaveEventImageRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, HttpRequest req) =>
+        {
+            var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+            if (!isValid || userId == null)
+                return Results.Unauthorized();
+
+            try
+            {
+                var question = await questionService.GetQuestionByIdAsync(id);
+                if (question == null)
+                    return Results.NotFound(new { error = "Question not found" });
+
+                var eventEntity = await eventService.GetEventByIdAsync(question.EventId);
+                if (eventEntity == null || eventEntity.HostId != userId)
+                    return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+                // Convert SaveEventImageRequest to CreateEventImageRequest
+                var createRequest = new CreateEventImageRequest
+                {
+                    QuestionId = id,
+                    UnsplashImageId = body.UnsplashImageId,
+                    SizeVariant = body.SizeVariant ?? "regular",
+                    UsageContext = body.UsageContext ?? "question_background",
+                    SelectedByUserId = userId,
+                    SearchContext = body.SearchContext
+                };
+
+                var eventImage = await eventImageService.SaveImageForQuestionAsync(createRequest);
+                if (eventImage == null)
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
+
+                var response = eventImageService.ToEventImageResponse(eventImage);
+                return Results.Ok(new { eventImage = response });
             }
             catch (Exception ex)
             {
@@ -1397,7 +1492,7 @@ public static class EfCoreApiEndpoints
         });
 
         // Questions generation and bulk endpoints
-        api.MapPost("/events/generate-questions", async ([FromBody] GenerateQuestionsRequest body, ISessionService sessions, IEfCoreEventService eventService, IOpenAIService openAIService, HttpRequest req) =>
+        api.MapPost("/events/generate-questions", async ([FromBody] GenerateQuestionsRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IOpenAIService openAIService, HttpRequest req) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1428,35 +1523,89 @@ public static class EfCoreApiEndpoints
                 if (!string.IsNullOrEmpty(eventEntity.Location))
                     eventContext += $" taking place at {eventEntity.Location}";
 
-                // Generate questions using OpenAI
-                var generatedQuestions = await openAIService.GenerateQuestionsAsync(
-                    body.EventId, 
-                    body.Topic, 
-                    body.Type ?? "medium", // Use type as difficulty if not specified separately
-                    body.Count,
-                    eventContext
-                );
-
-                // Convert to API response format
-                var questions = generatedQuestions.Select(q => new
+                List<Question> savedQuestions;
+                try
                 {
-                    question = q.Question,
-                    type = "multiple_choice", // Always multiple choice for now
-                    options = q.Options,
+                    // Generate questions using OpenAI
+                    var generatedQuestions = await openAIService.GenerateQuestionsAsync(
+                        body.EventId, 
+                        body.Topic, 
+                        body.Type ?? "medium", // Use type as difficulty if not specified separately
+                        body.Count,
+                        eventContext
+                    );
+
+                    // Convert generated questions to Question entities
+                    var questionEntities = generatedQuestions.Select(q => new Question
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        EventId = body.EventId,
+                        Type = "multiple_choice",
+                        QuestionText = q.Question,
+                        Options = System.Text.Json.JsonSerializer.Serialize(q.Options),
+                        CorrectAnswer = q.CorrectAnswer,
+                        Explanation = q.Explanation,
+                        Difficulty = q.Difficulty,
+                        Category = q.Category ?? body.Topic,
+                        AiGenerated = true,
+                        Points = 100,
+                        TimeLimit = 30,
+                        OrderIndex = 0 // Will be set by the service
+                    }).ToList();
+
+                    // Save questions to database
+                    savedQuestions = (await questionService.CreateQuestionsAsync(questionEntities)).ToList();
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("OpenAI API key"))
+                {
+                    // Fallback to demo questions when OpenAI is not configured
+                    var demoQuestions = Enumerable.Range(1, body.Count).Select(i => new Question
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        EventId = body.EventId,
+                        Type = "multiple_choice",
+                        QuestionText = $"Demo question {i} about {body.Topic}: What is a key characteristic of this topic?",
+                        Options = System.Text.Json.JsonSerializer.Serialize(new[] { "Option A", "Option B", "Option C", "Option D" }),
+                        CorrectAnswer = "Option A",
+                        Explanation = $"This is demo question {i} about {body.Topic}. To generate real AI questions, please configure your OpenAI API key.",
+                        Difficulty = body.Type ?? "medium",
+                        Category = body.Topic,
+                        AiGenerated = false,
+                        Points = 100,
+                        TimeLimit = 30,
+                        OrderIndex = 0
+                    }).ToList();
+                    
+                    // Save demo questions to database
+                    savedQuestions = (await questionService.CreateQuestionsAsync(demoQuestions)).ToList();
+                }
+
+                // Convert saved questions to API response format
+                var responseQuestions = savedQuestions.Select(q => new
+                {
+                    id = q.Id,
+                    question = q.QuestionText,
+                    type = q.Type,
+                    options = System.Text.Json.JsonSerializer.Deserialize<string[]>(q.Options) ?? new string[0],
                     correctAnswer = q.CorrectAnswer,
                     difficulty = q.Difficulty,
                     category = q.Category,
                     explanation = q.Explanation,
-                    aiGenerated = true
+                    points = q.Points,
+                    timeLimit = q.TimeLimit,
+                    orderIndex = q.OrderIndex,
+                    aiGenerated = q.AiGenerated,
+                    createdAt = q.CreatedAt
                 }).ToList();
 
                 return Results.Ok(new { 
-                    questions = questions, 
-                    count = questions.Count,
+                    questions = responseQuestions, 
+                    count = responseQuestions.Count,
                     eventId = body.EventId,
                     topic = body.Topic,
                     type = body.Type ?? "multiple_choice",
-                    generatedBy = "OpenAI GPT-4o"
+                    generatedBy = savedQuestions.Any(q => q.AiGenerated) ? "OpenAI GPT-4o" : "Demo Questions",
+                    message = $"Successfully generated and saved {responseQuestions.Count} questions to the event."
                 });
             }
             catch (InvalidOperationException ex)
@@ -1465,7 +1614,7 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
-                return Results.Problem("Failed to generate questions. Please try again.", statusCode: StatusCodes.Status500InternalServerError);
+                return Results.Problem($"Failed to generate and save questions: {ex.Message}", statusCode: StatusCodes.Status500InternalServerError);
             }
         });
 
@@ -1663,7 +1812,11 @@ public record ProfileUpdate(string FullName, string Email, string Username);
 public record CreateEventRequest(string Title, string? Description, string EventType, int MaxParticipants, string Difficulty, string? Status, string? QrCode, DateTime? EventDate, string? EventTime, string? Location, string? SponsoringOrganization, string? Settings);
 public record EventStatusUpdate(string Status);
 public record ReorderQuestionsRequest(List<string> QuestionOrder);
-public record UpdateQuestion(string Question, string Type, List<string>? Options, string CorrectAnswer, string Difficulty, string? Category, string? Explanation, int? TimeLimit, int? OrderIndex, bool? AiGenerated);
+public record UpdateQuestion(string Question, string Type, List<string>? Options, string CorrectAnswer, string Difficulty, string? Category, string? Explanation, int? TimeLimit, int? OrderIndex, bool? AiGenerated, string? BackgroundImageUrl, SelectedImageData? SelectedImage);
+
+public record SelectedImageData(string Id, string Author, string AuthorUrl, string PhotoUrl, string DownloadUrl);
+
+public record SaveEventImageRequest(string UnsplashImageId, string? SizeVariant, string? UsageContext, string? SearchContext);
 public record CreateTeamRequest(string Name, int? TableNumber);
 public record JoinEventRequest(string Name, string? TeamAction, string? TeamIdentifier);
 public record SwitchTeamRequest(string? TeamId);
