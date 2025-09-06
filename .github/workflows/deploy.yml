@@ -37,7 +37,7 @@ jobs:
           mkdir -p data
           echo "DATABASE_URL=file:./data/trivia.db" >> $GITHUB_ENV
           npm run db:push
-          node scripts/seed-database.mjs
+          npm run seed:data-only
 
       - name: Build static site
         run: npm run build:static
