@@ -8,7 +8,7 @@ import UpcomingEvents from "@/components/events/upcoming-events";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Brain, QrCode, Copy, Calendar, LogOut } from "lucide-react";
+import { Brain, QrCode, Copy, Calendar, LogOut, Database } from "lucide-react";
 import { useLocation } from "wouter";
 
 type User = {
@@ -119,7 +119,7 @@ export default function Dashboard() {
           <QuestionGenerator />
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="trivia-card hover:shadow-md transition-shadow cursor-pointer" data-testid="card-qr-event">
               <CardContent className="p-6">
                 <div className="flex items-center mb-4">
@@ -158,6 +158,31 @@ export default function Dashboard() {
                 </div>
                 <Button className="w-full bg-champagne-100 text-champagne-700 hover:bg-champagne-200" data-testid="button-browse-templates">
                   Browse Templates
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="trivia-card hover:shadow-md transition-shadow cursor-pointer" 
+              data-testid="card-database-analyzer"
+              onClick={() => setLocation("/database-analyzer")}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                    <Database className="text-blue-600 h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900" data-testid="text-db-analyzer-title">
+                      Database Analyzer
+                    </h4>
+                    <p className="text-gray-600 text-sm" data-testid="text-db-analyzer-description">
+                      Explore database tables
+                    </p>
+                  </div>
+                </div>
+                <Button className="w-full bg-blue-100 text-blue-700 hover:bg-blue-200" data-testid="button-analyze-db">
+                  Analyze Database
                 </Button>
               </CardContent>
             </Card>

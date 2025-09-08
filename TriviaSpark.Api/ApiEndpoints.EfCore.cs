@@ -1802,6 +1802,220 @@ public static class EfCoreApiEndpoints
                 return Results.Json(new { error = ex.Message, version = "EfCore" }, statusCode: StatusCodes.Status500InternalServerError);
             }
         });
+
+        // Database Analysis endpoints
+        api.MapGet("/db/analyze", async () =>
+        {
+            try
+            {
+                var databasePath = Path.Combine(Directory.GetCurrentDirectory(), "../data/trivia.db");
+                if (!File.Exists(databasePath))
+                    return Results.NotFound(new { error = "Database file not found", path = databasePath });
+
+                using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={databasePath}");
+                await connection.OpenAsync();
+
+                // Get all tables
+                var tablesCommand = connection.CreateCommand();
+                tablesCommand.CommandText = @"
+                    SELECT name, sql 
+                    FROM sqlite_master 
+                    WHERE type='table' AND name NOT LIKE 'sqlite_%'
+                    ORDER BY name";
+
+                var tables = new List<object>();
+                using (var reader = await tablesCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var tableName = reader.GetString(0); // name column
+                        var createSql = reader.GetString(1); // sql column
+                        
+                        // Get row count for this table
+                        var countCommand = connection.CreateCommand();
+                        countCommand.CommandText = $"SELECT COUNT(*) FROM [{tableName}]";
+                        var rowCount = 0;
+                        try
+                        {
+                            rowCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+                        }
+                        catch
+                        {
+                            rowCount = 0; // If we can't count, assume 0
+                        }
+
+                        tables.Add(new
+                        {
+                            name = tableName,
+                            rowCount = rowCount,
+                            createSql = createSql
+                        });
+                    }
+                }
+
+                return Results.Ok(new
+                {
+                    databasePath = databasePath,
+                    databaseSize = new FileInfo(databasePath).Length,
+                    tableCount = tables.Count,
+                    tables = tables
+                });
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { 
+                    error = ex.Message, 
+                    details = ex.ToString() 
+                }, statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        api.MapGet("/db/analyze/table/{tableName}", async (string tableName) =>
+        {
+            try
+            {
+                var databasePath = Path.Combine(Directory.GetCurrentDirectory(), "../data/trivia.db");
+                if (!File.Exists(databasePath))
+                    return Results.NotFound(new { error = "Database file not found", path = databasePath });
+
+                using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={databasePath}");
+                await connection.OpenAsync();
+
+                // Validate table exists
+                var tableExistsCommand = connection.CreateCommand();
+                tableExistsCommand.CommandText = @"
+                    SELECT COUNT(*) 
+                    FROM sqlite_master 
+                    WHERE type='table' AND name = @tableName";
+                tableExistsCommand.Parameters.AddWithValue("@tableName", tableName);
+                
+                var tableExists = Convert.ToInt32(await tableExistsCommand.ExecuteScalarAsync()) > 0;
+                if (!tableExists)
+                    return Results.NotFound(new { error = "Table not found", tableName = tableName });
+
+                // Get table schema
+                var schemaCommand = connection.CreateCommand();
+                schemaCommand.CommandText = $"PRAGMA table_info([{tableName}])";
+                
+                var columns = new List<object>();
+                using (var reader = await schemaCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        columns.Add(new
+                        {
+                            cid = reader.GetInt32(0),          // cid
+                            name = reader.GetString(1),        // name  
+                            type = reader.GetString(2),        // type
+                            notNull = reader.GetInt32(3) == 1, // notnull (SQLite boolean as int)
+                            defaultValue = reader.IsDBNull(4) ? null : reader.GetValue(4), // dflt_value
+                            primaryKey = reader.GetInt32(5) == 1 // pk (SQLite boolean as int)
+                        });
+                    }
+                }
+
+                // Get row count
+                var countCommand = connection.CreateCommand();
+                countCommand.CommandText = $"SELECT COUNT(*) FROM [{tableName}]";
+                var rowCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+
+                // Get sample data (first 10 rows)
+                var dataCommand = connection.CreateCommand();
+                dataCommand.CommandText = $"SELECT * FROM [{tableName}] LIMIT 10";
+                
+                var sampleData = new List<Dictionary<string, object?>>();
+                using (var reader = await dataCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var row = new Dictionary<string, object?>();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            var fieldName = reader.GetName(i);
+                            var fieldValue = reader.IsDBNull(i) ? null : reader.GetValue(i);
+                            row[fieldName] = fieldValue;
+                        }
+                        sampleData.Add(row);
+                    }
+                }
+
+                // Get indexes
+                var indexCommand = connection.CreateCommand();
+                indexCommand.CommandText = $"PRAGMA index_list([{tableName}])";
+                
+                var indexes = new List<object>();
+                using (var reader = await indexCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var indexName = reader.GetString(1);       // name
+                        var isUnique = reader.GetInt32(2) == 1;    // unique (SQLite boolean as int)
+                        
+                        // Get index details
+                        var indexInfoCommand = connection.CreateCommand();
+                        indexInfoCommand.CommandText = $"PRAGMA index_info([{indexName}])";
+                        
+                        var indexColumns = new List<string>();
+                        using (var indexReader = await indexInfoCommand.ExecuteReaderAsync())
+                        {
+                            while (await indexReader.ReadAsync())
+                            {
+                                indexColumns.Add(indexReader.GetString(2)); // name column (index 2 in index_info)
+                            }
+                        }
+
+                        indexes.Add(new
+                        {
+                            name = indexName,
+                            unique = isUnique,
+                            columns = indexColumns
+                        });
+                    }
+                }
+
+                // Get foreign keys
+                var foreignKeyCommand = connection.CreateCommand();
+                foreignKeyCommand.CommandText = $"PRAGMA foreign_key_list([{tableName}])";
+                
+                var foreignKeys = new List<object>();
+                using (var reader = await foreignKeyCommand.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        foreignKeys.Add(new
+                        {
+                            id = reader.GetInt32(0),     // id
+                            seq = reader.GetInt32(1),    // seq
+                            table = reader.GetString(2), // table
+                            from = reader.GetString(3),  // from
+                            to = reader.GetString(4),    // to
+                            onUpdate = reader.GetString(5), // on_update
+                            onDelete = reader.GetString(6), // on_delete
+                            match = reader.GetString(7)     // match
+                        });
+                    }
+                }
+
+                return Results.Ok(new
+                {
+                    tableName = tableName,
+                    rowCount = rowCount,
+                    columnCount = columns.Count,
+                    columns = columns,
+                    indexes = indexes,
+                    foreignKeys = foreignKeys,
+                    sampleData = sampleData
+                });
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { 
+                    error = ex.Message, 
+                    details = ex.ToString(),
+                    tableName = tableName
+                }, statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
     }
 }
 

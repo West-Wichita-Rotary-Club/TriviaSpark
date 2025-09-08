@@ -24,6 +24,7 @@ const Profile = React.lazy(() => import("@/pages/profile"));
 const ApiDocs = React.lazy(() => import("@/pages/api-docs"));
 const PresenterView = React.lazy(() => import("@/pages/presenter"));
 const Insights = React.lazy(() => import("@/pages/insights"));
+const DatabaseAnalyzer = React.lazy(() => import("@/pages/database-analyzer"));
 
 // Lazy load layout components only when needed
 const Header = React.lazy(() => import("@/components/layout/header"));
@@ -86,6 +87,15 @@ function App() {
                       </>
                     </Route>
                     <Route path="/events" component={() => <Dashboard />} />
+                    
+                    {/* Database Analyzer */}
+                    <Route path="/database-analyzer">
+                      <>
+                        <Header />
+                        <DatabaseAnalyzer />
+                        <Footer />
+                      </>
+                    </Route>
                     
                     {/* Event management route */}
                     <Route path="/events/:id/manage">
