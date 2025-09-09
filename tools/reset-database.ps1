@@ -4,7 +4,7 @@
 
 param(
     [switch]$Force,
-    [string]$DatabasePath = ".\data\trivia.db"
+    [string]$DatabasePath = "C:\websites\TriviaSpark\trivia.db"
 )
 
 Write-Host "=== TriviaSpark Database Reset Tool ===" -ForegroundColor Cyan

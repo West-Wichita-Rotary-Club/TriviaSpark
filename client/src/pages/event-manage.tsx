@@ -326,8 +326,21 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
         sponsorInformation: event.sponsorInformation || undefined,
         allowParticipants: event.allowParticipants || false,
       });
+      
+      // Force set eventType immediately if it exists
+      if (event.eventType) {
+        setValue("eventType", event.eventType, { shouldValidate: true, shouldDirty: false });
+      }
+      
+      // Additional verification and force-set if needed
+      setTimeout(() => {
+        const currentEventType = watch("eventType");
+        if (!currentEventType && event.eventType) {
+          setValue("eventType", event.eventType, { shouldValidate: true, shouldDirty: false });
+        }
+      }, 50);
     }
-  }, [event, reset]);
+  }, [event, reset, setValue, watch]);
 
   // Update Event mutation
   const updateEventMutation = useMutation({
@@ -1278,7 +1291,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                       <Label htmlFor="eventType">Event Type *</Label>
                       <Select
                         value={watch("eventType") || ""}
-                        onValueChange={(value) => setValue("eventType", value, { shouldDirty: true })}
+                        onValueChange={(value) => {
+                          setValue("eventType", value, { shouldDirty: true, shouldValidate: true });
+                        }}
                       >
                         <SelectTrigger className="mt-1" data-testid="select-event-type">
                           <SelectValue placeholder="Select event type" />
@@ -1291,6 +1306,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                           <SelectItem value="fundraiser">Fundraiser</SelectItem>
                         </SelectContent>
                       </Select>
+                      {errors.eventType && (
+                        <p className="text-sm text-red-500 mt-1">{errors.eventType.message}</p>
+                      )}
                     </div>
 
                     <div>

@@ -1,0 +1,20 @@
+# Debug Event API Test
+@baseUrl = http://localhost:14166
+
+### Test server health
+GET {{baseUrl}}/api/health
+
+### Login first
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+### Get specific event (seed event)
+GET {{baseUrl}}/api/events/seed-event-coast-to-cascades
+
+### Get all events for current user
+GET {{baseUrl}}/api/events

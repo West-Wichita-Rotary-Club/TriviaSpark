@@ -21,7 +21,7 @@ import process from 'process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
-const dbPath = join(rootDir, 'data', 'trivia.db');
+const dbPath = 'C:\\websites\\TriviaSpark\\trivia.db';
 
 console.log('🔄 === TriviaSpark Database Reset and Seed Tool ===');
 console.log('This will completely delete and recreate the database with fresh seed data\n');

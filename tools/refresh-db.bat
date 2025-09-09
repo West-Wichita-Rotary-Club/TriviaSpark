@@ -15,8 +15,8 @@ if not exist "package.json" (
 
 REM Step 1: Delete existing database
 echo 🔄 Step 1: Removing existing database
-if exist "data\trivia.db" (
-    del /f "data\trivia.db"
+if exist "C:\websites\TriviaSpark\trivia.db" (
+    del /f "C:\websites\TriviaSpark\trivia.db"
     echo ✅ Deleted existing database file
 ) else (
     echo ℹ️  No existing database found, continuing...

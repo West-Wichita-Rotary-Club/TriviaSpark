@@ -1,7 +1,7 @@
 import { defineConfig } from "drizzle-kit";
 
-// Default to SQLite file if no DATABASE_URL is provided
-const DATABASE_URL = process.env.DATABASE_URL || "./data/trivia.db";
+// Default to the consistent absolute path
+const DATABASE_URL = process.env.DATABASE_URL || "C:\\websites\\TriviaSpark\\trivia.db";
 
 export default defineConfig({
   out: "./migrations",

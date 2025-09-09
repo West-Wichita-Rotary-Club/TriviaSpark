@@ -100,7 +100,7 @@ try
 
     // EF Core configuration
     builder.Services.AddDbContext<TriviaSparkDbContext>(options =>
-        options.UseSqlite("Data Source=../data/trivia.db"));
+        options.UseSqlite("Data Source=C:\\websites\\TriviaSpark\\trivia.db"));
 
     // EF Core services
     builder.Services.AddScoped<IEfCoreUserService, EfCoreUserService>();

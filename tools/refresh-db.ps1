@@ -58,7 +58,7 @@ try {
     
     # Step 1: Delete existing database
     Write-Header "Step 1: Removing existing database"
-    $dbPath = "./data/trivia.db"
+    $dbPath = "C:\websites\TriviaSpark\trivia.db"
     if (Test-Path $dbPath) {
         Remove-Item -Path $dbPath -Force
         Write-Success "Deleted existing database file"
