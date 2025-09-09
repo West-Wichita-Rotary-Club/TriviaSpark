@@ -1,0 +1,26 @@
+### Test TriviaSpark API Logging
+### This file tests the new logging functionality
+
+### Health Check - Should log business event
+GET https://localhost:7165/health
+Accept: application/json
+
+###
+
+### Test API endpoint with logging
+GET https://localhost:7165/api/v2/events/test-event-id/teams
+Accept: application/json
+
+###
+
+### Test API endpoint with logging - Questions
+GET https://localhost:7165/api/v2/events/test-event-id/questions
+Accept: application/json
+
+###
+
+### Test error handling and logging
+GET https://localhost:7165/api/v2/events//teams
+Accept: application/json
+
+###

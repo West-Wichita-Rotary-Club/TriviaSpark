@@ -433,28 +433,45 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapGet("/events/{id}", async (string id, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapGet("/events/{id}", async (string id, ISessionService sessions, IEfCoreEventService eventService, ILoggingService loggingService, HttpRequest req) =>
         {
-            var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
-            if (!isValid || userId == null)
-                return Results.Unauthorized();
-
-            try
+            var operationName = "GetEventById";
+            using (loggingService.BeginScope(operationName))
             {
-                var eventEntity = await eventService.GetEventByIdAsync(id);
-                if (eventEntity == null)
-                    return Results.NotFound(new { error = "Event not found" });
+                var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
+                if (!isValid || userId == null)
+                    return Results.Unauthorized();
 
-                if (eventEntity.HostId != userId)
-                    return Results.StatusCode(StatusCodes.Status403Forbidden);
+                try
+                {
+                    loggingService.LogApiCall($"api/events/{id}", "GET", new { id, userId });
+                    
+                    var result = await loggingService.LogPerformanceAsync(operationName, async () =>
+                    {
+                        loggingService.LogDatabaseOperation("SELECT", "Events", new { id });
+                        return await eventService.GetEventByIdAsync(id);
+                    });
 
-                return Results.Ok(eventEntity);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error in GET /events/{id}: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                    if (result == null)
+                    {
+                        loggingService.LogBusinessEvent("EventNotFound", new { EventId = id, UserId = userId });
+                        return Results.NotFound(new { error = "Event not found" });
+                    }
+
+                    if (result.HostId != userId)
+                    {
+                        loggingService.LogBusinessEvent("EventAccessDenied", new { EventId = id, RequestingUserId = userId, ActualHostId = result.HostId });
+                        return Results.StatusCode(StatusCodes.Status403Forbidden);
+                    }
+
+                    loggingService.LogBusinessEvent("EventRetrieved", new { EventId = id, EventTitle = result.Title, UserId = userId });
+                    return Results.Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    loggingService.LogError(ex, operationName, new { id, userId });
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                }
             }
         });
 
