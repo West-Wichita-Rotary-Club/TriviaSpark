@@ -283,7 +283,7 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapGet("/dashboard/insights", async (ISessionService sessions, HttpRequest req, ILogger<Program> logger) =>
+        api.MapGet("/dashboard/insights", (ISessionService sessions, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1893,15 +1893,15 @@ public static class EfCoreApiEndpoints
                     {
                         Id = Guid.NewGuid().ToString(),
                         EventId = body.EventId,
-                        Type = q.Type,
-                        QuestionText = q.Question,
-                        Options = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : null,
-                        CorrectAnswer = q.CorrectAnswer,
-                        Explanation = q.Explanation,
+                        Type = q.Type ?? "multiple-choice",
+                        QuestionText = q.Question ?? "Unknown question",
+                        Options = q.Options != null ? System.Text.Json.JsonSerializer.Serialize(q.Options) : "[]",
+                        CorrectAnswer = q.CorrectAnswer ?? "",
+                        Explanation = q.Explanation ?? "",
                         Points = 20, // Default points
                         TimeLimit = 30, // Default time limit
                         Difficulty = q.Difficulty ?? "medium",
-                        Category = q.Category,
+                        Category = q.Category ?? "General",
                         OrderIndex = nextOrderIndex++,
                         AiGenerated = q.AiGenerated ?? false,
                         CreatedAt = DateTime.UtcNow

@@ -1,5 +1,5 @@
 // Generated data from SQLite database
-// Last updated: 2025-09-09T19:22:33.202Z
+// Last updated: 2025-09-09T22:21:19.936Z
 // Database: file:C:/websites/TriviaSpark/trivia.db
 
 export const demoEvent = {
@@ -134,6 +134,28 @@ export const demoQuestions = [
     "orderIndex": 4,
     "aiGenerated": false,
     "createdAt": "2025-09-05T15:28:30.507Z"
+  },
+  {
+    "id": "ab885a8f-f365-4f2b-9bf9-a524081a3b9a",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which of the following AVAs (American Viticultural Areas) in the Pacific Northwest is known for its unique combination of volcanic soil and the marine influence from a large river, resulting in diverse wine styles?",
+    "options": [
+      "A. Willamette Valley",
+      "B. Columbia Gorge",
+      "C. Walla Walla Valley",
+      "D. Rogue Valley"
+    ],
+    "correctAnswer": "B. Columbia Gorge",
+    "explanation": "The Columbia Gorge AVA is renowned for its diverse microclimates and soil types, including volcanic and loess soils. The proximity to the Columbia River and Cascade Range provides a unique marine influence, allowing for a wide range of grape varieties and wine styles.",
+    "difficulty": "challenging",
+    "category": "Pacific Northwest Wine Regions terroirs",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1580269968199-3fca37a2f6b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxDb2x1bWJpYSUyMEdvcmdlfGVufDF8fHx8MTc1NzQ1NjQwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 4,
+    "aiGenerated": true,
+    "createdAt": "2025-09-09T12:18:43.801Z"
   },
   {
     "id": "q5-oregon-geographic-feature",
@@ -376,6 +398,28 @@ export const demoQuestions = [
     "orderIndex": 14,
     "aiGenerated": true,
     "createdAt": "2025-09-09T14:07:01.825Z"
+  },
+  {
+    "id": "81a6cce5-f649-4239-8082-d30768600e24",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What feature of the Yakima Valley AVA contributes significantly to its terroir, making it one of the most productive wine regions in Washington State?",
+    "options": [
+      "A. Its high elevation",
+      "B. Its sandy loam soil",
+      "C. Its long growing season",
+      "D. Its proximity to the Pacific Ocean"
+    ],
+    "correctAnswer": "C. Its long growing season",
+    "explanation": "The Yakima Valley AVA benefits from a long growing season, which is crucial for the development of complex flavors in grapes. The region's climate, with hot days and cool nights, allows for a longer period of vine growth, essential for producing high-quality wines.",
+    "difficulty": "challenging",
+    "category": "Pacific Northwest Wine Regions terroirs",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1649081752336-f60db3756c7b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw2fHxZYWtpbWElMjBWYWxsZXl8ZW58MXx8fHwxNzU3NDU2NDMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 16,
+    "aiGenerated": true,
+    "createdAt": "2025-09-09T17:18:43.801Z"
   }
 ];
 
@@ -484,10 +528,10 @@ export const allEvents = [
 ];
 
 export const buildInfo = {
-  extractedAt: "2025-09-09T19:22:33.203Z",
+  extractedAt: "2025-09-09T22:21:19.937Z",
   databaseUrl: "file:C:/websites/TriviaSpark/trivia.db",
   eventsCount: 1,
-  questionsCount: 15,
+  questionsCount: 17,
   funFactsCount: 6,
   primaryEventId: "seed-event-coast-to-cascades",
 };

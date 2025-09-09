@@ -66,13 +66,21 @@ namespace TriviaSpark.Api.Services
 
         public IDisposable BeginScope(string operationName)
         {
-            return _logger.BeginScope(new Dictionary<string, object>
+            var scope = _logger.BeginScope(new Dictionary<string, object>
             {
                 ["Operation"] = operationName,
                 ["OperationId"] = Guid.NewGuid(),
                 ["StartTime"] = DateTime.UtcNow
             });
+            
+            return scope ?? new NullDisposable();
         }
+    }
+
+    // Simple null object pattern for IDisposable
+    internal class NullDisposable : IDisposable
+    {
+        public void Dispose() { }
     }
 
     // Extension for convenient performance logging

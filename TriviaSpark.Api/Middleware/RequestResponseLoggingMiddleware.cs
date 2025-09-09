@@ -36,7 +36,7 @@ namespace TriviaSpark.Api.Middleware
             var requestId = Guid.NewGuid().ToString("N")[..8];
             
             // Add request ID to response headers
-            context.Response.Headers.Add("X-Request-ID", requestId);
+            context.Response.Headers["X-Request-ID"] = requestId;
 
             // Log request
             await LogRequestAsync(context, requestId);
@@ -77,13 +77,14 @@ namespace TriviaSpark.Api.Middleware
 
             // Only log request body for API calls and if content length is reasonable
             if (request.Path.StartsWithSegments("/api") && 
+                request.ContentType?.StartsWith("application/json") == true &&
                 request.ContentLength.HasValue && 
                 request.ContentLength.Value > 0 && 
                 request.ContentLength.Value < 10000)
             {
                 request.EnableBuffering();
                 var buffer = new byte[request.ContentLength.Value];
-                await request.Body.ReadAsync(buffer, 0, buffer.Length);
+                await request.Body.ReadExactlyAsync(buffer.AsMemory());
                 requestBody = Encoding.UTF8.GetString(buffer);
                 request.Body.Position = 0;
             }
