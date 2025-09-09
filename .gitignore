@@ -184,7 +184,7 @@ playwright/.cache/
 *.ndf
 *.db
 *.db-*
-data/
+# Removed general data/ pattern to allow EF Core Data/ directory
 
 # Temporary files
 temp/
