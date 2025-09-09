@@ -1,7 +1,14 @@
 import { defineConfig } from "drizzle-kit";
+import { join } from "path";
 
-// Default to the consistent absolute path
-const DATABASE_URL = process.env.DATABASE_URL || "C:\\websites\\TriviaSpark\\trivia.db";
+// Default to platform-appropriate path
+const DEFAULT_DATABASE_PATH =
+  process.platform === "win32"
+    ? "C:\\websites\\TriviaSpark\\trivia.db"
+    : join(process.cwd(), "data", "trivia.db");
+
+const DATABASE_URL =
+  process.env.DATABASE_URL || `file:${DEFAULT_DATABASE_PATH}`;
 
 export default defineConfig({
   out: "./migrations",

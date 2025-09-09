@@ -26,7 +26,23 @@ const forceFlag = process.argv.includes('-force') || process.argv.includes('--fo
 
 // Database configuration
 const DATABASE_URL = process.env.DATABASE_URL || 'file:./data/trivia.db';
-const dbPath = join(rootDir, 'data', 'trivia.db');
+
+// Determine database path from DATABASE_URL or fallback to default
+let dbPath;
+if (DATABASE_URL.startsWith('file:')) {
+  // Extract path from file: URL
+  const filePath = DATABASE_URL.replace('file:', '');
+  if (filePath.startsWith('./')) {
+    // Relative path
+    dbPath = join(rootDir, filePath.replace('./', ''));
+  } else {
+    // Absolute path
+    dbPath = filePath;
+  }
+} else {
+  // Fallback to default path
+  dbPath = join(rootDir, 'data', 'trivia.db');
+}
 
 // Check if database exists
 if (!existsSync(dbPath)) {

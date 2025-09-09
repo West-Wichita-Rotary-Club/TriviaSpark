@@ -79,8 +79,24 @@ const schemaPath = join(rootDir, 'shared', 'schema.ts');
 console.log('🔍 Extracting data from SQLite database...');
 
 // Database configuration
-const DATABASE_URL = process.env.DATABASE_URL || 'file:C:/websites/TriviaSpark/trivia.db';
-const dbPath = 'C:/websites/TriviaSpark/trivia.db';
+const DATABASE_URL = process.env.DATABASE_URL || 'file:./data/trivia.db';
+
+// Determine database path from DATABASE_URL
+let dbPath;
+if (DATABASE_URL.startsWith('file:')) {
+  // Extract path from file: URL
+  const filePath = DATABASE_URL.replace('file:', '');
+  if (filePath.startsWith('./')) {
+    // Relative path
+    dbPath = join(rootDir, filePath.replace('./', ''));
+  } else {
+    // Absolute path
+    dbPath = filePath;
+  }
+} else {
+  // Fallback to default path
+  dbPath = join(rootDir, 'data', 'trivia.db');
+}
 
 // Check if database exists
 if (!existsSync(dbPath)) {
