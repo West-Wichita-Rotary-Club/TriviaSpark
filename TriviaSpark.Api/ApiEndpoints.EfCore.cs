@@ -17,7 +17,7 @@ public static class EfCoreApiEndpoints
         var api = app.MapGroup("/api").RequireCors("ApiCors").AddEndpointFilter(new CorsFilter());
 
         // Health check - migrated to EF Core
-        api.MapGet("/health", (TriviaSparkDbContext db) =>
+        api.MapGet("/health", (TriviaSparkDbContext db, ILogger<Program> logger) =>
         {
             try
             {
@@ -39,6 +39,7 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Health check failed");
                 return Results.Json(new { 
                     status = "unhealthy", 
                     error = ex.Message,
@@ -49,7 +50,7 @@ public static class EfCoreApiEndpoints
         });
 
         // Authentication endpoints - migrated to EF Core
-        api.MapPost("/auth/login", async ([FromBody] LoginRequest body, ISessionService sessions, IEfCoreUserService userService, HttpResponse res) =>
+        api.MapPost("/auth/login", async ([FromBody] LoginRequest body, ISessionService sessions, IEfCoreUserService userService, HttpResponse res, ILogger<Program> logger) =>
         {
             if (string.IsNullOrWhiteSpace(body.Username) || string.IsNullOrWhiteSpace(body.Password))
                 return Results.BadRequest(new { error = "Username and password are required" });
@@ -58,11 +59,17 @@ public static class EfCoreApiEndpoints
             {
                 var user = await userService.GetUserByUsernameAsync(body.Username);
                 if (user == null)
+                {
+                    logger.LogWarning("Login attempt failed - user not found: {Username}", body.Username);
                     return Results.Unauthorized();
+                }
 
                 // Simple password verification (in production, use proper hashing)
                 if (user.Password != body.Password)
+                {
+                    logger.LogWarning("Login attempt failed - invalid password: {Username}", body.Username);
                     return Results.Unauthorized();
+                }
 
                 var sessionId = sessions.Create(user.Id);
                 res.Cookies.Append("sessionId", sessionId, new CookieOptions
@@ -73,6 +80,7 @@ public static class EfCoreApiEndpoints
                     MaxAge = TimeSpan.FromHours(24)
                 });
 
+                logger.LogInformation("User successfully logged in: {Username}", body.Username);
                 return Results.Ok(new
                 {
                     user = new { id = user.Id, username = user.Username, fullName = user.FullName, email = user.Email },
@@ -82,6 +90,7 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Login failed for user: {Username}", body.Username);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
@@ -96,7 +105,7 @@ public static class EfCoreApiEndpoints
             return Results.Ok(new { message = "Logged out successfully" });
         });
 
-        api.MapPost("/register", async ([FromBody] RegisterRequest body, IEfCoreUserService userService, ISessionService sessions, HttpResponse res) =>
+        api.MapPost("/register", async ([FromBody] RegisterRequest body, IEfCoreUserService userService, ISessionService sessions, HttpResponse res, ILogger<Program> logger) =>
         {
             if (string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password) || string.IsNullOrWhiteSpace(body.Name))
                 return Results.BadRequest(new { error = "Email, password, and name are required" });
@@ -106,7 +115,10 @@ public static class EfCoreApiEndpoints
                 // Check if user already exists
                 var existingUserByEmail = await userService.GetUserByEmailAsync(body.Email);
                 if (existingUserByEmail != null)
+                {
+                    logger.LogWarning("Registration failed - email already exists: {Email}", body.Email);
                     return Results.BadRequest(new { error = "A user with this email already exists" });
+                }
 
                 // Generate username from email
                 var username = body.Email.Split('@')[0].ToLowerInvariant();
@@ -149,6 +161,7 @@ public static class EfCoreApiEndpoints
                     MaxAge = TimeSpan.FromHours(24)
                 });
 
+                logger.LogInformation("User successfully registered and logged in: {Username} ({Email})", created.Username, created.Email);
                 return Results.Created($"/api/users/{created.Id}", new
                 {
                     user = new { id = created.Id, username = created.Username, fullName = created.FullName, email = created.Email },
@@ -158,6 +171,7 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "User registration failed for email: {Email}", body.Email);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
@@ -172,7 +186,7 @@ public static class EfCoreApiEndpoints
             return Results.Ok(new { message = "Logged out successfully" });
         });
 
-        api.MapGet("/auth/me", async (ISessionService sessions, IEfCoreUserService userService, HttpRequest req) =>
+        api.MapGet("/auth/me", async (ISessionService sessions, IEfCoreUserService userService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -182,7 +196,10 @@ public static class EfCoreApiEndpoints
             {
                 var user = await userService.GetUserByIdAsync(userId);
                 if (user == null)
+                {
+                    logger.LogWarning("Auth/me request failed - user not found: {UserId}", userId);
                     return Results.Unauthorized();
+                }
 
                 return Results.Ok(new { 
                     user = new { id = user.Id, username = user.Username, fullName = user.FullName, email = user.Email }
@@ -190,11 +207,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve user profile for userId: {UserId}", userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPut("/auth/profile", async ([FromBody] ProfileUpdate body, ISessionService sessions, IEfCoreUserService userService, HttpRequest req) =>
+        api.MapPut("/auth/profile", async ([FromBody] ProfileUpdate body, ISessionService sessions, IEfCoreUserService userService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -204,7 +222,10 @@ public static class EfCoreApiEndpoints
             {
                 var user = await userService.GetUserByIdAsync(userId);
                 if (user == null)
+                {
+                    logger.LogWarning("Profile update failed - user not found: {UserId}", userId);
                     return Results.Unauthorized();
+                }
 
                 // Update user profile
                 user.FullName = body.FullName ?? user.FullName;
@@ -212,16 +233,18 @@ public static class EfCoreApiEndpoints
                 user.Username = body.Username ?? user.Username;
 
                 var updated = await userService.UpdateUserAsync(user);
+                logger.LogInformation("User profile updated successfully: {UserId} ({Username})", userId, updated.Username);
                 return Results.Ok(new { id = updated.Id, username = updated.Username, fullName = updated.FullName, email = updated.Email });
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to update user profile for userId: {UserId}", userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Dashboard endpoints - actual statistics
-        api.MapGet("/dashboard/stats", async (ISessionService sessions, IEfCoreEventService eventService, IEfCoreParticipantService participantService, IEfCoreUserService userService, HttpRequest req) =>
+        api.MapGet("/dashboard/stats", async (ISessionService sessions, IEfCoreEventService eventService, IEfCoreParticipantService participantService, IEfCoreUserService userService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -255,11 +278,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve dashboard stats for user: {UserId}", userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapGet("/dashboard/insights", async (ISessionService sessions, HttpRequest req) =>
+        api.MapGet("/dashboard/insights", async (ISessionService sessions, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -273,13 +297,14 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve dashboard insights for user: {UserId}", userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Events endpoints - migrated to EF Core
         // Public anonymous events list for homepage (sanitized)
-        api.MapGet("/events/home", async ([FromQuery] int? limit, IEfCoreEventService eventService) =>
+        api.MapGet("/events/home", async ([FromQuery] int? limit, IEfCoreEventService eventService, ILogger<Program> logger) =>
         {
             try
             {
@@ -299,11 +324,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve home events list with limit: {Limit}", limit);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         }).AllowAnonymous();
 
-        api.MapGet("/events", async (ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapGet("/events", async (ISessionService sessions, IEfCoreEventService eventService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -316,11 +342,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve events for user: {UserId}", userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapGet("/events/active", async (ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapGet("/events/active", async (ISessionService sessions, IEfCoreEventService eventService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -333,11 +360,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve active events for user: {UserId}", userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapGet("/events/upcoming", async ([FromQuery] long? fromEpochMs, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapGet("/events/upcoming", async ([FromQuery] long? fromEpochMs, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -350,11 +378,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve upcoming events for user: {UserId}", userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPost("/events", async ([FromBody] CreateEventRequest body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapPost("/events", async ([FromBody] CreateEventRequest body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -372,7 +401,10 @@ public static class EfCoreApiEndpoints
                     e.Status != "cancelled"
                 );
                 if (duplicateTitle != null)
+                {
+                    logger.LogWarning("Event creation failed - duplicate title: {Title} for user: {UserId}", body.Title, userId);
                     return Results.BadRequest(new { error = "An active event with this title already exists" });
+                }
 
                 // Generate unique slug-based ID from title
                 var baseSlug = SlugGenerator.GenerateSlug(body.Title);
@@ -382,7 +414,10 @@ public static class EfCoreApiEndpoints
                 // Double-check slug uniqueness across all users (defensive programming)
                 var existingEventWithSlug = await eventService.GetEventByIdAsync(uniqueSlug);
                 if (existingEventWithSlug != null)
+                {
+                    logger.LogWarning("Event creation failed - unable to generate unique slug for title: {Title}", body.Title);
                     return Results.BadRequest(new { error = "Unable to generate unique identifier for this event title" });
+                }
 
                 // Check for duplicate QR code if provided
                 if (!string.IsNullOrWhiteSpace(body.QrCode))
@@ -390,7 +425,10 @@ public static class EfCoreApiEndpoints
                     var allEvents = await eventService.GetPublicUpcomingEventsAsync(1000); // Get large set to check QR codes
                     var duplicateQr = allEvents.FirstOrDefault(e => e.QrCode == body.QrCode);
                     if (duplicateQr != null)
+                    {
+                        logger.LogWarning("Event creation failed - duplicate QR code: {QrCode}", body.QrCode);
                         return Results.BadRequest(new { error = "This QR code is already in use" });
+                    }
                 }
 
                 var newEvent = new Event
@@ -417,18 +455,24 @@ public static class EfCoreApiEndpoints
                 };
 
                 var created = await eventService.CreateEventAsync(newEvent);
+                logger.LogInformation("Event created successfully: {EventId} ({Title}) for user: {UserId}", created.Id, created.Title, userId);
                 return Results.Created($"/api/v2/events/{created.Id}", created);
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             {
                 // Database constraint violation (like duplicate ID/key)
                 if (ex.InnerException?.Message?.Contains("UNIQUE constraint failed") == true)
+                {
+                    logger.LogWarning(ex, "Event creation failed - database constraint violation for title: {Title}, user: {UserId}", body.Title, userId);
                     return Results.BadRequest(new { error = "An event with this information already exists" });
+                }
                 
+                logger.LogError(ex, "Database error during event creation for title: {Title}, user: {UserId}", body.Title, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to create event with title: {Title} for user: {UserId}", body.Title, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
@@ -475,7 +519,7 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapPut("/events/{id}", async (string id, [FromBody] System.Text.Json.JsonElement body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapPut("/events/{id}", async (string id, [FromBody] System.Text.Json.JsonElement body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -485,10 +529,16 @@ public static class EfCoreApiEndpoints
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Event update failed - event not found: {EventId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 if (eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("Event update failed - access denied: {EventId} requested by user: {UserId}, actual host: {HostId}", id, userId, eventEntity.HostId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 // Update properties from the request body
                 if (body.TryGetProperty("title", out var titleProp) && titleProp.ValueKind != System.Text.Json.JsonValueKind.Null)
@@ -561,16 +611,18 @@ public static class EfCoreApiEndpoints
 
                 // Save the updated event
                 var updatedEvent = await eventService.UpdateEventAsync(eventEntity);
+                logger.LogInformation("Event updated successfully: {EventId} ({Title}) for user: {UserId}", id, updatedEvent.Title, userId);
                 return Results.Ok(updatedEvent);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to update event {EventId} for user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Team endpoints - migrated to EF Core
-        api.MapGet("/events/{id}/teams", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreTeamService teamService, HttpRequest req) =>
+        api.MapGet("/events/{id}/teams", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreTeamService teamService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -580,10 +632,16 @@ public static class EfCoreApiEndpoints
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Teams request failed - event not found: {EventId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 if (eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("Teams request failed - access denied: {EventId} requested by user: {UserId}, actual host: {HostId}", id, userId, eventEntity.HostId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 var teams = await teamService.GetTeamsForEventAsync(id);
                 var result = new List<object>();
@@ -607,11 +665,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve teams for event {EventId}, user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPost("/events/{id}/teams", async (string id, [FromBody] CreateTeamRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreTeamService teamService, HttpRequest req) =>
+        api.MapPost("/events/{id}/teams", async (string id, [FromBody] CreateTeamRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreTeamService teamService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -624,10 +683,16 @@ public static class EfCoreApiEndpoints
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Team creation failed - event not found: {EventId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 if (eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("Team creation failed - access denied: {EventId} requested by user: {UserId}, actual host: {HostId}", id, userId, eventEntity.HostId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 // Check for duplicate team name in this event
                 var existingTeams = await teamService.GetTeamsForEventAsync(id);
@@ -635,14 +700,20 @@ public static class EfCoreApiEndpoints
                     t.Name.Trim().Equals(body.Name.Trim(), StringComparison.OrdinalIgnoreCase)
                 );
                 if (duplicateName != null)
+                {
+                    logger.LogWarning("Team creation failed - duplicate name: {TeamName} in event: {EventId}", body.Name, id);
                     return Results.BadRequest(new { error = "A team with this name already exists in this event" });
+                }
 
                 // Check for duplicate table number in this event (if provided)
                 if (body.TableNumber.HasValue)
                 {
                     var duplicateTable = existingTeams.FirstOrDefault(t => t.TableNumber == body.TableNumber.Value);
                     if (duplicateTable != null)
+                    {
+                        logger.LogWarning("Team creation failed - duplicate table number: {TableNumber} in event: {EventId}", body.TableNumber, id);
                         return Results.BadRequest(new { error = $"Table number {body.TableNumber} is already assigned in this event" });
+                    }
                 }
 
                 var newTeam = new Team
@@ -656,16 +727,18 @@ public static class EfCoreApiEndpoints
                 };
 
                 var created = await teamService.CreateTeamAsync(newTeam);
+                logger.LogInformation("Team created successfully: {TeamId} ({TeamName}) in event: {EventId}", created.Id, created.Name, id);
                 return Results.Created($"/api/v2/events/{id}/teams/{created.Id}", created);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to create team {TeamName} in event {EventId} for user: {UserId}", body.Name, id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Questions endpoints - migrated to EF Core
-        api.MapGet("/events/{id}/questions", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req) =>
+        api.MapGet("/events/{id}/questions", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req, ILogger<Program> logger) =>
         {
             // Helper function to parse options JSON to array
             static object ParseQuestionOptions(Question question)
@@ -739,10 +812,16 @@ public static class EfCoreApiEndpoints
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Questions request failed - event not found: {EventId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 if (eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("Questions request failed - access denied: {EventId} requested by user: {UserId}, actual host: {HostId}", id, userId, eventEntity.HostId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 var questions = await questionService.GetQuestionsForEventAsync(id);
                 var parsedQuestions = questions.Select(ParseQuestionOptions).ToList();
@@ -750,11 +829,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve questions for event {EventId}, user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPut("/events/{id}/questions/reorder", async (string id, [FromBody] ReorderQuestionsRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req) =>
+        api.MapPut("/events/{id}/questions/reorder", async (string id, [FromBody] ReorderQuestionsRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -764,21 +844,32 @@ public static class EfCoreApiEndpoints
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Questions reorder failed - event not found: {EventId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 if (eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("Questions reorder failed - access denied: {EventId} requested by user: {UserId}, actual host: {HostId}", id, userId, eventEntity.HostId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 // Update question order
                 var success = await questionService.ReorderQuestionsAsync(body.QuestionOrder);
                 if (!success)
+                {
+                    logger.LogWarning("Questions reorder failed - service returned false for event: {EventId}", id);
                     return Results.BadRequest(new { error = "Failed to update question order" });
+                }
 
                 var updatedQuestions = await questionService.GetQuestionsForEventAsync(id);
+                logger.LogInformation("Questions reordered successfully for event: {EventId}, count: {QuestionCount}", id, body.QuestionOrder.Count);
                 return Results.Ok(new { message = "Question order updated successfully", questions = updatedQuestions });
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to reorder questions for event {EventId}, user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
@@ -844,7 +935,7 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapDelete("/questions/{id}", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req) =>
+        api.MapDelete("/questions/{id}", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -854,23 +945,39 @@ public static class EfCoreApiEndpoints
             {
                 var question = await questionService.GetQuestionByIdAsync(id);
                 if (question == null)
+                {
+                    logger.LogWarning("Question delete failed - question not found: {QuestionId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Question not found" });
+                }
 
                 var eventEntity = await eventService.GetEventByIdAsync(question.EventId);
                 if (eventEntity == null || eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("Question delete failed - access denied: {QuestionId} in event: {EventId} requested by user: {UserId}", id, question.EventId, userId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 var success = await questionService.DeleteQuestionAsync(id);
-                return success ? Results.NoContent() : Results.StatusCode(StatusCodes.Status500InternalServerError);
+                if (success)
+                {
+                    logger.LogInformation("Question deleted successfully: {QuestionId} from event: {EventId}", id, question.EventId);
+                    return Results.NoContent();
+                }
+                else
+                {
+                    logger.LogWarning("Question delete failed - service returned false: {QuestionId}", id);
+                    return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                }
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to delete question {QuestionId} for user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // EventImages for questions
-        api.MapGet("/questions/{id}/eventimage", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, HttpRequest req) =>
+        api.MapGet("/questions/{id}/eventimage", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -880,11 +987,17 @@ public static class EfCoreApiEndpoints
             {
                 var question = await questionService.GetQuestionByIdAsync(id);
                 if (question == null)
+                {
+                    logger.LogWarning("EventImage request failed - question not found: {QuestionId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Question not found" });
+                }
 
                 var eventEntity = await eventService.GetEventByIdAsync(question.EventId);
                 if (eventEntity == null || eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("EventImage request failed - access denied: {QuestionId} in event: {EventId} requested by user: {UserId}", id, question.EventId, userId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 var eventImage = await eventImageService.GetImageForQuestionAsync(id);
                 if (eventImage == null)
@@ -895,12 +1008,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve EventImage for question {QuestionId}, user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // PUT endpoint to save/update EventImage for a question
-        api.MapPut("/questions/{id}/eventimage", async (string id, [FromBody] SaveEventImageRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, HttpRequest req) =>
+        api.MapPut("/questions/{id}/eventimage", async (string id, [FromBody] SaveEventImageRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -910,11 +1024,17 @@ public static class EfCoreApiEndpoints
             {
                 var question = await questionService.GetQuestionByIdAsync(id);
                 if (question == null)
+                {
+                    logger.LogWarning("EventImage save failed - question not found: {QuestionId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Question not found" });
+                }
 
                 var eventEntity = await eventService.GetEventByIdAsync(question.EventId);
                 if (eventEntity == null || eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("EventImage save failed - access denied: {QuestionId} in event: {EventId} requested by user: {UserId}", id, question.EventId, userId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 // Convert SaveEventImageRequest to CreateEventImageRequest
                 var createRequest = new CreateEventImageRequest
@@ -929,19 +1049,24 @@ public static class EfCoreApiEndpoints
 
                 var eventImage = await eventImageService.SaveImageForQuestionAsync(createRequest);
                 if (eventImage == null)
+                {
+                    logger.LogWarning("EventImage save failed - service returned null for question: {QuestionId}", id);
                     return Results.StatusCode(StatusCodes.Status500InternalServerError);
+                }
 
                 var response = eventImageService.ToEventImageResponse(eventImage);
+                logger.LogInformation("EventImage saved successfully for question: {QuestionId}, image: {ImageId}", id, body.UnsplashImageId);
                 return Results.Ok(new { eventImage = response });
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to save EventImage for question {QuestionId}, user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Participants endpoints - migrated to EF Core
-        api.MapGet("/events/{id}/participants", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreParticipantService participantService, HttpRequest req) =>
+        api.MapGet("/events/{id}/participants", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreParticipantService participantService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -951,34 +1076,50 @@ public static class EfCoreApiEndpoints
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Participants request failed - event not found: {EventId} for user: {UserId}", id, userId);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 if (eventEntity.HostId != userId)
+                {
+                    logger.LogWarning("Participants request failed - access denied: {EventId} requested by user: {UserId}, actual host: {HostId}", id, userId, eventEntity.HostId);
                     return Results.StatusCode(StatusCodes.Status403Forbidden);
+                }
 
                 var participants = await participantService.GetParticipantsByEventAsync(id);
                 return Results.Ok(participants);
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to retrieve participants for event {EventId}, user: {UserId}", id, userId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapGet("/events/join/{qrCode}/check", async (string qrCode, IEfCoreEventService eventService, IEfCoreParticipantService participantService, HttpRequest req) =>
+        api.MapGet("/events/join/{qrCode}/check", async (string qrCode, IEfCoreEventService eventService, IEfCoreParticipantService participantService, HttpRequest req, ILogger<Program> logger) =>
         {
             try
             {
                 if (!req.Cookies.TryGetValue("participantToken", out var token))
+                {
+                    logger.LogWarning("Join check failed - no participant token found for QR code: {QrCode}", qrCode);
                     return Results.NotFound(new { error = "No participant token found" });
+                }
 
                 var participant = await participantService.GetParticipantByTokenAsync(token);
                 if (participant == null)
+                {
+                    logger.LogWarning("Join check failed - participant not found for token and QR code: {QrCode}", qrCode);
                     return Results.NotFound(new { error = "Participant not found" });
+                }
 
                 var eventEntity = await eventService.GetEventByIdAsync(participant.EventId);
                 if (eventEntity == null || eventEntity.QrCode != qrCode)
+                {
+                    logger.LogWarning("Join check failed - event not found or QR code mismatch: {QrCode}, participant event: {EventId}", qrCode, participant.EventId);
                     return Results.NotFound(new { error = "Participant not found for this event" });
+                }
 
                 // Get team if participant has one
                 object? team = null;
@@ -988,6 +1129,7 @@ public static class EfCoreApiEndpoints
                     // team = await teamService.GetTeamByIdAsync(participant.TeamId);
                 }
 
+                logger.LogInformation("Join check successful for QR code: {QrCode}, participant: {ParticipantId}", qrCode, participant.Id);
                 return Results.Ok(new
                 {
                     participant,
@@ -998,11 +1140,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to check participant join status for QR code: {QrCode}", qrCode);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPost("/events/join/{qrCode}", async (string qrCode, [FromBody] JoinEventRequest body, IEfCoreEventService eventService, IEfCoreParticipantService participantService, IEfCoreTeamService teamService, HttpResponse res) =>
+        api.MapPost("/events/join/{qrCode}", async (string qrCode, [FromBody] JoinEventRequest body, IEfCoreEventService eventService, IEfCoreParticipantService participantService, IEfCoreTeamService teamService, HttpResponse res, ILogger<Program> logger) =>
         {
             if (string.IsNullOrWhiteSpace(body.Name))
                 return Results.BadRequest(new { error = "Name is required" });
@@ -1013,10 +1156,16 @@ public static class EfCoreApiEndpoints
                 var hostEvents = await eventService.GetEventsForHostAsync("mark-user-id");
                 var eventEntity = hostEvents.FirstOrDefault(e => e.QrCode == qrCode);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Event join failed - event not found for QR code: {QrCode}", qrCode);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 if (eventEntity.Status == "cancelled")
+                {
+                    logger.LogWarning("Event join failed - event cancelled: {EventId} ({QrCode})", eventEntity.Id, qrCode);
                     return Results.BadRequest(new { error = "Event has been cancelled" });
+                }
 
                 // Check for duplicate participant name in this event
                 var existingParticipants = await participantService.GetParticipantsByEventAsync(eventEntity.Id);
@@ -1025,7 +1174,10 @@ public static class EfCoreApiEndpoints
                     p.IsActive
                 );
                 if (duplicateParticipant != null)
+                {
+                    logger.LogWarning("Event join failed - participant name already exists: {ParticipantName} in event: {EventId}", body.Name, eventEntity.Id);
                     return Results.BadRequest(new { error = "A participant with this name is already registered for this event" });
+                }
 
                 string? teamId = null;
 
@@ -1035,11 +1187,17 @@ public static class EfCoreApiEndpoints
                     var teams = await teamService.GetTeamsForEventAsync(eventEntity.Id);
                     var team = teams.FirstOrDefault(t => t.Name == body.TeamIdentifier || t.TableNumber?.ToString() == body.TeamIdentifier);
                     if (team == null)
+                    {
+                        logger.LogWarning("Event join failed - team not found: {TeamIdentifier} in event: {EventId}", body.TeamIdentifier, eventEntity.Id);
                         return Results.NotFound(new { error = "Team not found" });
+                    }
 
                     var members = team.Participants?.Count ?? 0;
                     if (members >= (team.MaxMembers == 0 ? 6 : team.MaxMembers))
+                    {
+                        logger.LogWarning("Event join failed - team full: {TeamId} ({TeamName}) in event: {EventId}", team.Id, team.Name, eventEntity.Id);
                         return Results.BadRequest(new { error = "Team is full" });
+                    }
 
                     teamId = team.Id;
                 }
@@ -1048,7 +1206,10 @@ public static class EfCoreApiEndpoints
                     var teams = await teamService.GetTeamsForEventAsync(eventEntity.Id);
                     var existing = teams.FirstOrDefault(t => t.Name == body.TeamIdentifier || t.TableNumber?.ToString() == body.TeamIdentifier);
                     if (existing != null)
+                    {
+                        logger.LogWarning("Event join failed - team name/table already exists: {TeamIdentifier} in event: {EventId}", body.TeamIdentifier, eventEntity.Id);
                         return Results.BadRequest(new { error = "Team name or table number already exists" });
+                    }
 
                     var isTable = int.TryParse(body.TeamIdentifier, out var tbl);
                     var newTeam = new Team
@@ -1063,6 +1224,7 @@ public static class EfCoreApiEndpoints
 
                     var createdTeam = await teamService.CreateTeamAsync(newTeam);
                     teamId = createdTeam.Id;
+                    logger.LogInformation("New team created during participant join: {TeamId} ({TeamName}) in event: {EventId}", createdTeam.Id, createdTeam.Name, eventEntity.Id);
                 }
 
                 // Create participant
@@ -1098,6 +1260,9 @@ public static class EfCoreApiEndpoints
                     joinedTeam = team;
                 }
 
+                logger.LogInformation("Participant successfully joined event: {ParticipantId} ({ParticipantName}) in event: {EventId}, team: {TeamId}", 
+                    created.Id, created.Name, eventEntity.Id, created.TeamId);
+
                 return Results.Created($"/api/v2/participants/{created.Id}", new
                 {
                     participant = created,
@@ -1108,11 +1273,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to join event with QR code: {QrCode}, participant name: {ParticipantName}", qrCode, body.Name);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPut("/participants/{id}/team", async (string id, [FromBody] SwitchTeamRequest body, IEfCoreParticipantService participantService, HttpRequest req) =>
+        api.MapPut("/participants/{id}/team", async (string id, [FromBody] SwitchTeamRequest body, IEfCoreParticipantService participantService, HttpRequest req, ILogger<Program> logger) =>
         {
             try
             {
@@ -1132,11 +1298,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to switch team for participant: {ParticipantId}, new team: {TeamId}", id, body.TeamId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapDelete("/events/{id}/participants/inactive", async (string id, [FromQuery] int inactiveThresholdMinutes, ISessionService sessions, IEfCoreEventService eventService, IEfCoreParticipantService participantService, HttpRequest req) =>
+        api.MapDelete("/events/{id}/participants/inactive", async (string id, [FromQuery] int inactiveThresholdMinutes, ISessionService sessions, IEfCoreEventService eventService, IEfCoreParticipantService participantService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1170,12 +1337,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to remove inactive participants from event: {EventId}, threshold: {ThresholdMinutes}", id, inactiveThresholdMinutes);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Fun Facts endpoints - migrated to EF Core
-        api.MapGet("/events/{id}/fun-facts", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req) =>
+        api.MapGet("/events/{id}/fun-facts", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req, ILogger<Program> logger) =>
         {
             // Special handling for demo/seed events
             if (id.StartsWith("seed-event-"))
@@ -1206,11 +1374,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to get fun facts for event: {EventId}", id);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPost("/events/{id}/fun-facts", async (string id, [FromBody] CreateFunFactRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req) =>
+        api.MapPost("/events/{id}/fun-facts", async (string id, [FromBody] CreateFunFactRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1253,11 +1422,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to create fun fact for event: {EventId}, title: {FunFactTitle}", id, body.Title);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPut("/fun-facts/{id}", async (string id, [FromBody] UpdateFunFactRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req) =>
+        api.MapPut("/fun-facts/{id}", async (string id, [FromBody] UpdateFunFactRequest body, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1284,11 +1454,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to update fun fact: {FunFactId}", id);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapDelete("/fun-facts/{id}", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req) =>
+        api.MapDelete("/fun-facts/{id}", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreFunFactService funFactService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1309,12 +1480,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to delete fun fact: {FunFactId}", id);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Responses endpoints - migrated to EF Core
-        api.MapPost("/responses", async ([FromBody] SubmitResponseRequest body, IEfCoreQuestionService questionService, IEfCoreResponseService responseService) =>
+        api.MapPost("/responses", async ([FromBody] SubmitResponseRequest body, IEfCoreQuestionService questionService, IEfCoreResponseService responseService, ILogger<Program> logger) =>
         {
             if (string.IsNullOrWhiteSpace(body.ParticipantId) || string.IsNullOrWhiteSpace(body.QuestionId) || string.IsNullOrWhiteSpace(body.Answer))
                 return Results.BadRequest(new { error = "Missing required fields" });
@@ -1352,12 +1524,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to submit response for participant: {ParticipantId}, question: {QuestionId}", body.ParticipantId, body.QuestionId);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Analytics endpoints - migrated to EF Core
-        api.MapGet("/events/{id}/analytics", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req) =>
+        api.MapGet("/events/{id}/analytics", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1375,11 +1548,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to get analytics for event: {EventId}", id);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapGet("/events/{id}/leaderboard", async (string id, [FromQuery] string? type, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req) =>
+        api.MapGet("/events/{id}/leaderboard", async (string id, [FromQuery] string? type, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1397,11 +1571,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to get leaderboard for event: {EventId}, type: {LeaderboardType}", id, type ?? "teams");
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapGet("/events/{id}/responses/summary", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req) =>
+        api.MapGet("/events/{id}/responses/summary", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1418,12 +1593,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to get response summary for event: {EventId}", id);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Event management endpoints - migrated to EF Core
-        api.MapPost("/events/{id}/start", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req) =>
+        api.MapPost("/events/{id}/start", async (string id, ISessionService sessions, IEfCoreEventService eventService, IEfCoreStorageService storageService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1450,11 +1626,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to start event: {EventId}", id);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPatch("/events/{id}/status", async (string id, [FromBody] EventStatusUpdate body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req) =>
+        api.MapPatch("/events/{id}/status", async (string id, [FromBody] EventStatusUpdate body, ISessionService sessions, IEfCoreEventService eventService, HttpRequest req, ILogger<Program> logger) =>
         {
             var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
             if (!isValid || userId == null)
@@ -1478,12 +1655,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to update event status: {EventId}, new status: {Status}", id, body.Status);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // AI Copy generation (placeholder)
-        api.MapPost("/events/{id}/generate-copy", async (string id, [FromBody] GenerateCopyRequest body, IEfCoreEventService eventService) =>
+        api.MapPost("/events/{id}/generate-copy", async (string id, [FromBody] GenerateCopyRequest body, IEfCoreEventService eventService, ILogger<Program> logger) =>
         {
             try
             {
@@ -1504,6 +1682,7 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to generate copy for event: {EventId}, type: {CopyType}", id, body.Type);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
@@ -1635,7 +1814,7 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapPost("/questions/generate", async ([FromBody] GenerateQuestionsRequest body, IEfCoreEventService eventService, IEfCoreQuestionService questionService) =>
+        api.MapPost("/questions/generate", async ([FromBody] GenerateQuestionsRequest body, IEfCoreEventService eventService, IEfCoreQuestionService questionService, ILogger<Program> logger) =>
         {
             try
             {
@@ -1665,11 +1844,12 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to generate questions for event: {EventId}, topic: {Topic}, type: {Type}", body.EventId, body.Topic, body.Type);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
-        api.MapPost("/questions/bulk", async ([FromBody] BulkInsertQuestionsRequest body, IEfCoreEventService eventService, IEfCoreQuestionService questionService) =>
+        api.MapPost("/questions/bulk", async ([FromBody] BulkInsertQuestionsRequest body, IEfCoreEventService eventService, IEfCoreQuestionService questionService, ILogger<Program> logger) =>
         {
             try
             {
@@ -1734,12 +1914,13 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to bulk insert questions for event: {EventId}, count: {QuestionCount}", body.EventId, body.Questions?.Count());
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
 
         // Public endpoints for teams (no auth required for participant access)
-        api.MapGet("/events/{qrCode}/teams-public", async (string qrCode, IEfCoreEventService eventService, IEfCoreTeamService teamService) =>
+        api.MapGet("/events/{qrCode}/teams-public", async (string qrCode, IEfCoreEventService eventService, IEfCoreTeamService teamService, ILogger<Program> logger) =>
         {
             try
             {
@@ -1763,6 +1944,7 @@ public static class EfCoreApiEndpoints
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to get public teams for event QR code: {QrCode}", qrCode);
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });

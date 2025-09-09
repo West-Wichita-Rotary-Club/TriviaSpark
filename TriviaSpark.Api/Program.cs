@@ -152,14 +152,21 @@ try
         
         // Minimal message template for console
         options.MessageTemplate = "{RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0}ms";
-        
+
         // Attach additional properties for file logging
         options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
         {
-            diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+            diagnosticContext.Set("RequestHost", httpContext.Request.Host.ToString());
             diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-            diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault());
-            if (httpContext.User.Identity?.IsAuthenticated == true)
+
+            var userAgent = httpContext.Request.Headers.UserAgent.FirstOrDefault();
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                diagnosticContext.Set("UserAgent", userAgent);
+            }
+
+            if (httpContext.User.Identity?.IsAuthenticated == true &&
+                !string.IsNullOrEmpty(httpContext.User.Identity.Name))
             {
                 diagnosticContext.Set("UserName", httpContext.User.Identity.Name);
             }
