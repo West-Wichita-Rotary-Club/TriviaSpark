@@ -14,6 +14,7 @@ public interface IEfCoreUserService
     Task<DapperUser> UpdateUserAsync(DapperUser user);
     Task<bool> DeleteUserAsync(string userId);
     Task<bool> ValidatePasswordAsync(string username, string password);
+    Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
     Task<int> GetUserCountAsync();
 }
 
@@ -28,13 +29,16 @@ public class EfCoreUserService : IEfCoreUserService
 
     public async Task<DapperUser?> GetUserByIdAsync(string userId)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId);
         return user != null ? MapToDto(user) : null;
     }
 
     public async Task<DapperUser?> GetUserByUsernameAsync(string username)
     {
         var user = await _context.Users
+            .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Username == username);
         return user != null ? MapToDto(user) : null;
     }
@@ -42,6 +46,7 @@ public class EfCoreUserService : IEfCoreUserService
     public async Task<DapperUser?> GetUserByEmailAsync(string email)
     {
         var user = await _context.Users
+            .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Email == email);
         return user != null ? MapToDto(user) : null;
     }
@@ -50,9 +55,25 @@ public class EfCoreUserService : IEfCoreUserService
     {
         var entity = MapToEntity(user);
         entity.CreatedAt = DateTime.UtcNow;
+        
+        // Set default role if not specified
+        if (string.IsNullOrEmpty(entity.RoleId))
+        {
+            var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+            if (userRole != null)
+            {
+                entity.RoleId = userRole.Id;
+            }
+        }
+        
         _context.Users.Add(entity);
         await _context.SaveChangesAsync();
-        return MapToDto(entity);
+        
+        // Return with role information
+        var createdUser = await _context.Users
+            .Include(u => u.Role)
+            .FirstAsync(u => u.Id == entity.Id);
+        return MapToDto(createdUser);
     }
 
     public async Task<DapperUser> UpdateUserAsync(DapperUser user)
@@ -85,6 +106,24 @@ public class EfCoreUserService : IEfCoreUserService
         return user.Password == password;
     }
 
+    public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            return false;
+
+        // Verify current password
+        if (user.Password != currentPassword)
+            return false;
+
+        // Update password directly on the entity (in production, this should be hashed)
+        user.Password = newPassword;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<int> GetUserCountAsync()
     {
         return await _context.Users.CountAsync();
@@ -99,6 +138,8 @@ public class EfCoreUserService : IEfCoreUserService
             Email = entity.Email,
             Password = entity.Password,
             FullName = entity.FullName,
+            RoleId = entity.RoleId ?? string.Empty,
+            RoleName = entity.Role?.Name,
             CreatedAt = entity.CreatedAt
         };
     }
@@ -112,6 +153,7 @@ public class EfCoreUserService : IEfCoreUserService
             Email = dto.Email,
             Password = dto.Password,
             FullName = dto.FullName,
+            RoleId = dto.RoleId,
             CreatedAt = dto.CreatedAt
         };
     }

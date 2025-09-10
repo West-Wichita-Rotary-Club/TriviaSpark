@@ -210,15 +210,26 @@ export default function Home() {
           <p className="text-xl text-champagne-200 mb-8" data-testid="text-cta-subtitle">
             Join event hosts who are creating unforgettable experiences with TriviaSpark
           </p>
-          <Button 
-            size="lg"
-            onClick={() => setLocation("/login")}
-            className="bg-white text-wine-700 hover:bg-champagne-50 px-12 py-4 text-xl"
-            data-testid="button-start-creating"
-          >
-            Start Creating
-            <Clock className="ml-3 h-6 w-6" />
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              size="lg"
+              onClick={() => setLocation("/register")}
+              className="bg-white text-wine-700 hover:bg-champagne-50 px-12 py-4 text-xl"
+              data-testid="button-get-started"
+            >
+              Get Started Free
+              <Clock className="ml-3 h-6 w-6" />
+            </Button>
+            <Button 
+              size="lg"
+              variant="outline"
+              onClick={() => setLocation("/login")}
+              className="border-white text-white hover:bg-white/10 px-12 py-4 text-xl"
+              data-testid="button-sign-in"
+            >
+              Sign In
+            </Button>
+          </div>
           <p className="text-champagne-300 mt-4" data-testid="text-cta-footer">
             A WebSpark Solution by Mark Hazleton
           </p>

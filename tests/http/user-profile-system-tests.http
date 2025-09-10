@@ -1,0 +1,123 @@
+### TriviaSpark User Profile System Tests
+### Testing registration, password change, and updated login flow
+
+@baseUrl = http://localhost:14166
+@baseUrlV2 = http://localhost:14166/api/v2
+
+### 1. Health Check
+GET {{baseUrl}}/api/health
+Content-Type: application/json
+
+###
+
+### 2. Register New User
+# @name registerNewUser
+POST {{baseUrlV2}}/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "testpass123",
+  "name": "Test User"
+}
+
+###
+
+### 3. Login with New User (should work automatically after registration)
+### Test login separately to ensure it works
+# @name loginTestUser
+POST {{baseUrlV2}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "testpass123"
+}
+
+###
+
+### 4. Get Current User Profile
+GET {{baseUrlV2}}/auth/me
+Content-Type: application/json
+Cookie: sessionId={{loginTestUser.response.body.sessionId}}
+
+###
+
+### 5. Update Profile
+PUT {{baseUrlV2}}/auth/profile
+Content-Type: application/json
+Cookie: sessionId={{loginTestUser.response.body.sessionId}}
+
+{
+  "fullName": "Updated Test User",
+  "email": "testuser@example.com",
+  "username": "testuser"
+}
+
+###
+
+### 6. Change Password
+PUT {{baseUrlV2}}/auth/change-password
+Content-Type: application/json
+Cookie: sessionId={{loginTestUser.response.body.sessionId}}
+
+{
+  "currentPassword": "testpass123",
+  "newPassword": "newpassword123"
+}
+
+###
+
+### 7. Test Login with New Password
+# @name loginWithNewPassword
+POST {{baseUrlV2}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "newpassword123"
+}
+
+###
+
+### 8. Test Login with Old Password (should fail)
+POST {{baseUrlV2}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "testpass123"
+}
+
+###
+
+### 9. Test Registration with Existing Email (should fail)
+POST {{baseUrlV2}}/register
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "anotherpass123",
+  "name": "Another User"
+}
+
+###
+
+### 10. Test Password Change with Wrong Current Password (should fail)
+PUT {{baseUrlV2}}/auth/change-password
+Content-Type: application/json
+Cookie: sessionId={{loginWithNewPassword.response.body.sessionId}}
+
+{
+  "currentPassword": "wrongpassword",
+  "newPassword": "anothernewpass123"
+}
+
+###
+
+### 11. Logout
+POST {{baseUrlV2}}/auth/logout
+Content-Type: application/json
+Cookie: sessionId={{loginWithNewPassword.response.body.sessionId}}
+
+###

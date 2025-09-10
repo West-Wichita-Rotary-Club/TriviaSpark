@@ -10,6 +10,7 @@ public class TriviaSparkDbContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<Role> Roles { get; set; }
     public DbSet<Event> Events { get; set; }
     public DbSet<Question> Questions { get; set; }
     public DbSet<Team> Teams { get; set; }
@@ -24,6 +25,7 @@ public class TriviaSparkDbContext : DbContext
 
         // Configure table names to match existing SQLite schema
         modelBuilder.Entity<User>().ToTable("users");
+        modelBuilder.Entity<Role>().ToTable("roles");
         modelBuilder.Entity<Event>().ToTable("events");
         modelBuilder.Entity<Question>().ToTable("questions");
         modelBuilder.Entity<Team>().ToTable("teams");
@@ -34,6 +36,7 @@ public class TriviaSparkDbContext : DbContext
 
         // Configure column names to match existing schema (snake_case)
         ConfigureUserEntity(modelBuilder);
+        ConfigureRoleEntity(modelBuilder);
         ConfigureEventEntity(modelBuilder);
         ConfigureQuestionEntity(modelBuilder);
         ConfigureTeamEntity(modelBuilder);
@@ -54,6 +57,7 @@ public class TriviaSparkDbContext : DbContext
         userEntity.Property(e => e.Email).HasColumnName("email");
         userEntity.Property(e => e.Password).HasColumnName("password");
         userEntity.Property(e => e.FullName).HasColumnName("full_name");
+        userEntity.Property(e => e.RoleId).HasColumnName("role_id");
         
         // Handle ISO date string conversion for created_at
         userEntity.Property(e => e.CreatedAt)
@@ -64,6 +68,22 @@ public class TriviaSparkDbContext : DbContext
 
         userEntity.HasIndex(e => e.Username).IsUnique();
         userEntity.HasIndex(e => e.Email).IsUnique();
+    }
+
+    private static void ConfigureRoleEntity(ModelBuilder modelBuilder)
+    {
+        var roleEntity = modelBuilder.Entity<Role>();
+        roleEntity.Property(e => e.Id).HasColumnName("id");
+        roleEntity.Property(e => e.Name).HasColumnName("name");
+        roleEntity.Property(e => e.Description).HasColumnName("description");
+        
+        roleEntity.Property(e => e.CreatedAt)
+            .HasColumnName("created_at")
+            .HasConversion(
+                v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                v => DateTime.Parse(v));
+
+        roleEntity.HasIndex(e => e.Name).IsUnique();
     }
 
     private static void ConfigureEventEntity(ModelBuilder modelBuilder)
@@ -293,6 +313,13 @@ public class TriviaSparkDbContext : DbContext
 
     private static void ConfigureRelationships(ModelBuilder modelBuilder)
     {
+        // Role -> Users (one-to-many)
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Role)
+            .WithMany(r => r.Users)
+            .HasForeignKey(u => u.RoleId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // User -> Events (one-to-many)
         modelBuilder.Entity<Event>()
             .HasOne(e => e.Host)

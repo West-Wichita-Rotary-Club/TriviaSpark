@@ -11,6 +11,7 @@ import { WebSocketProvider } from "./contexts/WebSocketContext";
 const Home = React.lazy(() => import("@/pages/home"));
 const NotFound = React.lazy(() => import("@/pages/not-found"));
 const Login = React.lazy(() => import("@/pages/login"));
+const Register = React.lazy(() => import("@/pages/register"));
 const Events = React.lazy(() => import("@/pages/events"));
 const EventManage = React.lazy(() => {
   console.log("Attempting to lazy load EventManage...");
@@ -21,6 +22,7 @@ const Dashboard = React.lazy(() => import("@/pages/dashboard"));
 const EventHost = React.lazy(() => import("@/pages/event-host"));
 const EventJoin = React.lazy(() => import("@/pages/event-join"));
 const Profile = React.lazy(() => import("@/pages/profile"));
+const Admin = React.lazy(() => import("@/pages/Admin"));
 const ApiDocs = React.lazy(() => import("@/pages/api-docs"));
 const PresenterView = React.lazy(() => import("@/pages/presenter"));
 const Insights = React.lazy(() => import("@/pages/insights"));
@@ -77,6 +79,7 @@ function App() {
                     
                     {/* Auth routes */}
                     <Route path="/login" component={Login} />
+                    <Route path="/register" component={Register} />
                     
                     {/* Dashboard and events */}
                     <Route path="/dashboard">
@@ -201,6 +204,13 @@ function App() {
                       <>
                         <Header />
                         <Profile />
+                        <Footer />
+                      </>
+                    </Route>
+                    <Route path="/admin">
+                      <>
+                        <Header />
+                        <Admin />
                         <Footer />
                       </>
                     </Route>

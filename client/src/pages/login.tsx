@@ -173,8 +173,16 @@ export default function Login() {
             </form>
 
             <div className="text-center mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600" data-testid="text-demo-info">
-                Demo credentials: <span className="font-mono bg-gray-100 px-2 py-1 rounded">mark / mark123</span>
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <Button
+                  variant="link"
+                  onClick={() => setLocation("/register")}
+                  className="text-wine-600 hover:text-wine-700 p-0 h-auto font-medium"
+                  data-testid="button-register"
+                >
+                  Create Account
+                </Button>
               </p>
             </div>
           </CardContent>

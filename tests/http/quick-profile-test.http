@@ -1,0 +1,48 @@
+### Quick User Profile System Test
+### Test the registration and password change functionality
+
+@baseUrl = http://localhost:14166
+@testEmail = quicktest@example.com
+@testName = Quick Test User
+
+### 1. Health Check
+GET {{baseUrl}}/api/health
+
+###
+
+### 2. Register New User
+# @name registerUser
+POST {{baseUrl}}/api/v2/register
+Content-Type: application/json
+
+{
+  "email": "{{testEmail}}",
+  "password": "testpass123",
+  "name": "{{testName}}"
+}
+
+###
+
+### 3. Test Password Change with Session from Registration
+PUT {{baseUrl}}/api/v2/auth/change-password
+Content-Type: application/json
+Cookie: sessionId={{registerUser.response.body.sessionId}}
+
+{
+  "currentPassword": "testpass123",
+  "newPassword": "newpassword456"
+}
+
+###
+
+### 4. Test Login with New Password
+# @name loginWithNewPassword
+POST {{baseUrl}}/api/v2/auth/login
+Content-Type: application/json
+
+{
+  "username": "quicktest",
+  "password": "newpassword456"
+}
+
+###

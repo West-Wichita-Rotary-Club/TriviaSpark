@@ -14,7 +14,7 @@ namespace TriviaSpark.Api.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
 
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Event", b =>
                 {
@@ -540,6 +540,34 @@ namespace TriviaSpark.Api.Migrations
                     b.ToTable("responses", (string)null);
                 });
 
+            modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Role", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CreatedAt")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("roles", (string)null);
+                });
+
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Team", b =>
                 {
                     b.Property<string>("Id")
@@ -602,6 +630,10 @@ namespace TriviaSpark.Api.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("password");
 
+                    b.Property<string>("RoleId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("role_id");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -611,6 +643,8 @@ namespace TriviaSpark.Api.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("RoleId");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -717,6 +751,16 @@ namespace TriviaSpark.Api.Migrations
                     b.Navigation("Event");
                 });
 
+            modelBuilder.Entity("TriviaSpark.Api.Data.Entities.User", b =>
+                {
+                    b.HasOne("TriviaSpark.Api.Data.Entities.Role", "Role")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Event", b =>
                 {
                     b.Navigation("FunFacts");
@@ -736,6 +780,11 @@ namespace TriviaSpark.Api.Migrations
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Question", b =>
                 {
                     b.Navigation("Responses");
+                });
+
+            modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Role", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Team", b =>

@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { User, Mail, Phone, Calendar, Edit, Save, X, Brain } from "lucide-react";
+import { User, Mail, Phone, Calendar, Edit, Save, X, Brain, Lock, Shield, Settings } from "lucide-react";
 import { useState } from "react";
 import { formatDateInCST } from "@/lib/utils";
 
@@ -18,10 +18,17 @@ type ProfileForm = {
   username: string;
 };
 
+type PasswordChangeForm = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
 export default function Profile() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const { data: user, isLoading, error: userError } = useQuery<{
     user: {
@@ -29,6 +36,8 @@ export default function Profile() {
       username: string;
       email: string;
       fullName: string;
+      roleId: string;
+      roleName: string;
       createdAt: string;
     };
   }>({
@@ -61,6 +70,16 @@ export default function Profile() {
     reset,
     formState: { errors },
   } = useForm<ProfileForm>();
+
+  const {
+    register: registerPassword,
+    handleSubmit: handleSubmitPassword,
+    reset: resetPassword,
+    watch,
+    formState: { errors: passwordErrors },
+  } = useForm<PasswordChangeForm>();
+
+  const newPassword = watch("newPassword");
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileForm) => {
@@ -96,8 +115,50 @@ export default function Profile() {
     },
   });
 
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: PasswordChangeForm) => {
+      const response = await fetch("/api/v2/auth/change-password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword: data.currentPassword,
+          newPassword: data.newPassword,
+        }),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Password change failed");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password Changed",
+        description: "Your password has been successfully updated.",
+      });
+      setIsChangingPassword(false);
+      resetPassword();
+    },
+    onError: (error) => {
+      toast({
+        title: "Password Change Failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: ProfileForm) => {
     updateProfileMutation.mutate(data);
+  };
+
+  const onPasswordSubmit = (data: PasswordChangeForm) => {
+    changePasswordMutation.mutate(data);
   };
 
   const handleEdit = () => {
@@ -114,6 +175,11 @@ export default function Profile() {
   const handleCancel = () => {
     setIsEditing(false);
     reset();
+  };
+
+  const handlePasswordCancel = () => {
+    setIsChangingPassword(false);
+    resetPassword();
   };
 
   if (isLoading) {
@@ -164,6 +230,27 @@ export default function Profile() {
                   Member since {user?.user?.createdAt ? formatDateInCST(user.user.createdAt) : 'Unknown'}
                 </span>
               </div>
+              {user?.user?.roleName && (
+                <div className="flex items-center text-sm text-wine-600">
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span data-testid="text-user-role" className="font-medium">
+                    {user.user.roleName}
+                  </span>
+                </div>
+              )}
+              {user?.user?.roleName === "Admin" && (
+                <div className="pt-2">
+                  <Link href="/admin" data-testid="link-admin-overview">
+                    <Button
+                      className="w-full trivia-button-primary text-sm"
+                      size="sm"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -309,6 +396,181 @@ export default function Profile() {
                     <p className="font-medium mt-1" data-testid="text-display-username">
                       @{user?.user?.username || 'Not set'}
                     </p>
+                  </div>
+
+                  {user?.user?.roleName && (
+                    <>
+                      <Separator />
+
+                      <div>
+                        <Label className="text-gray-600">Role</Label>
+                        <div className="flex items-center justify-between mt-1">
+                          <div className="flex items-center">
+                            <Shield className="mr-2 h-4 w-4 text-wine-500" />
+                            <p className="font-medium text-wine-700" data-testid="text-display-role">
+                              {user.user.roleName}
+                            </p>
+                          </div>
+                          {user.user.roleName === "Admin" && (
+                            <Link href="/admin" data-testid="link-admin-page">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="ml-2 text-wine-600 border-wine-200 hover:bg-wine-50"
+                              >
+                                <Settings className="mr-2 h-4 w-4" />
+                                Admin Panel
+                              </Button>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Password Change Section */}
+        <div className="lg:col-span-2">
+          <Card className="trivia-card" data-testid="card-password-change">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center" data-testid="text-password-title">
+                  <Lock className="mr-2 h-5 w-5" />
+                  Password & Security
+                </CardTitle>
+                {!isChangingPassword && (
+                  <Button
+                    onClick={() => setIsChangingPassword(true)}
+                    variant="outline"
+                    size="sm"
+                    data-testid="button-change-password"
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    Change Password
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isChangingPassword ? (
+                <form onSubmit={handleSubmitPassword(onPasswordSubmit)} className="space-y-6">
+                  <div>
+                    <Label htmlFor="currentPassword" data-testid="label-current-password">
+                      Current Password
+                    </Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      {...registerPassword("currentPassword", { required: "Current password is required" })}
+                      className="mt-1"
+                      data-testid="input-current-password"
+                      autoComplete="current-password"
+                    />
+                    {passwordErrors.currentPassword && (
+                      <p className="text-sm text-red-500 mt-1" data-testid="error-current-password">
+                        {passwordErrors.currentPassword.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="newPassword" data-testid="label-new-password">
+                      New Password
+                    </Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      {...registerPassword("newPassword", { 
+                        required: "New password is required",
+                        minLength: {
+                          value: 6,
+                          message: "Password must be at least 6 characters long"
+                        }
+                      })}
+                      className="mt-1"
+                      data-testid="input-new-password"
+                      autoComplete="new-password"
+                    />
+                    {passwordErrors.newPassword && (
+                      <p className="text-sm text-red-500 mt-1" data-testid="error-new-password">
+                        {passwordErrors.newPassword.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmPassword" data-testid="label-confirm-new-password">
+                      Confirm New Password
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      {...registerPassword("confirmPassword", { 
+                        required: "Please confirm your new password",
+                        validate: (value) => 
+                          value === newPassword || "Passwords do not match"
+                      })}
+                      className="mt-1"
+                      data-testid="input-confirm-new-password"
+                      autoComplete="new-password"
+                    />
+                    {passwordErrors.confirmPassword && (
+                      <p className="text-sm text-red-500 mt-1" data-testid="error-confirm-new-password">
+                        {passwordErrors.confirmPassword.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex space-x-4">
+                    <Button
+                      type="submit"
+                      disabled={changePasswordMutation.isPending}
+                      className="trivia-button-primary"
+                      data-testid="button-save-password"
+                    >
+                      {changePasswordMutation.isPending ? (
+                        <>
+                          <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <Shield className="mr-2 h-4 w-4" />
+                          Update Password
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handlePasswordCancel}
+                      variant="outline"
+                      data-testid="button-cancel-password"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center">
+                      <Shield className="mr-3 h-5 w-5 text-gray-500" />
+                      <div>
+                        <p className="font-medium text-gray-900">Password</p>
+                        <p className="text-sm text-gray-500">Last updated: Never shown for security</p>
+                      </div>
+                    </div>
+                    <div className="text-green-600 text-sm font-medium">Secure</div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2">
+                    <p>• Use a strong password with at least 6 characters</p>
+                    <p>• Consider using a combination of letters, numbers, and symbols</p>
+                    <p>• Don't reuse passwords from other accounts</p>
                   </div>
                 </div>
               )}

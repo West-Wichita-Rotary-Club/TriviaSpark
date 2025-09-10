@@ -104,6 +104,7 @@ try
 
     // EF Core services
     builder.Services.AddScoped<IEfCoreUserService, EfCoreUserService>();
+    builder.Services.AddScoped<IAdminService, EfCoreAdminService>();
     builder.Services.AddScoped<IEfCoreEventService, EfCoreEventService>();
     builder.Services.AddScoped<IEfCoreQuestionService, EfCoreQuestionService>();
     builder.Services.AddScoped<IEfCoreTeamService, EfCoreTeamService>();
@@ -197,6 +198,9 @@ try
 
     app.UseCors();
 
+    // Admin authorization middleware (for /admin routes)
+    app.UseAdminAuthorization();
+
     // Map SignalR hub (disabled - pending EF Core integration)
     // app.MapHub<TriviaHub>("/ws");
     app.MapControllers(); // Map controller routes
@@ -221,6 +225,14 @@ try
     app.MapFallbackToFile("index.html");
 
     Log.Information("TriviaSpark API startup completed successfully");
+    
+    // Initialize default roles
+    using (var scope = app.Services.CreateScope())
+    {
+        var adminService = scope.ServiceProvider.GetRequiredService<IAdminService>();
+        await adminService.EnsureDefaultRolesExistAsync();
+        Log.Information("Default roles initialized");
+    }
     
     app.Run();
 }

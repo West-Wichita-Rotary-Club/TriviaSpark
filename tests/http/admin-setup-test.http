@@ -1,0 +1,20 @@
+### Login as user 'mark' 
+POST https://localhost:14165/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "password123"
+}
+
+### Check current user info after login to see role
+GET https://localhost:14165/api/auth/me
+Content-Type: application/json
+
+### Try admin route after login (should work now!)
+GET https://localhost:14165/admin
+Content-Type: application/json
+
+### Try to get all users via admin API
+GET https://localhost:14165/api/admin/users
+Content-Type: application/json

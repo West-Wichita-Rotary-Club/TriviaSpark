@@ -21,6 +21,9 @@ public class User
     
     public DateTime CreatedAt { get; set; }
     
+    public string? RoleId { get; set; }
+    
     // Navigation properties
     public virtual ICollection<Event> Events { get; set; } = new List<Event>();
+    public virtual Role? Role { get; set; }
 }
