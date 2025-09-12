@@ -72,9 +72,9 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
 
   // Query to fetch event image for this question
   const { data: eventImageData, refetch: refetchEventImage } = useQuery({
-    queryKey: ["/api/questions", question.id, "eventimage"],
+    queryKey: ["/api/eventimages/question", question.id],
     queryFn: async () => {
-      const response = await fetch(`/api/questions/${question.id}/eventimage`, {
+      const response = await fetch(`/api/eventimages/question/${question.id}`, {
         credentials: 'include',
       });
       if (!response.ok) {
@@ -108,7 +108,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
   // Mutation for saving event image
   const saveEventImageMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/questions/${question.id}/eventimage`, {
+      const response = await fetch(`/api/eventimages/question/${question.id}/replace`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

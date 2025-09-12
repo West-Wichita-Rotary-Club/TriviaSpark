@@ -178,16 +178,8 @@ function App() {
                       }}
                     </Route>
                     
-                    {/* Presenter route */}
-                    <Route path="/presenter/:id">
-                      {(params) => (
-                        <>
-                          <Header />
-                          <PresenterView />
-                          <Footer />
-                        </>
-                      )}
-                    </Route>
+                    {/* Presenter route - standalone mode without header/footer */}
+                    <Route path="/presenter/:id" component={PresenterView} />
                     
                     {/* Other routes */}
                     <Route path="/join/:qrCode">

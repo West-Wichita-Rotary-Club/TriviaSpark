@@ -63,9 +63,9 @@ interface TriviaManageProps {
 // Question thumbnail component
 const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: string | null }> = ({ questionId, backgroundImageUrl }) => {
   const { data: eventImageData } = useQuery({
-    queryKey: ['/api/questions', questionId, 'eventimage'],
+    queryKey: ['/api/eventimages/question', questionId],
     queryFn: async () => {
-      const response = await fetch(`/api/questions/${questionId}/eventimage`, {
+      const response = await fetch(`/api/eventimages/question/${questionId}`, {
         credentials: 'include'
       });
       if (!response.ok) {

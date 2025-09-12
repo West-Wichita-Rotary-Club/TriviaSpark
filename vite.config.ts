@@ -6,6 +6,12 @@ export default defineConfig({
   plugins: [react()],
   // When building for static GitHub Pages, use "/TriviaSpark/"; otherwise use root
   base: process.env.STATIC_BUILD === "true" ? "/TriviaSpark/" : "/",
+  define: {
+    // Make STATIC_BUILD available to the client code
+    "import.meta.env.VITE_STATIC_BUILD": JSON.stringify(
+      process.env.STATIC_BUILD || "false"
+    ),
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

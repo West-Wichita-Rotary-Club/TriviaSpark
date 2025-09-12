@@ -1,21 +1,647 @@
-// Fallback demo data for static build
-// Last updated: 2025-09-09T22:35:51.348Z
-// Using default demo data (no database found)
+// Generated data from SQLite database
+// Last updated: 2025-09-12T13:05:48.547Z
+// Database: file:C:\websites\TriviaSpark\trivia.db
 
-import { demoEvent as fallbackEvent, demoQuestions as fallbackQuestions, demoFunFacts as fallbackFunFacts } from './fallback-data';
+export const demoEvent = {
+  "id": "seed-event-coast-to-cascades",
+  "title": "Coast to Cascades Wine & Trivia Evening",
+  "description": "An elegant evening combining Pacific Northwest wines",
+  "hostId": "mark-user-id",
+  "eventType": "wine-dinner",
+  "status": "active",
+  "qrCode": "rotary-cascades-2025",
+  "maxParticipants": 101,
+  "difficulty": "mixed",
+  "logoUrl": "https://example.com/rotary-logo.png",
+  "backgroundImageUrl": "https://example.com/wine-background.jpg",
+  "eventCopy": "Experience an unforgettable evening where fine wine meets friendly competition! Join us for Coast to Cascades Wine & Trivia Night, where every sip and every answer helps support our local community. With carefully curated Pacific Northwest wines and engaging trivia questions, this elegant fundraiser promises both sophistication and fun.",
+  "welcomeMessage": "Welcome to Coast to Cascades Wine & Trivia Night! We're thrilled to have you join us for this special evening of wine, wisdom, and wonderful causes. Get ready for an exciting trivia experience while supporting our community!",
+  "thankYouMessage": "Thank you for participating in Coast to Cascades Wine & Trivia Night! Your involvement helps us continue supporting local charities and making a difference in our community. We hope you enjoyed the evening!",
+  "primaryColor": "#7C2D12",
+  "secondaryColor": "#FEF3C7",
+  "fontFamily": "Inter",
+  "contactEmail": "events@westwichitarotary.org",
+  "contactPhone": "(316) 555-0123",
+  "websiteUrl": "https://westwichitarotary.org",
+  "socialLinks": "{\"facebook\":\"https://www.facebook.com/rotaryofwestwichita\",\"linkedin\":\"https://www.linkedin.com/company/rotaryofwestwichita/\"}",
+  "prizeInformation": "Wine bottles and gift certificates",
+  "eventRules": "• Teams of 2-6 participants\\n• No smartphones or electronic devices during questions\\n• Wine tasting between rounds is encouraged\\n• Be respectful to all participants and volunteers\\n• Have fun and support a great cause!",
+  "specialInstructions": "Please arrive 30 minutes early for check-in and wine selection. Designated driver arrangements are encouraged. Business casual or cocktail attire suggested.",
+  "accessibilityInfo": "The venue is wheelchair accessible with elevator access to all floors. Large print question sheets available upon request. Please contact us for any specific accommodation needs.",
+  "dietaryAccommodations": "Light appetizers will be served. Vegetarian and gluten-free options available. Please contact us 48 hours in advance for specific dietary requirements.",
+  "dressCode": "Business casual or cocktail attire",
+  "ageRestrictions": "21+ for wine tasting, 18+ for trivia participation",
+  "technicalRequirements": "No technical requirements - all materials provided",
+  "registrationDeadline": "2025-09-09T22:59:59.000Z",
+  "cancellationPolicy": "Full refund available until 72 hours before the event. After that, 50% refund is available until 24 hours before. No refunds within 24 hours of the event.",
+  "refundPolicy": "Refunds processed within 5-7 business days to the original payment method. Processing fees may apply.",
+  "sponsorInformation": "{\"name\":\"Pacific Northwest Wine Distributors\",\"logoUrl\":\"https://example.com/sponsor-logo.png\",\"website\":\"https://pnwwine.com\",\"description\":\"Leading distributor of premium Pacific Northwest wines, proudly supporting community fundraising events throughout the region.\"}",
+  "settings": {},
+  "eventDate": "2025-09-13T23:30:00.000Z",
+  "eventTime": "6:30 PM",
+  "location": "Newman University, Wichita, KS",
+  "sponsoringOrganization": "West Wichita Rotary Club",
+  "createdAt": "2025-09-05T20:28:30.501Z",
+  "startedAt": null,
+  "completedAt": null
+};
 
-export const demoEvent = fallbackEvent;
-export const demoQuestions = fallbackQuestions;
-export const demoFunFacts = fallbackFunFacts;
+export const demoQuestions = [
+  {
+    "id": "q1-wine-regions",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which Pacific Northwest wine region is known as Oregon's premier Pinot Noir producing area?",
+    "options": [
+      "Willamette Valley",
+      "Columbia Valley",
+      "Walla Walla Valley",
+      "Yakima Valley"
+    ],
+    "correctAnswer": "Willamette Valley",
+    "explanation": "Oregon's premier Pinot Noir producing area is the Willamette Valley. Located in the northwest part of the state, it is recognized as one of the world's top Pinot Noir regions.",
+    "difficulty": "easy",
+    "category": "wine",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw0fHxwaW5vdCUyMG5vaXJ8ZW58MXx8fHwxNzU3NjI5NjEzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 1,
+    "aiGenerated": false,
+    "createdAt": "2025-09-02T17:28:30.502Z"
+  },
+  {
+    "id": "q2-rotary-service",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Rotary's mission is fundamentally based on its motto, what is it?",
+    "options": [
+      "Environmental conservation",
+      "Education and literacy",
+      "Service Above Self",
+      "Economic development"
+    ],
+    "correctAnswer": "Service Above Self",
+    "explanation": "Rotary's motto 'Service Above Self' encapsulates the organization's core philosophy of putting service to others before personal interests.",
+    "difficulty": "easy",
+    "category": "rotary",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1631417178771-df62876dcbaf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxyb3Rhcnl8ZW58MXx8fHwxNzU3NjI5NTE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 2,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T05:28:30.504Z"
+  },
+  {
+    "id": "c987f769-d56d-47c0-8f2b-2c9f8941e4e1",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What is the main goal of the 'Rotary Global Grant' projects in economic development?",
+    "options": [
+      "Building local infrastructure",
+      "Providing vocational training",
+      "Funding educational scholarships",
+      "Supporting agricultural development"
+    ],
+    "correctAnswer": "Providing vocational training",
+    "explanation": "Rotary Global Grant projects often focus on providing vocational training to improve employment opportunities and stimulate economic development in communities.",
+    "difficulty": "medium",
+    "category": "Give examples of Rotary projects for economic development",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1588623731810-171b80f3c55e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw4fHxHbG9iYWwlMjBHcmFudHN8ZW58MXx8fHwxNzU3NjMwODY5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 2,
+    "aiGenerated": true,
+    "createdAt": "2025-09-11T12:46:41.441Z"
+  },
+  {
+    "id": "q3-pacific-northwest",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Mount Rainier, the iconic peak visible from Seattle, reaches what elevation?",
+    "options": [
+      "12,330 feet",
+      "14,410 feet",
+      "16,050 feet",
+      "11,249 feet"
+    ],
+    "correctAnswer": "14,410 feet",
+    "explanation": "Mount Rainier has an officially recognized summit elevation of 14,410 feet (4,392 meters). Located in Washington's Cascade Range, it is the highest mountain in the state.  The summit may be shrinking due to glacial ice melt, potentially changing the exact highest point and its official height in the future.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1598550616109-385bc1d3269f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw3fHxtb3VudCUyMHJhaW5lcnxlbnwxfHx8fDE3NTc2Mjk3Mzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 3,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T05:28:30.506Z"
+  },
+  {
+    "id": "q4-oregon-wine-variety",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which grape variety is Oregon's signature and most widely planted wine grape, spanning from the Coast Range to the Cascade Mountains?",
+    "options": [
+      "Chardonnay",
+      "Pinot Noir",
+      "Riesling",
+      "Cabernet Sauvignon"
+    ],
+    "correctAnswer": "Pinot Noir",
+    "explanation": "Pinot Noir is Oregon's signature and most widely planted wine grape. It accounts for nearly 60% of the state's total vineyard plantings.",
+    "difficulty": "medium",
+    "category": "wine",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1642603436366-c72d8a48a22d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwzfHxwaW5vdCUyMG5vaXJ8ZW58MXx8fHwxNzU3NjI5NjEzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 4,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T10:28:30.507Z"
+  },
+  {
+    "id": "ab885a8f-f365-4f2b-9bf9-a524081a3b9a",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which of the following AVAs (American Viticultural Areas) in the Pacific Northwest is known for its unique combination of volcanic soil and the marine influence from a large river, resulting in diverse wine styles?",
+    "options": [
+      "Willamette Valley",
+      "Columbia Gorge",
+      "Walla Walla Valley",
+      "Rogue Valley"
+    ],
+    "correctAnswer": "Columbia Gorge",
+    "explanation": "The Columbia Gorge AVA is renowned for its diverse microclimates and soil types, including volcanic and loess soils. The proximity to the Columbia River and Cascade Range provides a unique marine influence, allowing for a wide range of grape varieties and wine styles.",
+    "difficulty": "hard",
+    "category": "Pacific Northwest Wine Regions terroirs",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1657518860188-daa43c146ed8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw2fHxvcmVnb24lMjB3YXRlcmZhbGwlMjBicmlkZ2V8ZW58MXx8fHwxNzU3NjMxNzQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 4,
+    "aiGenerated": true,
+    "createdAt": "2025-09-09T07:18:43.801Z"
+  },
+  {
+    "id": "q5-oregon-geographic-feature",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What major geographic feature creates the natural boundary between Oregon's wine regions and influences their climate patterns from coast to mountains?",
+    "options": [
+      "Columbia River",
+      "Coast Range",
+      "Cascade Mountains",
+      "Blue Mountains"
+    ],
+    "correctAnswer": "Cascade Mountains",
+    "explanation": "The Cascade Mountains create a rain shadow effect, giving Oregon's wine regions their Mediterranean-like climate with wet winters and dry summers.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1645568049650-8520849f7eb4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw4fHxDYXNjYWRlJTIwTW91bnRhaW5zfGVufDF8fHx8MTc1NzYzMTc3NXww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 5,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T10:28:30.509Z"
+  },
+  {
+    "id": "bb291980-fbaf-4cc8-a0ed-01f8a492a10b",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What is the name of the global initiative launched by Rotary International in 1985 to eradicate polio worldwide?",
+    "options": [
+      "Polio Plus",
+      "End Polio Now",
+      "Polio Free World",
+      "Vaccines for All"
+    ],
+    "correctAnswer": "Polio Plus",
+    "explanation": "In 1985, Rotary International launched the Polio Plus program to tackle global polio eradication through the mass vaccination of children. The \"Plus\" signifies efforts to provide other health initiatives not just the polio vaccine.  Since its launch, the initiative has reduced polio cases by more than 99% worldwide.",
+    "difficulty": "moderate",
+    "category": "Rotary International",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1639401122139-68a5840cb3bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxwb2xpbyUyMHBsdXN8ZW58MXx8fHwxNzU3NjMwMDc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 5,
+    "aiGenerated": true,
+    "createdAt": "2025-09-08T23:07:01.825Z"
+  },
+  {
+    "id": "q6-oregon-coast-lighthouse",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which iconic Oregon Coast lighthouse, featured in countless photographs, stands on a basalt headland near Florence?",
+    "options": [
+      "Yaquina Head Lighthouse",
+      "Heceta Head Lighthouse",
+      "Cape Blanco Lighthouse",
+      "Tillamook Rock Lighthouse"
+    ],
+    "correctAnswer": "Heceta Head Lighthouse",
+    "explanation": "Heceta Head Lighthouse, built in 1894, is one of the most photographed lighthouses in the world and sits dramatically on a 205-foot cliff overlooking the Pacific Ocean.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1698274058363-b4cdf25a373d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxIZWNldGElMjBIZWFkJTIwTGlnaHRob3VzZXxlbnwxfHx8fDE3NTc2MzAxMzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 6,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T10:28:30.510Z"
+  },
+  {
+    "id": "q7-cascade-volcanic-peak",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which Cascade Mountain peak famously erupted in 1980, reducing its height by 1,314 feet?",
+    "options": [
+      "Mount Hood",
+      "Mount Bachelor",
+      "Mount St. Helens",
+      "Mount Jefferson"
+    ],
+    "correctAnswer": "Mount St. Helens",
+    "explanation": "Mount St. Helens erupted catastrophically on May 18, 1980, in the most significant volcanic event in the contiguous United States in modern times, reducing its elevation from 9,677 to 8,363 feet.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1745780898354-81b3dd5d02c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw5fHxtdCUyMHNhaW50JTIwaGVsZW5zfGVufDF8fHx8MTc1NzQ0MjY3M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 7,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T15:28:30.512Z"
+  },
+  {
+    "id": "q8-oregon-coast-haystack",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "The famous Haystack Rock, a 235-foot sea stack that's home to diverse tidepools, is located at which Oregon Coast beach town?",
+    "options": [
+      "Astoria",
+      "Cannon Beach",
+      "Bandon",
+      "Newport"
+    ],
+    "correctAnswer": "Cannon Beach",
+    "explanation": "Haystack Rock at Cannon Beach is one of Oregon's most recognizable landmarks and a designated Oregon Islands National Wildlife Refuge, providing habitat for seabirds and marine life.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1598390024150-919bbcaa2b17?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw0fHxIYXlzdGFjayUyMFJvY2t8ZW58MXx8fHwxNzU3MTE5MDAzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 8,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T15:28:30.513Z"
+  },
+  {
+    "id": "q9-cascade-lakes-highway",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "The scenic Cascade Lakes Highway loops around which major Cascade peak, offering access to numerous alpine lakes and ski areas?",
+    "options": [
+      "Mount Hood",
+      "Mount Bachelor",
+      "Three Sisters",
+      "Broken Top"
+    ],
+    "correctAnswer": "Mount Bachelor",
+    "explanation": "The scenic Cascade Lakes Highway loops around Mount Bachelor. The 66-mile highway is located in central Oregon and offers access to numerous alpine lakes, ski areas, and stunning views of other major peaks. ",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1719628458096-ba9671d26b9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw3fHxDYXNjYWRlJTIwTGFrZXMlMjBIaWdod2F5fGVufDF8fHx8MTc1NzYzMDIyOHww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 9,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T10:28:30.515Z"
+  },
+  {
+    "id": "f2ab8a2f-3fb2-4fa0-a599-312d04b57a12",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which project is an example of Rotary's efforts to support agricultural development in rural areas?",
+    "options": [
+      "Farmers' Cooperative Initiatives",
+      "Rural Prosperity Program",
+      "Agro-Economic Empowerment",
+      "Harvesting Futures"
+    ],
+    "correctAnswer": "Farmers' Cooperative Initiatives",
+    "explanation": "Rotary's 'Farmers' Cooperative Initiatives' aim to support agricultural development by forming cooperatives that provide resources, training, and market access to rural farmers.",
+    "difficulty": "moderate",
+    "category": "Give examples of Rotary projects for economic development",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1734261780213-765e29537e1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw1fHxGYXJtZXJzJTI3JTIwQ29vcGVyYXRpdmUlMjBJbml0aWF0aXZlc3xlbnwxfHx8fDE3NTc2MzA5NDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 9,
+    "aiGenerated": true,
+    "createdAt": "2025-09-11T12:46:41.441Z"
+  },
+  {
+    "id": "q10-oregon-coast-dunes",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "The Oregon Dunes National Recreation Area, featuring massive coastal sand dunes that reach heights up to 500 feet, stretches along the coast near which city?",
+    "options": [
+      "Lincoln City",
+      "Florence",
+      "Brookings",
+      "Seaside"
+    ],
+    "correctAnswer": "Florence",
+    "explanation": "The Oregon Dunes National Recreation Area spans 40 square miles along the coast near Florence, creating the largest expanse of coastal sand dunes in North America and a unique desert-like landscape.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1602869104950-ae78d274309f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxPcmVnb24lMjBEdW5lcyUyME5hdGlvbmFsfGVufDF8fHx8MTc1NzYzMDMxNHww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 10,
+    "aiGenerated": false,
+    "createdAt": "2025-09-05T10:28:30.517Z"
+  },
+  {
+    "id": "856ee667-b60c-4cfb-a796-858a1c9b63f8",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Mount Hood is a prominent feature of which mountain range?",
+    "options": [
+      "Cascade Range",
+      "Rocky Mountains",
+      "Sierra Nevada",
+      "Appalachian Mountains"
+    ],
+    "correctAnswer": "Cascade Range",
+    "explanation": "Mount Hood is part of the Cascade Range, a major mountain range of western North America, extending from southern British Columbia through Washington and Oregon to Northern California.",
+    "difficulty": "moderate",
+    "category": "Mount Hood",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1588973046899-21ad07fbc507?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxtb3VudCUyMGhvb2R8ZW58MXx8fHwxNzU3NjMwMzY2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 11,
+    "aiGenerated": true,
+    "createdAt": "2025-09-05T02:02:23.400Z"
+  },
+  {
+    "id": "641b7da0-3ecd-4739-be4b-c95b191805ea",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What is the name of the historic lodge located on Mount Hood, which has become a popular tourist destination?",
+    "options": [
+      "Crater Lake Lodge",
+      "Timberline Lodge",
+      "Paradise Inn",
+      "Sun Valley Lodge"
+    ],
+    "correctAnswer": "Timberline Lodge",
+    "explanation": "Timberline Lodge, constructed during the Great Depression as a Works Progress Administration project, is a National Historic Landmark and offers year-round skiing.",
+    "difficulty": "easy",
+    "category": "Mount Hood",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1649570155908-d6b35b9d7bbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxMnx8VGltYmVybGluZSUyMExvZGdlfGVufDF8fHx8MTc1NzYzMTgxOXww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 12,
+    "aiGenerated": true,
+    "createdAt": "2025-09-05T02:02:23.400Z"
+  },
+  {
+    "id": "f753f9d5-1b2b-4d1a-beda-68c9aa5c2341",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Mount Hood is the highest peak in Oregon. What is its approximate elevation?",
+    "options": [
+      "A. 9,600 feet",
+      "B. 10,200 feet",
+      "C. 11,240 feet",
+      "D. 12,000 feet"
+    ],
+    "correctAnswer": "C. 11,240 feet",
+    "explanation": "Mount Hood's summit reaches approximately 11,240 feet, making it the highest point in Oregon and a prominent peak in the Cascade Volcanic Arc.",
+    "difficulty": "hard",
+    "category": "Mount Hood",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1588973046899-21ad07fbc507?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxtb3VudCUyMGhvb2R8ZW58MXx8fHwxNzU3MTE4MDY5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 13,
+    "aiGenerated": true,
+    "createdAt": "2025-09-04T21:02:23.400Z"
+  },
+  {
+    "id": "81a6cce5-f649-4239-8082-d30768600e24",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What feature of the Yakima Valley AVA contributes significantly to its terroir, making it one of the most productive wine regions in Washington State?",
+    "options": [
+      "A. Its high elevation",
+      "B. Its sandy loam soil",
+      "C. Its long growing season",
+      "D. Its proximity to the Pacific Ocean"
+    ],
+    "correctAnswer": "C. Its long growing season",
+    "explanation": "The Yakima Valley AVA benefits from a long growing season, which is crucial for the development of complex flavors in grapes. The region's climate, with hot days and cool nights, allows for a longer period of vine growth, essential for producing high-quality wines.",
+    "difficulty": "challenging",
+    "category": "Pacific Northwest Wine Regions terroirs",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1649081752336-f60db3756c7b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw2fHxZYWtpbWElMjBWYWxsZXl8ZW58MXx8fHwxNzU3NDU2NDMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 16,
+    "aiGenerated": true,
+    "createdAt": "2025-09-09T17:18:43.801Z"
+  },
+  {
+    "id": "ac1ee0f7-2058-4073-82a3-aabf72a16458",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which Rotary project focuses on providing microloans to women in developing countries to start small businesses?",
+    "options": [
+      "Microcredit for Empowerment",
+      "Women’s Economic Initiatives",
+      "Microfinance for Entrepreneurs",
+      "Rotary Women’s Fund"
+    ],
+    "correctAnswer": "Microcredit for Empowerment",
+    "explanation": "The 'Microcredit for Empowerment' project offers small loans to women in developing countries, helping them to start or expand small businesses, which in turn stimulates local economies.",
+    "difficulty": "easy",
+    "category": "Give examples of Rotary projects for economic development",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1633329712165-4e578376eb87?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw5fHxXb21lbiUyMEVtcG93ZXJtZW50fGVufDF8fHx8MTc1NzYzMDg0Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 17,
+    "aiGenerated": true,
+    "createdAt": "2025-09-11T17:46:41.441Z"
+  },
+  {
+    "id": "9a1b7374-086b-4d7f-8a3b-5ce09a6f6b66",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What is the unique feature of L'Ecole No 41 winery, which is located in a historic schoolhouse in Walla Walla, Washington?",
+    "options": [
+      "The winery produces sparkling wine exclusively",
+      "It is built inside a renovated church",
+      "The tasting room is located in a historic schoolhouse",
+      "It focuses solely on white wine production"
+    ],
+    "correctAnswer": "The tasting room is located in a historic schoolhouse",
+    "explanation": "L'Ecole No 41 is famous for its location in a historic schoolhouse, which adds a unique charm and historical context to the wine tasting experience in Walla Walla. The winery's name, L'Ecole, is French for \"the school\". ",
+    "difficulty": "moderate",
+    "category": "Unique Pacific Norwest Wineries",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1660903028319-238d7395f81d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwyfHxMJTI3RWNvbGUlMjBXaW5lcnl8ZW58MXx8fHwxNzU3NjMxMzE3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 19,
+    "aiGenerated": true,
+    "createdAt": "2025-09-11T17:50:27.410Z"
+  },
+  {
+    "id": "3b94cf5b-ffa0-4eff-815f-4f2c63f0b3e4",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Which Oregon winery became the first in the United States to be certified as B Corporation, reflecting its commitment to social and environmental performance?",
+    "options": [
+      "Stoller Family Estate",
+      "Willamette Valley Vineyards",
+      "A to Z Wineworks",
+      "Domaine Serene"
+    ],
+    "correctAnswer": "A to Z Wineworks",
+    "explanation": "A to Z Wineworks became the first winery in the United States to be certified as a B Corporation in May 2014. The Willamette Valley winery was recognized for its commitment to social and environmental performance.",
+    "difficulty": "moderate",
+    "category": "Unique Pacific Norwest Wineries",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1667842287713-d57cbaccac57?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw5fHxBJTIwdG8lMjBaJTIwV2luZXdvcmtzfGVufDF8fHx8MTc1NzYzMTI0N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 20,
+    "aiGenerated": true,
+    "createdAt": "2025-09-11T17:50:27.410Z"
+  },
+  {
+    "id": "e48d3004-0b95-4757-a9d1-bf819f36fde8",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What sustainable practice is Brooks Winery known for implementing in their vineyard management?",
+    "options": [
+      "Biodynamic farming",
+      "Conventional farming",
+      "Hydroponic farming",
+      "Vertical farming"
+    ],
+    "correctAnswer": "Biodynamic farming",
+    "explanation": "Brooks Winery practices biodynamic farming, which is a sustainable approach that emphasizes ecological balance and biodiversity in the vineyard.  It is also a certified B Corporation and a member of 1% for the Planet, reflecting a broader commitment to sustainability.  ",
+    "difficulty": "moderate",
+    "category": "Brooks Winery",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1589836857865-b7d1a264e39b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxMHx8bW91bnQlMjBob29kJTIwd2luZXJ5fGVufDF8fHx8MTc1NzYzMTEzMnww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 23,
+    "aiGenerated": true,
+    "createdAt": "2025-09-11T12:51:43.710Z"
+  }
+];
 
-export const allEvents = fallbackEvent ? [fallbackEvent] : [];
+export const demoFunFacts = [
+  {
+    "id": "ff1-musical-tradition",
+    "eventId": "seed-event-coast-to-cascades",
+    "title": "Musical Holiday Tradition",
+    "content": "The club hosts an annual Holiday Lunch featuring performances by the Friends University Concert Choir, a tradition started by founding member Dr. David Weber that continues nearly 40 years later! 🎵",
+    "orderIndex": 1,
+    "isActive": true,
+    "createdAt": "2025-09-05T20:28:30.518Z"
+  },
+  {
+    "id": "a1070f41-de9a-42d9-b6dd-a22144e01775",
+    "eventId": "seed-event-coast-to-cascades",
+    "title": "Wine Tasting Fun Fact",
+    "content": "Did you know that wine tasting involves all five senses?",
+    "orderIndex": 1,
+    "isActive": true,
+    "createdAt": "2025-09-05T20:40:24.236Z"
+  },
+  {
+    "id": "ff2-oregon-wine-facts",
+    "eventId": "seed-event-coast-to-cascades",
+    "title": "Oregon Wine Pioneer",
+    "content": "David Lett, known as 'Papa Pinot,' planted Oregon's first Pinot Noir vines in 1965 in the Dundee Hills. His 1975 Pinot Noir shocked the wine world by placing second in a blind tasting against top French Burgundies! 🍷",
+    "orderIndex": 2,
+    "isActive": true,
+    "createdAt": "2025-09-05T20:28:30.520Z"
+  },
+  {
+    "id": "ff3-rotary-foundation",
+    "eventId": "seed-event-coast-to-cascades",
+    "title": "Rotary's Global Impact",
+    "content": "The Rotary Foundation has helped immunize more than 2.5 billion children against polio since 1985, bringing the world closer to eradicating this disease completely! 💉",
+    "orderIndex": 3,
+    "isActive": true,
+    "createdAt": "2025-09-05T20:28:30.521Z"
+  },
+  {
+    "id": "ff4-pacific-northwest-climate",
+    "eventId": "seed-event-coast-to-cascades",
+    "title": "Perfect Wine Climate",
+    "content": "Oregon's Willamette Valley shares the same latitude (45°N) as Burgundy, France, which explains why Pinot Noir thrives so well in both regions! 🌍",
+    "orderIndex": 4,
+    "isActive": true,
+    "createdAt": "2025-09-05T20:28:30.523Z"
+  },
+  {
+    "id": "ff5-community-service",
+    "eventId": "seed-event-coast-to-cascades",
+    "title": "Service Above Self",
+    "content": "Rotary clubs worldwide contribute over 47 million volunteer hours annually, with members donating their time to projects ranging from literacy programs to clean water initiatives! 🤝",
+    "orderIndex": 5,
+    "isActive": true,
+    "createdAt": "2025-09-05T20:28:30.524Z"
+  }
+];
+
+// Additional data for development
+export const allEvents = [
+  {
+    "id": "seed-event-coast-to-cascades",
+    "title": "Coast to Cascades Wine & Trivia Evening",
+    "description": "An elegant evening combining Pacific Northwest wines",
+    "hostId": "mark-user-id",
+    "eventType": "wine-dinner",
+    "status": "active",
+    "qrCode": "rotary-cascades-2025",
+    "maxParticipants": 101,
+    "difficulty": "mixed",
+    "logoUrl": "https://example.com/rotary-logo.png",
+    "backgroundImageUrl": "https://example.com/wine-background.jpg",
+    "eventCopy": "Experience an unforgettable evening where fine wine meets friendly competition! Join us for Coast to Cascades Wine & Trivia Night, where every sip and every answer helps support our local community. With carefully curated Pacific Northwest wines and engaging trivia questions, this elegant fundraiser promises both sophistication and fun.",
+    "welcomeMessage": "Welcome to Coast to Cascades Wine & Trivia Night! We're thrilled to have you join us for this special evening of wine, wisdom, and wonderful causes. Get ready for an exciting trivia experience while supporting our community!",
+    "thankYouMessage": "Thank you for participating in Coast to Cascades Wine & Trivia Night! Your involvement helps us continue supporting local charities and making a difference in our community. We hope you enjoyed the evening!",
+    "primaryColor": "#7C2D12",
+    "secondaryColor": "#FEF3C7",
+    "fontFamily": "Inter",
+    "contactEmail": "events@westwichitarotary.org",
+    "contactPhone": "(316) 555-0123",
+    "websiteUrl": "https://westwichitarotary.org",
+    "socialLinks": "{\"facebook\":\"https://www.facebook.com/rotaryofwestwichita\",\"linkedin\":\"https://www.linkedin.com/company/rotaryofwestwichita/\"}",
+    "prizeInformation": "Wine bottles and gift certificates",
+    "eventRules": "• Teams of 2-6 participants\\n• No smartphones or electronic devices during questions\\n• Wine tasting between rounds is encouraged\\n• Be respectful to all participants and volunteers\\n• Have fun and support a great cause!",
+    "specialInstructions": "Please arrive 30 minutes early for check-in and wine selection. Designated driver arrangements are encouraged. Business casual or cocktail attire suggested.",
+    "accessibilityInfo": "The venue is wheelchair accessible with elevator access to all floors. Large print question sheets available upon request. Please contact us for any specific accommodation needs.",
+    "dietaryAccommodations": "Light appetizers will be served. Vegetarian and gluten-free options available. Please contact us 48 hours in advance for specific dietary requirements.",
+    "dressCode": "Business casual or cocktail attire",
+    "ageRestrictions": "21+ for wine tasting, 18+ for trivia participation",
+    "technicalRequirements": "No technical requirements - all materials provided",
+    "registrationDeadline": "2025-09-09T22:59:59.000Z",
+    "cancellationPolicy": "Full refund available until 72 hours before the event. After that, 50% refund is available until 24 hours before. No refunds within 24 hours of the event.",
+    "refundPolicy": "Refunds processed within 5-7 business days to the original payment method. Processing fees may apply.",
+    "sponsorInformation": "{\"name\":\"Pacific Northwest Wine Distributors\",\"logoUrl\":\"https://example.com/sponsor-logo.png\",\"website\":\"https://pnwwine.com\",\"description\":\"Leading distributor of premium Pacific Northwest wines, proudly supporting community fundraising events throughout the region.\"}",
+    "settings": {},
+    "eventDate": "2025-09-13T23:30:00.000Z",
+    "eventTime": "6:30 PM",
+    "location": "Newman University, Wichita, KS",
+    "sponsoringOrganization": "West Wichita Rotary Club",
+    "createdAt": "2025-09-05T20:28:30.501Z",
+    "startedAt": null,
+    "completedAt": null
+  }
+];
 
 export const buildInfo = {
-  extractedAt: "2025-09-09T22:35:51.348Z",
-  databaseUrl: "fallback",
-  eventsCount: fallbackEvent ? 1 : 0,
-  questionsCount: fallbackQuestions?.length || 0,
-  funFactsCount: fallbackFunFacts?.length || 0,
-  primaryEventId: fallbackEvent?.id || null,
-  usingFallbackData: true,
+  extractedAt: "2025-09-12T13:05:48.547Z",
+  databaseUrl: "file:C:\websites\TriviaSpark\trivia.db",
+  eventsCount: 1,
+  questionsCount: 22,
+  funFactsCount: 6,
+  primaryEventId: "seed-event-coast-to-cascades",
 };
