@@ -110,8 +110,9 @@ public class UnsplashService : IUnsplashService, IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Unsplash API request failed: {StatusCode} - {ReasonPhrase}", 
-                    response.StatusCode, response.ReasonPhrase);
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Unsplash API request failed: {StatusCode} - {ReasonPhrase} - Content: {ErrorContent}", 
+                    response.StatusCode, response.ReasonPhrase, errorContent);
                 
                 // Check for rate limiting
                 if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
@@ -179,8 +180,9 @@ public class UnsplashService : IUnsplashService, IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to fetch Unsplash image {ImageId}: {StatusCode}", 
-                    sanitizedId, response.StatusCode);
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Failed to fetch Unsplash image {ImageId}: {StatusCode} - {ReasonPhrase} - Content: {ErrorContent}", 
+                    sanitizedId, response.StatusCode, response.ReasonPhrase, errorContent);
                 return null;
             }
 
@@ -274,7 +276,9 @@ public class UnsplashService : IUnsplashService, IDisposable
             }
             else
             {
-                _logger.LogWarning("Failed to track Unsplash download: {StatusCode}", response.StatusCode);
+                var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                _logger.LogWarning("Failed to track Unsplash download: {StatusCode} - {ReasonPhrase} - Content: {ErrorContent}", 
+                    response.StatusCode, response.ReasonPhrase, errorContent);
                 return false;
             }
         }

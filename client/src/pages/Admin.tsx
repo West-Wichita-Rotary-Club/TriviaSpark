@@ -145,9 +145,9 @@ export default function AdminPage() {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
-          <Shield className="mx-auto h-16 w-16 text-red-400 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600">You need admin privileges to access this page.</p>
+          <Shield className="mx-auto h-16 w-16 text-destructive mb-4" />
+          <h1 className="text-2xl font-bold text-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground">You need admin privileges to access this page.</p>
         </div>
       </div>
     );
@@ -160,7 +160,7 @@ export default function AdminPage() {
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Shield className="text-champagne-400 h-8 w-8 animate-pulse" />
           </div>
-          <p className="text-wine-700">Loading admin panel...</p>
+          <p className="text-primary">Loading admin panel...</p>
         </div>
       </div>
     );
@@ -171,12 +171,12 @@ export default function AdminPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Crown className="h-8 w-8 text-wine-600 mr-3" />
+            <Crown className="h-8 w-8 text-primary mr-3" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900" data-testid="text-admin-title">
+              <h1 className="text-3xl font-bold text-foreground" data-testid="text-admin-title">
                 Admin Panel
               </h1>
-              <p className="text-gray-600" data-testid="text-admin-subtitle">
+              <p className="text-muted-foreground" data-testid="text-admin-subtitle">
                 Manage users and system settings
               </p>
             </div>
@@ -197,7 +197,7 @@ export default function AdminPage() {
         <Card className="trivia-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-wine-600" />
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{users?.length || 0}</div>
@@ -207,7 +207,7 @@ export default function AdminPage() {
         <Card className="trivia-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
-            <Shield className="h-4 w-4 text-wine-600" />
+            <Shield className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -219,7 +219,7 @@ export default function AdminPage() {
         <Card className="trivia-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Regular Users</CardTitle>
-            <Users className="h-4 w-4 text-wine-600" />
+            <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -290,7 +290,7 @@ export default function AdminPage() {
                     title="User Role"
                     value={newUser.roleName}
                     onChange={(e) => setNewUser({ ...newUser, roleName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-wine-500"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="User">User</option>
                     <option value="Admin">Admin</option>
@@ -330,34 +330,34 @@ export default function AdminPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">User</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Email</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Role</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Created</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
+                <tr className="border-b">
+                  <th className="text-left py-3 px-4 font-medium text-foreground">User</th>
+                  <th className="text-left py-3 px-4 font-medium text-foreground">Email</th>
+                  <th className="text-left py-3 px-4 font-medium text-foreground">Role</th>
+                  <th className="text-left py-3 px-4 font-medium text-foreground">Created</th>
+                  <th className="text-left py-3 px-4 font-medium text-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users?.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={user.id} className="border-b hover:bg-muted/50">
                     <td className="py-3 px-4">
                       <div>
-                        <div className="font-medium text-gray-900">{user.fullName}</div>
-                        <div className="text-sm text-gray-500">@{user.username}</div>
+                        <div className="font-medium text-foreground">{user.fullName}</div>
+                        <div className="text-sm text-muted-foreground">@{user.username}</div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-gray-700">{user.email}</td>
+                    <td className="py-3 px-4 text-foreground">{user.email}</td>
                     <td className="py-3 px-4">
                       <Badge 
                         variant={user.roleName === "Admin" ? "destructive" : "secondary"}
-                        className={user.roleName === "Admin" ? "bg-wine-100 text-wine-800" : ""}
+                        className={user.roleName === "Admin" ? "bg-primary/10 text-primary" : ""}
                       >
                         {user.roleName === "Admin" && <Crown className="w-3 h-3 mr-1" />}
                         {user.roleName}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
                       {formatDateInCST(user.createdAt)}
                     </td>
                     <td className="py-3 px-4">
@@ -376,7 +376,7 @@ export default function AdminPage() {
                 ))}
                 {(!users || users.length === 0) && (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-500">
+                    <td colSpan={5} className="py-8 text-center text-muted-foreground">
                       No users found.
                     </td>
                   </tr>

@@ -94,7 +94,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="trivia-card shadow-2xl" data-testid="card-login">
           <CardHeader className="text-center space-y-4">
@@ -102,10 +102,10 @@ export default function Login() {
               <Brain className="text-champagne-400 h-8 w-8" />
             </div>
             <div>
-              <CardTitle className="text-2xl wine-text mb-2" data-testid="text-login-title">
+              <CardTitle className="text-2xl text-primary mb-2" data-testid="text-login-title">
                 Welcome to TriviaSpark
               </CardTitle>
-              <p className="text-gray-600" data-testid="text-login-subtitle">
+              <p className="text-muted-foreground" data-testid="text-login-subtitle">
                 Sign in to manage your trivia events
               </p>
             </div>
@@ -121,12 +121,12 @@ export default function Login() {
                   id="username"
                   {...register("username", { required: "Username is required" })}
                   placeholder="Enter your username"
-                  className={`mt-1 ${errors.username ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}`}
+                  className={`mt-1 ${errors.username ? "border-destructive" : "focus:ring-2 focus:ring-primary/20 focus:border-primary"}`}
                   data-testid="input-username"
                   autoComplete="username"
                 />
                 {errors.username && (
-                  <p className="text-sm text-red-500 mt-1" data-testid="error-username">
+                  <p className="text-sm text-destructive mt-1" data-testid="error-username">
                     {errors.username.message}
                   </p>
                 )}
@@ -141,12 +141,12 @@ export default function Login() {
                   type="password"
                   {...register("password", { required: "Password is required" })}
                   placeholder="Enter your password"
-                  className={`mt-1 ${errors.password ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}`}
+                  className={`mt-1 ${errors.password ? "border-destructive" : "focus:ring-2 focus:ring-primary/20 focus:border-primary"}`}
                   data-testid="input-password"
                   autoComplete="current-password"
                 />
                 {errors.password && (
-                  <p className="text-sm text-red-500 mt-1" data-testid="error-password">
+                  <p className="text-sm text-destructive mt-1" data-testid="error-password">
                     {errors.password.message}
                   </p>
                 )}
@@ -172,13 +172,13 @@ export default function Login() {
               </Button>
             </form>
 
-            <div className="text-center mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            <div className="text-center mt-6 pt-6 border-t">
+              <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
                 <Button
                   variant="link"
                   onClick={() => setLocation("/register")}
-                  className="text-wine-600 hover:text-wine-700 p-0 h-auto font-medium"
+                  className="text-primary hover:text-primary/80 p-0 h-auto font-medium"
                   data-testid="button-register"
                 >
                   Create Account
@@ -192,7 +192,7 @@ export default function Login() {
           <Button
             variant="ghost"
             onClick={() => setLocation("/dashboard")}
-            className="text-wine-700 hover:text-wine-800"
+            className="text-primary hover:text-primary/80"
             data-testid="button-back-home"
           >
             ← Back to Dashboard

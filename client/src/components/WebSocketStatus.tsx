@@ -12,13 +12,13 @@ export function WebSocketStatus({ className }: WebSocketStatusProps) {
   const getStatusColor = () => {
     switch (connectionStatus) {
       case 'connected':
-        return 'bg-green-500';
+        return 'bg-green-600 dark:bg-green-500';
       case 'connecting':
-        return 'bg-yellow-500';
+        return 'bg-yellow-600 dark:bg-yellow-500';
       case 'disconnected':
-        return 'bg-red-500';
+        return 'bg-destructive';
       default:
-        return 'bg-gray-500';
+        return 'bg-muted-foreground';
     }
   };
 

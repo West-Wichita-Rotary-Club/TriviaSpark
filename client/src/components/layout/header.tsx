@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { getQueryFn } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -76,7 +77,7 @@ export default function Header() {
   const homeHref = user?.user ? "/dashboard" : "/";
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-background border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href={homeHref}>
@@ -90,7 +91,7 @@ export default function Header() {
                   <h1 className="text-xl font-bold wine-text" data-testid="text-logo-title">
                     TriviaSpark
                   </h1>
-                  <p className="text-xs text-gray-500" data-testid="text-logo-tagline">
+                  <p className="text-xs text-muted-foreground" data-testid="text-logo-tagline">
                     A WebSpark Solution
                   </p>
                 </div>
@@ -117,10 +118,14 @@ export default function Header() {
               }`} />
               {status.ok ? "Online" : (status.time === 'Static Build' ? "Preview" : "Offline")}
             </span>
+            
+            {/* Theme Switcher */}
+            <ThemeSwitcher />
+            
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-gray-600 hover:text-wine-700 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
               data-testid="button-notifications"
             >
               <Bell className="h-5 w-5" />
@@ -166,7 +171,7 @@ export default function Header() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="text-wine-700 border-wine-300 hover:bg-wine-50"
+                  className=""
                 >
                   Login
                 </Button>

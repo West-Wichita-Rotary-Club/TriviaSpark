@@ -224,7 +224,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Brain className="text-champagne-400 h-8 w-8 animate-pulse" />
           </div>
-          <p className="text-wine-700">Loading...</p>
+          <p className="text-primary">Loading...</p>
         </div>
       </div>
     );
@@ -239,8 +239,8 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Brain className="text-champagne-400 h-8 w-8" />
           </div>
-          <h1 className="text-2xl font-bold text-wine-800 mb-2">Event Not Found</h1>
-          <p className="text-wine-600 mb-4">No event ID was provided.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Event Not Found</h1>
+          <p className="text-muted-foreground mb-4">No event ID was provided.</p>
           <Button onClick={() => setLocation("/dashboard")} variant="outline">
             Return to Dashboard
           </Button>
@@ -613,22 +613,22 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
       return (
         <div className="space-y-6">
           <div>
-            <Label>Question</Label>
+            <Label className="text-foreground font-medium">Question</Label>
             <Textarea
               value={editForm.question}
               onChange={(e) => setEditForm({ ...editForm, question: e.target.value })}
-              className="mt-1"
+              className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
               rows={3}
               data-testid="textarea-edit-question"
             />
           </div>
           {question.type === 'multiple_choice' && (
             <div>
-              <Label>Options</Label>
+              <Label className="text-foreground font-medium">Options</Label>
               <div className="space-y-2 mt-1">
                 {editForm.options.map((option, index) => (
                   <div key={index} className="flex gap-2">
-                    <span className="w-8 h-10 bg-gray-100 rounded flex items-center justify-center text-sm font-medium">
+                    <span className="w-8 h-10 bg-muted border border-border rounded flex items-center justify-center text-sm font-medium text-foreground">
                       {String.fromCharCode(65 + index)}
                     </span>
                     <Input
@@ -636,6 +636,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                       onChange={(e) => updateOption(index, e.target.value)}
                       placeholder={`Option ${String.fromCharCode(65 + index)}`}
                       data-testid={`input-edit-option-${index}`}
+                      className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                   </div>
                 ))}
@@ -644,86 +645,86 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
           )}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
-              <Label>Correct Answer</Label>
+              <Label className="text-foreground font-medium">Correct Answer</Label>
               <Input
                 value={editForm.correctAnswer}
                 onChange={(e) => setEditForm({ ...editForm, correctAnswer: e.target.value })}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                 data-testid="input-edit-correct-answer"
               />
             </div>
             <div>
-              <Label>Points</Label>
+              <Label className="text-foreground font-medium">Points</Label>
               <Input
                 type="number"
                 value={editForm.points}
                 onChange={(e) => setEditForm({ ...editForm, points: parseInt(e.target.value) || 0 })}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                 min={10}
                 max={500}
                 data-testid="input-edit-points"
               />
             </div>
             <div>
-              <Label>Time Limit (s)</Label>
+              <Label className="text-foreground font-medium">Time Limit (s)</Label>
               <Input
                 type="number"
                 value={editForm.timeLimit}
                 onChange={(e) => setEditForm({ ...editForm, timeLimit: parseInt(e.target.value) || 30 })}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                 min={5}
                 max={300}
                 data-testid="input-edit-timeLimit"
               />
             </div>
             <div>
-              <Label>Difficulty</Label>
+              <Label className="text-foreground font-medium">Difficulty</Label>
               <Select value={editForm.difficulty} onValueChange={(v) => setEditForm({ ...editForm, difficulty: v })}>
-                <SelectTrigger className="mt-1" data-testid="select-edit-difficulty">
+                <SelectTrigger className="mt-1 bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary" data-testid="select-edit-difficulty">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="easy" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Easy</SelectItem>
+                  <SelectItem value="medium" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Medium</SelectItem>
+                  <SelectItem value="hard" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Hard</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Category</Label>
+              <Label className="text-foreground font-medium">Category</Label>
               <Input
                 value={editForm.category}
                 onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                 placeholder="wine, geography, etc"
                 data-testid="input-edit-category"
               />
             </div>
             <div>
-              <Label>Order #</Label>
+              <Label className="text-foreground font-medium">Order #</Label>
               <Input
                 type="number"
                 value={editForm.orderIndex}
                 onChange={(e) => setEditForm({ ...editForm, orderIndex: parseInt(e.target.value) || 1 })}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                 min={1}
                 data-testid="input-edit-orderIndex"
               />
             </div>
           </div>
           <div>
-            <Label>Explanation (shown after answering)</Label>
+            <Label className="text-foreground font-medium">Explanation (shown after answering)</Label>
               <Textarea
                 value={editForm.explanation}
                 onChange={(e) => setEditForm({ ...editForm, explanation: e.target.value })}
                 rows={3}
-                className="mt-1"
+                className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                 data-testid="textarea-edit-explanation"
               />
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>Background Image</Label>
+              <Label className="text-foreground font-medium">Background Image</Label>
               {editForm.backgroundImageUrl && (
                 <Button
                   type="button"
@@ -731,6 +732,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                   size="sm"
                   onClick={() => { setEditForm({ ...editForm, backgroundImageUrl: "" }); setSelectedImage(null); }}
                   data-testid="button-remove-image"
+                  className="border-border text-foreground hover:bg-accent hover:text-accent-foreground"
                 >Remove</Button>
               )}
             </div>
@@ -739,26 +741,33 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                 <img
                   src={editForm.backgroundImageUrl}
                   alt="Selected background"
-                  className="rounded-md w-full h-40 object-cover border"
+                  className="rounded-md w-full h-40 object-cover border border-border"
                   data-testid="image-selected-preview"
                 />
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No image selected.</p>
+              <p className="text-sm text-muted-foreground">No image selected.</p>
             )}
-            <div className="border rounded-md p-3 space-y-3 bg-gray-50">
+            <div className="border border-border rounded-md p-3 space-y-3 bg-muted/50">
               <div className="flex gap-2">
                 <Input
                   placeholder="Search Unsplash (e.g., Oregon coast)"
                   value={unsplashQuery}
                   onChange={(e) => setUnsplashQuery(e.target.value)}
                   data-testid="input-unsplash-query"
+                  className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                 />
-                <Button type="button" onClick={handleUnsplashSearch} disabled={unsplashLoading} data-testid="button-unsplash-search">
+                <Button 
+                  type="button" 
+                  onClick={handleUnsplashSearch} 
+                  disabled={unsplashLoading} 
+                  data-testid="button-unsplash-search"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
                   {unsplashLoading ? 'Searching...' : 'Search'}
                 </Button>
               </div>
-              {unsplashError && <p className="text-sm text-red-600" data-testid="error-unsplash">{unsplashError}</p>}
+              {unsplashError && <p className="text-sm text-destructive" data-testid="error-unsplash">{unsplashError}</p>}
               {unsplashResults.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto" data-testid="grid-unsplash-results">
                   {unsplashResults.map((img, i) => (
@@ -778,73 +787,73 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                 </div>
               )}
               {selectedImage && (
-                <p className="text-[11px] text-gray-600" data-testid="text-unsplash-attribution">
-                  Photo by <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>{selectedImage.user.name}</a> on <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>Unsplash</a>
+                <p className="text-[11px] text-muted-foreground" data-testid="text-unsplash-attribution">
+                  Photo by <a className="underline text-primary hover:text-primary/80" target="_blank" rel="noreferrer" href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>{selectedImage.user.name}</a> on <a className="underline text-primary hover:text-primary/80" target="_blank" rel="noreferrer" href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>Unsplash</a>
                 </p>
               )}
             </div>
           </div>
 
           {/* Event Image Management Form */}
-          <Card className="mt-4 border-2 border-wine-300">
-            <CardHeader className="pb-3 bg-wine-50">
-              <CardTitle className="text-sm font-medium text-wine-800">🖼️ Event Image Management</CardTitle>
-              <p className="text-xs text-wine-600">Configure and manage image metadata for this question</p>
+          <Card className="mt-4 border-2 border-wine-300 bg-card">
+            <CardHeader className="pb-3 bg-wine-50 dark:bg-wine-900/20">
+              <CardTitle className="text-sm font-medium text-wine-800 dark:text-wine-200">🖼️ Event Image Management</CardTitle>
+              <p className="text-xs text-wine-600 dark:text-wine-300">Configure and manage image metadata for this question</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="unsplashImageId" className="text-xs">Unsplash Image ID</Label>
+                  <Label htmlFor="unsplashImageId" className="text-xs text-foreground font-medium">Unsplash Image ID</Label>
                   <Input
                     id="unsplashImageId"
                     value={eventImageForm.unsplashImageId}
                     onChange={(e) => setEventImageForm(prev => ({ ...prev, unsplashImageId: e.target.value }))}
                     placeholder="Enter Unsplash image ID"
-                    className="text-xs"
+                    className="text-xs bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="sizeVariant" className="text-xs">Size Variant</Label>
+                  <Label htmlFor="sizeVariant" className="text-xs text-foreground font-medium">Size Variant</Label>
                   <Select 
                     value={eventImageForm.sizeVariant} 
                     onValueChange={(value) => setEventImageForm(prev => ({ ...prev, sizeVariant: value }))}
                   >
-                    <SelectTrigger className="text-xs">
+                    <SelectTrigger className="text-xs bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
                       <SelectValue placeholder="Select size" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="thumb">Thumb</SelectItem>
-                      <SelectItem value="small">Small</SelectItem>
-                      <SelectItem value="regular">Regular</SelectItem>
-                      <SelectItem value="full">Full</SelectItem>
+                    <SelectContent className="bg-popover border-border">
+                      <SelectItem value="thumb" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Thumb</SelectItem>
+                      <SelectItem value="small" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Small</SelectItem>
+                      <SelectItem value="regular" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Regular</SelectItem>
+                      <SelectItem value="full" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Full</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="usageContext" className="text-xs">Usage Context</Label>
+                  <Label htmlFor="usageContext" className="text-xs text-foreground font-medium">Usage Context</Label>
                   <Select 
                     value={eventImageForm.usageContext} 
                     onValueChange={(value) => setEventImageForm(prev => ({ ...prev, usageContext: value }))}
                   >
-                    <SelectTrigger className="text-xs">
+                    <SelectTrigger className="text-xs bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
                       <SelectValue placeholder="Select usage" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="question_background">Question Background</SelectItem>
-                      <SelectItem value="event_banner">Event Banner</SelectItem>
-                      <SelectItem value="category_icon">Category Icon</SelectItem>
-                      <SelectItem value="promotional_material">Promotional Material</SelectItem>
+                    <SelectContent className="bg-popover border-border">
+                      <SelectItem value="question_background" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Question Background</SelectItem>
+                      <SelectItem value="event_banner" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Event Banner</SelectItem>
+                      <SelectItem value="category_icon" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Category Icon</SelectItem>
+                      <SelectItem value="promotional_material" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Promotional Material</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="searchContext" className="text-xs">Search Context</Label>
+                  <Label htmlFor="searchContext" className="text-xs text-foreground font-medium">Search Context</Label>
                   <Input
                     id="searchContext"
                     value={eventImageForm.searchContext}
                     onChange={(e) => setEventImageForm(prev => ({ ...prev, searchContext: e.target.value }))}
                     placeholder="Search terms used"
-                    className="text-xs"
+                    className="text-xs bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -862,7 +871,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                           href={eventImageData.eventImage.attributionUrl} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-wine-600 hover:underline"
+                          className="text-primary hover:text-primary/80 hover:underline"
                         >
                           {eventImageData.eventImage.attributionText}
                         </a>
@@ -898,7 +907,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                     }
                   }}
                   disabled={!selectedImage}
-                  className="text-xs"
+                  className="text-xs border-border text-foreground hover:bg-accent hover:text-accent-foreground"
                 >
                   Populate from Selected Image
                 </Button>
@@ -907,7 +916,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                   size="sm"
                   onClick={() => saveEventImageMutation.mutate()}
                   disabled={saveEventImageMutation.isPending || !eventImageForm.unsplashImageId}
-                  className="text-xs"
+                  className="text-xs bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {saveEventImageMutation.isPending ? "Saving..." : "Save Image Record"}
                 </Button>
@@ -919,7 +928,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
             <Button
               onClick={handleSave}
               disabled={isLoading || trackingDownload}
-              className="flex-1"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
               data-testid="button-save-question"
             >
               {isLoading ? (
@@ -939,6 +948,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
               variant="outline"
               disabled={isLoading}
               data-testid="button-cancel-edit"
+              className="border-border text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               Cancel
             </Button>
@@ -1122,7 +1132,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Brain className="text-champagne-400 h-8 w-8 animate-pulse" />
           </div>
-          <p className="text-wine-700">Loading event...</p>
+          <p className="text-primary">Loading event...</p>
         </div>
       </div>
     );
@@ -1133,7 +1143,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
       <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
         <Card className="max-w-md w-full">
           <CardContent className="text-center py-8">
-            <p className="text-gray-600 mb-4">Event not found</p>
+            <p className="text-muted-foreground mb-4">Event not found</p>
             <Button onClick={() => setLocation("/dashboard")} data-testid="button-back-events">
               Back to Dashboard
             </Button>
@@ -1494,8 +1504,8 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                 </CardHeader>
                 <CardContent>
                   {questions.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <Brain className="mx-auto h-12 w-12 mb-4 text-gray-400" />
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Brain className="mx-auto h-12 w-12 mb-4 text-muted-foreground/50" />
                       <p className="mb-2">No questions yet</p>
                       <p className="text-sm">Generate AI questions or add your own to get started</p>
                     </div>
@@ -1600,12 +1610,12 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
               {/* Question Edit Modal */}
               <Dialog open={!!editingQuestion} onOpenChange={(open) => { if (!open) setEditingQuestion(null); }}>
-                <DialogContent className="max-w-3xl" data-testid="dialog-edit-question">
+                <DialogContent className="max-w-3xl bg-white dark:bg-gray-900 border-2 border-border text-foreground shadow-2xl" data-testid="dialog-edit-question">
                   {editingQuestion && (
                     <>
-                      <DialogHeader>
-                        <DialogTitle>Edit Question</DialogTitle>
-                        <DialogDescription>
+                      <DialogHeader className="space-y-3">
+                        <DialogTitle className="text-foreground text-xl font-semibold">Edit Question</DialogTitle>
+                        <DialogDescription className="text-muted-foreground">
                           Modify question content, scoring, ordering, and optional background image.
                         </DialogDescription>
                       </DialogHeader>

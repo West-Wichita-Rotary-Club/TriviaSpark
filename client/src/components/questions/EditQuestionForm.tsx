@@ -222,18 +222,18 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
   return (
     <div className="space-y-6">
       <div>
-        <Label>Question</Label>
+        <Label className="text-foreground font-medium">Question</Label>
         <Textarea
           value={editForm.question}
           onChange={(e) => setEditForm({ ...editForm, question: e.target.value })}
-          className="mt-1"
+          className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         {editForm.options.map((option, i) => (
           <div key={i}>
-            <Label>Option {String.fromCharCode(65 + i)}</Label>
+            <Label className="text-foreground font-medium">Option {String.fromCharCode(65 + i)}</Label>
             <Input
               value={option}
               onChange={(e) => {
@@ -241,7 +241,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
                 newOptions[i] = e.target.value;
                 setEditForm({ ...editForm, options: newOptions });
               }}
-              className="mt-1"
+              className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
             />
           </div>
         ))}
@@ -249,89 +249,89 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label>Correct Answer</Label>
+          <Label className="text-foreground font-medium">Correct Answer</Label>
           <Select value={editForm.correctAnswer} onValueChange={(value) => setEditForm({ ...editForm, correctAnswer: value })}>
-            <SelectTrigger className="mt-1">
+            <SelectTrigger className="mt-1 bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-popover border-border">
               {editForm.options.map((option, i) => (
-                <SelectItem key={i} value={option}>{String.fromCharCode(65 + i)}: {option}</SelectItem>
+                <SelectItem key={i} value={option} className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">{String.fromCharCode(65 + i)}: {option}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label>Points</Label>
+          <Label className="text-foreground font-medium">Points</Label>
           <Input
             type="number"
             min={10}
             max={1000}
             value={editForm.points}
             onChange={(e) => setEditForm({ ...editForm, points: parseInt(e.target.value) || 100 })}
-            className="mt-1"
+            className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </div>
         <div>
-          <Label>Time Limit (seconds)</Label>
+          <Label className="text-foreground font-medium">Time Limit (seconds)</Label>
           <Input
             type="number"
             min={10}
             max={180}
             value={editForm.timeLimit}
             onChange={(e) => setEditForm({ ...editForm, timeLimit: parseInt(e.target.value) || 30 })}
-            className="mt-1"
+            className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label>Difficulty</Label>
+          <Label className="text-foreground font-medium">Difficulty</Label>
           <Select value={editForm.difficulty} onValueChange={(value) => setEditForm({ ...editForm, difficulty: value })}>
-            <SelectTrigger className="mt-1">
+            <SelectTrigger className="mt-1 bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="easy">Easy</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="hard">Hard</SelectItem>
+            <SelectContent className="bg-popover border-border">
+              <SelectItem value="easy" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Easy</SelectItem>
+              <SelectItem value="medium" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Medium</SelectItem>
+              <SelectItem value="hard" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Hard</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label>Category</Label>
+          <Label className="text-foreground font-medium">Category</Label>
           <Input
             value={editForm.category}
             onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-            className="mt-1"
+            className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </div>
         <div>
-          <Label>Order</Label>
+          <Label className="text-foreground font-medium">Order</Label>
           <Input
             type="number"
             min={1}
             value={editForm.orderIndex}
             onChange={(e) => setEditForm({ ...editForm, orderIndex: parseInt(e.target.value) || 1 })}
-            className="mt-1"
+            className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
           />
         </div>
       </div>
 
       <div>
-        <Label>Explanation (Optional)</Label>
+        <Label className="text-foreground font-medium">Explanation (Optional)</Label>
         <Textarea
           value={editForm.explanation}
           onChange={(e) => setEditForm({ ...editForm, explanation: e.target.value })}
-          className="mt-1"
+          className="mt-1 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
           placeholder="Explain why this is the correct answer..."
         />
       </div>
 
       {/* Unsplash Image Search */}
       <div className="border-t pt-4">
-        <Label className="text-sm font-medium text-muted-foreground">Background Image</Label>
+        <Label className="text-sm font-medium text-foreground">Background Image</Label>
         <div className="flex gap-2 mt-2">
           <Input
             placeholder="Search for background image..."
@@ -339,18 +339,20 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
             onChange={(e) => setUnsplashQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleUnsplashSearch()}
             data-testid="input-unsplash-search"
+            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <Button
             type="button"
             onClick={handleUnsplashSearch}
             disabled={unsplashLoading}
             data-testid="button-unsplash-search"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Search className="h-4 w-4" />
             {unsplashLoading ? "Searching..." : "Search"}
           </Button>
         </div>
-        {unsplashError && <p className="text-sm text-red-600 mt-2">{unsplashError}</p>}
+        {unsplashError && <p className="text-sm text-destructive mt-2">{unsplashError}</p>}
         {unsplashResults.length > 0 && (
           <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto mt-3" data-testid="grid-unsplash-results">
             {unsplashResults.map((img, i) => (
@@ -370,72 +372,72 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
           </div>
         )}
         {selectedImage && (
-          <p className="text-[11px] text-gray-600 mt-2" data-testid="text-unsplash-attribution">
-            Photo by <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>{selectedImage.user.name}</a> on <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>Unsplash</a>
+          <p className="text-[11px] text-muted-foreground mt-2" data-testid="text-unsplash-attribution">
+            Photo by <a className="underline text-primary hover:text-primary/80" target="_blank" rel="noreferrer" href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>{selectedImage.user.name}</a> on <a className="underline text-primary hover:text-primary/80" target="_blank" rel="noreferrer" href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>Unsplash</a>
           </p>
         )}
       </div>
 
       {/* Event Image Management Form */}
-      <Card className="mt-4 border-2 border-wine-300">
-        <CardHeader className="pb-3 bg-wine-50">
-          <CardTitle className="text-sm font-medium text-wine-800">🖼️ Event Image Management</CardTitle>
-          <p className="text-xs text-wine-600">Configure and manage image metadata for this question</p>
+      <Card className="mt-4 border-2 border-wine-300 bg-card dark:bg-card">
+        <CardHeader className="pb-3 bg-wine-50/50 dark:bg-wine-900/20 border-b border-wine-200 dark:border-wine-700">
+          <CardTitle className="text-sm font-medium text-wine-800 dark:text-wine-200">🖼️ Event Image Management</CardTitle>
+          <p className="text-xs text-wine-600 dark:text-wine-300">Configure and manage image metadata for this question</p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 bg-card/50 dark:bg-card/80">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="unsplashImageId" className="text-xs">Unsplash Image ID</Label>
+              <Label htmlFor="unsplashImageId" className="text-xs text-foreground font-medium">Unsplash Image ID</Label>
               <Input
                 id="unsplashImageId"
                 value={eventImageForm.unsplashImageId}
                 onChange={(e) => setEventImageForm(prev => ({ ...prev, unsplashImageId: e.target.value }))}
                 placeholder="Enter Unsplash image ID"
-                className="text-xs"
+                className="text-xs bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="sizeVariant" className="text-xs">Size Variant</Label>
+              <Label htmlFor="sizeVariant" className="text-xs text-foreground font-medium">Size Variant</Label>
               <Select 
                 value={eventImageForm.sizeVariant} 
                 onValueChange={(value) => setEventImageForm(prev => ({ ...prev, sizeVariant: value }))}
               >
-                <SelectTrigger className="text-xs">
+                <SelectTrigger className="text-xs bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
                   <SelectValue placeholder="Select size" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="thumb">Thumb</SelectItem>
-                  <SelectItem value="small">Small</SelectItem>
-                  <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="full">Full</SelectItem>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="thumb" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Thumb</SelectItem>
+                  <SelectItem value="small" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Small</SelectItem>
+                  <SelectItem value="regular" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Regular</SelectItem>
+                  <SelectItem value="full" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Full</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="usageContext" className="text-xs">Usage Context</Label>
+              <Label htmlFor="usageContext" className="text-xs text-foreground font-medium">Usage Context</Label>
               <Select 
                 value={eventImageForm.usageContext} 
                 onValueChange={(value) => setEventImageForm(prev => ({ ...prev, usageContext: value }))}
               >
-                <SelectTrigger className="text-xs">
+                <SelectTrigger className="text-xs bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
                   <SelectValue placeholder="Select usage" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="question_background">Question Background</SelectItem>
-                  <SelectItem value="event_banner">Event Banner</SelectItem>
-                  <SelectItem value="category_icon">Category Icon</SelectItem>
-                  <SelectItem value="promotional_material">Promotional Material</SelectItem>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="question_background" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Question Background</SelectItem>
+                  <SelectItem value="event_banner" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Event Banner</SelectItem>
+                  <SelectItem value="category_icon" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Category Icon</SelectItem>
+                  <SelectItem value="promotional_material" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Promotional Material</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="searchContext" className="text-xs">Search Context</Label>
+              <Label htmlFor="searchContext" className="text-xs text-foreground font-medium">Search Context</Label>
               <Input
                 id="searchContext"
                 value={eventImageForm.searchContext}
                 onChange={(e) => setEventImageForm(prev => ({ ...prev, searchContext: e.target.value }))}
                 placeholder="Search terms used"
-                className="text-xs"
+                className="text-xs bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary"
               />
             </div>
           </div>
@@ -453,7 +455,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
                       href={eventImageData.eventImage.attributionUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-wine-600 hover:underline"
+                      className="text-primary hover:text-primary/80 hover:underline"
                     >
                       {eventImageData.eventImage.attributionText}
                     </a>
@@ -489,7 +491,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
                 }
               }}
               disabled={!selectedImage}
-              className="text-xs"
+              className="text-xs border-border text-foreground hover:bg-accent hover:text-accent-foreground"
             >
               Populate from Selected Image
             </Button>
@@ -498,7 +500,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
               size="sm"
               onClick={() => saveEventImageMutation.mutate()}
               disabled={saveEventImageMutation.isPending || !eventImageForm.unsplashImageId}
-              className="text-xs"
+              className="text-xs bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {saveEventImageMutation.isPending ? "Saving..." : "Save Image Record"}
             </Button>
@@ -510,7 +512,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
         <Button
           onClick={handleSave}
           disabled={isLoading || trackingDownload}
-          className="flex-1"
+          className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
           data-testid="button-save-question"
         >
           {isLoading ? (
@@ -530,6 +532,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
           variant="outline"
           disabled={isLoading}
           data-testid="button-cancel-edit"
+          className="border-border text-foreground hover:bg-accent hover:text-accent-foreground"
         >
           Cancel
         </Button>

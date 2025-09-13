@@ -3,32 +3,34 @@
 @import "tailwindcss";
 
 :root {
+  /* Light theme colors with wine theme */
   --background: hsl(0, 0%, 100%);
-  --foreground: hsl(210, 25%, 7.8431%);
-  --card: hsl(342, 40%, 96%);
-  --card-foreground: hsl(342, 20%, 20%);
+  --foreground: hsl(342, 30%, 15%);
+  --card: hsl(342, 40%, 98%);
+  --card-foreground: hsl(342, 25%, 20%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(210, 25%, 7.8431%);
-  --primary: hsl(203.8863, 88.2845%, 53.1373%);
+  --popover-foreground: hsl(342, 30%, 15%);
+  --primary: hsl(342, 75%, 45%); /* Wine primary */
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(210, 25%, 7.8431%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --muted: hsl(342, 30%, 90%);
-  --muted-foreground: hsl(342, 40%, 40%);
-  --accent: hsl(342, 40%, 92%);
-  --accent-foreground: hsl(342, 80%, 30%);
-  --destructive: hsl(356.3033, 90.5579%, 54.3137%);
+  --secondary: hsl(342, 20%, 90%);
+  --secondary-foreground: hsl(342, 80%, 20%);
+  --muted: hsl(342, 25%, 94%);
+  --muted-foreground: hsl(342, 30%, 45%);
+  --accent: hsl(54, 80%, 85%); /* Champagne accent */
+  --accent-foreground: hsl(342, 80%, 25%);
+  --destructive: hsl(0, 85%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(342, 20%, 88%);
-  --input: hsl(342, 30%, 97%);
-  --ring: hsl(202.8169, 89.1213%, 53.1373%);
-  --chart-1: hsl(203.8863, 88.2845%, 53.1373%);
-  --chart-2: hsl(159.7826, 100%, 36.0784%);
-  --chart-3: hsl(42.029, 92.8251%, 56.2745%);
-  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
-  --chart-5: hsl(341.4894, 75.2%, 50.9804%);
-  --sidebar: hsl(342, 40%, 96%);
-  --sidebar-foreground: hsl(342, 20%, 20%);
+  --border: hsl(342, 20%, 85%);
+  --input: hsl(342, 25%, 96%);
+  --ring: hsl(342, 75%, 45%);
+  --radius: 1.3rem;
+
+  /* Chart colors */
+  --chart-1: hsl(342, 75%, 45%);
+  --chart-2: hsl(54, 80%, 60%);
+  --chart-3: hsl(170, 70%, 45%);
+  --chart-4: hsl(280, 70%, 55%);
+  --chart-5: hsl(30, 80%, 55%);
   --sidebar-primary: hsl(203.8863, 88.2845%, 53.1373%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
   --sidebar-accent: hsl(211.5789, 51.3514%, 92.7451%);
@@ -85,38 +87,33 @@
 }
 
 .dark {
-  --background: hsl(0, 0%, 0%);
-  --foreground: hsl(342, 20%, 95%);
-  --card: hsl(342, 20%, 15%);
-  --card-foreground: hsl(342, 10%, 90%);
-  --popover: hsl(342, 30%, 10%);
-  --popover-foreground: hsl(342, 20%, 95%);
-  --primary: hsl(203.7736, 87.6033%, 52.549%);
+  /* Dark theme colors with wine theme */
+  --background: hsl(342, 15%, 8%);
+  --foreground: hsl(342, 15%, 92%);
+  --card: hsl(342, 20%, 12%);
+  --card-foreground: hsl(342, 15%, 88%);
+  --popover: hsl(342, 15%, 10%);
+  --popover-foreground: hsl(342, 15%, 92%);
+  --primary: hsl(342, 75%, 55%); /* Brighter wine for dark mode */
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(342, 20%, 20%);
-  --secondary-foreground: hsl(342, 10%, 90%);
-  --muted: hsl(342, 20%, 20%);
-  --muted-foreground: hsl(342, 20%, 70%);
-  --accent: hsl(342, 40%, 25%);
-  --accent-foreground: hsl(342, 20%, 95%);
-  --destructive: hsl(356.3033, 90.5579%, 54.3137%);
+  --secondary: hsl(342, 20%, 18%);
+  --secondary-foreground: hsl(342, 15%, 85%);
+  --muted: hsl(342, 20%, 15%);
+  --muted-foreground: hsl(342, 20%, 65%);
+  --accent: hsl(54, 60%, 25%); /* Darker champagne for dark mode */
+  --accent-foreground: hsl(54, 80%, 80%);
+  --destructive: hsl(0, 75%, 65%);
   --destructive-foreground: hsl(0, 0%, 100%);
   --border: hsl(342, 20%, 20%);
   --input: hsl(342, 20%, 15%);
-  --ring: hsl(202.8169, 89.1213%, 53.1373%);
-  --chart-1: hsl(203.8863, 88.2845%, 53.1373%);
-  --chart-2: hsl(159.7826, 100%, 36.0784%);
-  --chart-3: hsl(42.029, 92.8251%, 56.2745%);
-  --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
-  --chart-5: hsl(341.4894, 75.2%, 50.9804%);
-  --sidebar: hsl(342, 20%, 15%);
-  --sidebar-foreground: hsl(342, 10%, 90%);
-  --sidebar-primary: hsl(202.8169, 89.1213%, 53.1373%);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(342, 40%, 25%);
-  --sidebar-accent-foreground: hsl(342, 20%, 95%);
-  --sidebar-border: hsl(342, 20%, 20%);
-  --sidebar-ring: hsl(202.8169, 89.1213%, 53.1373%);
+  --ring: hsl(342, 75%, 55%);
+
+  /* Chart colors for dark mode */
+  --chart-1: hsl(342, 75%, 55%);
+  --chart-2: hsl(54, 70%, 65%);
+  --chart-3: hsl(170, 60%, 55%);
+  --chart-4: hsl(280, 60%, 65%);
+  --chart-5: hsl(30, 70%, 65%);
 }
 
 @layer base {
@@ -370,9 +367,167 @@
   }
 
   .trivia-card {
-    background-color: var(--card);
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
     border-radius: 0.75rem;
     box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    border: 1px solid var(--border);
+    border: 1px solid hsl(var(--border));
   }
+
+  /* Ensure dialog content is visible with proper contrast and z-index */
+  [data-radix-popper-content-wrapper] {
+    z-index: 1000 !important;
+  }
+
+  /* Dialog overlay should be completely solid */
+  [data-radix-dialog-overlay] {
+    z-index: 50 !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+
+  /* Dark mode overlay should be nearly opaque */
+  .dark [data-radix-dialog-overlay] {
+    background-color: rgba(0, 0, 0, 0.95) !important;
+  }
+
+  /* Dialog content should be completely solid with proper theming */
+  [data-radix-dialog-content] {
+    z-index: 51 !important;
+    background-color: #ffffff !important;
+    border: 2px solid hsl(var(--border)) !important;
+    color: hsl(var(--foreground)) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Solid dialog content for dark mode */
+  .dark [data-radix-dialog-content] {
+    background-color: #111827 !important;
+    border: 2px solid hsl(var(--border)) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  .dialog-content {
+    background-color: #ffffff !important;
+    border: 2px solid hsl(var(--border)) !important;
+    color: hsl(var(--foreground)) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4) !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+
+  /* Solid dialog content for dark mode */
+  .dark .dialog-content {
+    background-color: #111827 !important;
+    border: 2px solid hsl(var(--border)) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6) !important;
+  }
+
+  /* Ensure form inputs have proper contrast in dialog content */
+  .dialog-content input,
+  .dialog-content textarea,
+  .dialog-content select {
+    background-color: #ffffff !important;
+    border: 1px solid hsl(var(--border)) !important;
+    color: #1f2937 !important;
+  }
+
+  /* Dark mode form inputs with high contrast */
+  .dark .dialog-content input,
+  .dark .dialog-content textarea,
+  .dark .dialog-content select {
+    background-color: #374151 !important;
+    border: 1px solid #6b7280 !important;
+    color: #f9fafb !important;
+  }
+
+  .dialog-content input:focus,
+  .dialog-content textarea:focus,
+  .dialog-content select:focus {
+    border-color: hsl(var(--primary)) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 1px hsl(var(--primary)) !important;
+  }
+
+  /* Ensure labels and text are visible */
+  .dialog-content label {
+    color: #1f2937 !important;
+    font-weight: 500 !important;
+  }
+
+  .dark .dialog-content label {
+    color: #f9fafb !important;
+    font-weight: 500 !important;
+  }
+
+  .dialog-content .text-muted-foreground {
+    color: #6b7280 !important;
+  }
+
+  .dark .dialog-content .text-muted-foreground {
+    color: #9ca3af !important;
+  }
+
+  .dialog-content .text-foreground {
+    color: #1f2937 !important;
+  }
+
+  .dark .dialog-content .text-foreground {
+    color: #f9fafb !important;
+  }
+
+  /* Improve dialog header styling */
+  .dialog-content [data-radix-dialog-title] {
+    color: #1f2937 !important;
+    font-weight: 600 !important;
+  }
+
+  .dark .dialog-content [data-radix-dialog-title] {
+    color: #f9fafb !important;
+    font-weight: 600 !important;
+  }
+
+  /* Radix-UI dialog content form inputs */
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] textarea,
+  [data-radix-dialog-content] select {
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    color: #1f2937 !important;
+  }
+
+  .dark [data-radix-dialog-content] input,
+  .dark [data-radix-dialog-content] textarea,
+  .dark [data-radix-dialog-content] select {
+    background-color: #374151 !important;
+    border: 1px solid #6b7280 !important;
+    color: #f9fafb !important;
+  }
+
+  /* Radix-UI dialog content labels and text */
+  [data-radix-dialog-content] label {
+    color: #1f2937 !important;
+    font-weight: 500 !important;
+  }
+
+  .dark [data-radix-dialog-content] label {
+    color: #f9fafb !important;
+    font-weight: 500 !important;
+  }
+}
+.dialog-content [data-radix-dialog-description] {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Dialog close button styling */
+.dialog-content [data-radix-dialog-close] {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.dialog-content [data-radix-dialog-close]:hover {
+  color: hsl(var(--foreground)) !important;
+  opacity: 1;
 }

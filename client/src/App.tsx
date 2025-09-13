@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 // Lazy load pages to prevent loading all components on initial load
 const Home = React.lazy(() => import("@/pages/home"));
@@ -18,6 +19,7 @@ const EventManage = React.lazy(() => {
   return import("@/pages/event-manage");
 });
 const EventTriviaManage = React.lazy(() => import("@/pages/event-trivia-manage"));
+const QuestionEdit = React.lazy(() => import("@/pages/question-edit"));
 const Dashboard = React.lazy(() => import("@/pages/dashboard"));
 const EventHost = React.lazy(() => import("@/pages/event-host"));
 const EventJoin = React.lazy(() => import("@/pages/event-join"));
@@ -35,7 +37,7 @@ const Footer = React.lazy(() => import("@/components/layout/footer"));
 // Loading component
 const Loading = () => (
   <div className="min-h-screen flex items-center justify-center">
-    <div className="text-wine-600">Loading...</div>
+    <div className="text-primary">Loading...</div>
   </div>
 );
 
@@ -45,14 +47,15 @@ function App() {
   const basePath = baseUrl === '/' ? '' : baseUrl.replace(/\/$/, '');
 
   return (
-    <Router base={basePath}>
-      <QueryClientProvider client={queryClient}>
-        <WebSocketProvider>
-          <TooltipProvider>
-            <div className="min-h-screen flex flex-col">
-              <main className="flex-1">
-                <Suspense fallback={<Loading />}>
-                  <Switch>
+    <ThemeProvider defaultTheme="system">
+      <Router base={basePath}>
+        <QueryClientProvider client={queryClient}>
+          <WebSocketProvider>
+            <TooltipProvider>
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <main className="flex-1">
+                  <Suspense fallback={<Loading />}>
+                    <Switch>
                     {/* Home page */}
                     <Route path="/" component={Home} />
 
@@ -71,7 +74,7 @@ function App() {
                         
                         return (
                           <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
-                            <div className="text-wine-600">Redirecting to home...</div>
+                            <div className="text-primary">Redirecting to home...</div>
                           </div>
                         );
                       }}
@@ -132,7 +135,7 @@ function App() {
                         <>
                           {console.log('[Route Match] /events/:id/manage/trivia/:questionId matched with', params)}
                           <Header />
-                          <EventTriviaManage eventId={params?.id} questionId={params?.questionId} />
+                          <QuestionEdit eventId={params?.id} questionId={params?.questionId} />
                           <Footer />
                         </>
                       )}
@@ -172,7 +175,7 @@ function App() {
                         
                         return (
                           <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
-                            <div className="text-wine-600">Redirecting to event view...</div>
+                            <div className="text-primary">Redirecting to event view...</div>
                           </div>
                         );
                       }}
@@ -219,6 +222,7 @@ function App() {
       </QueryClientProvider>
       <Toaster />
     </Router>
+    </ThemeProvider>
   );
 }
 

@@ -102,7 +102,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="trivia-card shadow-2xl" data-testid="card-register">
           <CardHeader className="text-center space-y-4">
@@ -110,10 +110,10 @@ export default function Register() {
               <Brain className="text-champagne-400 h-8 w-8" />
             </div>
             <div>
-              <CardTitle className="text-2xl wine-text mb-2" data-testid="text-register-title">
+              <CardTitle className="text-2xl text-primary mb-2" data-testid="text-register-title">
                 Create Your Account
               </CardTitle>
-              <p className="text-gray-600" data-testid="text-register-subtitle">
+              <p className="text-muted-foreground" data-testid="text-register-subtitle">
                 Join TriviaSpark to manage trivia events
               </p>
             </div>
@@ -129,12 +129,12 @@ export default function Register() {
                   id="name"
                   {...register("name", { required: "Full name is required" })}
                   placeholder="Enter your full name"
-                  className={`mt-1 ${errors.name ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}`}
+                  className={`mt-1 ${errors.name ? "border-destructive" : "focus:ring-2 focus:ring-primary/20 focus:border-primary"}`}
                   data-testid="input-name"
                   autoComplete="name"
                 />
                 {errors.name && (
-                  <p className="text-sm text-red-500 mt-1" data-testid="error-name">
+                  <p className="text-sm text-destructive mt-1" data-testid="error-name">
                     {errors.name.message}
                   </p>
                 )}
@@ -155,12 +155,12 @@ export default function Register() {
                     }
                   })}
                   placeholder="Enter your email address"
-                  className={`mt-1 ${errors.email ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}`}
+                  className={`mt-1 ${errors.email ? "border-destructive" : "focus:ring-2 focus:ring-primary/20 focus:border-primary"}`}
                   data-testid="input-email"
                   autoComplete="email"
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-500 mt-1" data-testid="error-email">
+                  <p className="text-sm text-destructive mt-1" data-testid="error-email">
                     {errors.email.message}
                   </p>
                 )}
@@ -181,12 +181,12 @@ export default function Register() {
                     }
                   })}
                   placeholder="Enter your password"
-                  className={`mt-1 ${errors.password ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}`}
+                  className={`mt-1 ${errors.password ? "border-destructive" : "focus:ring-2 focus:ring-primary/20 focus:border-primary"}`}
                   data-testid="input-password"
                   autoComplete="new-password"
                 />
                 {errors.password && (
-                  <p className="text-sm text-red-500 mt-1" data-testid="error-password">
+                  <p className="text-sm text-destructive mt-1" data-testid="error-password">
                     {errors.password.message}
                   </p>
                 )}
@@ -205,12 +205,12 @@ export default function Register() {
                       value === password || "Passwords do not match"
                   })}
                   placeholder="Confirm your password"
-                  className={`mt-1 ${errors.confirmPassword ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}`}
+                  className={`mt-1 ${errors.confirmPassword ? "border-destructive" : "focus:ring-2 focus:ring-primary/20 focus:border-primary"}`}
                   data-testid="input-confirm-password"
                   autoComplete="new-password"
                 />
                 {errors.confirmPassword && (
-                  <p className="text-sm text-red-500 mt-1" data-testid="error-confirm-password">
+                  <p className="text-sm text-destructive mt-1" data-testid="error-confirm-password">
                     {errors.confirmPassword.message}
                   </p>
                 )}
@@ -236,10 +236,10 @@ export default function Register() {
               </Button>
             </form>
 
-            <div className="text-center mt-6 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            <div className="text-center mt-6 pt-6 border-t">
+              <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link href="/login" className="text-wine-600 hover:text-wine-700 font-medium">
+                <Link href="/login" className="text-primary hover:text-primary/80 font-medium">
                   Sign In
                 </Link>
               </p>
@@ -251,7 +251,7 @@ export default function Register() {
           <Button
             variant="ghost"
             onClick={() => setLocation("/")}
-            className="text-wine-700 hover:text-wine-800"
+            className="text-primary hover:text-primary/80"
             data-testid="button-back-home"
           >
             ← Back to Home

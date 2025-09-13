@@ -8,14 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Brain, ArrowLeft, Plus, Edit, Trash2, Save, Search, Sparkles, Wand2, Image as ImageIcon } from 'lucide-react';
 import { questionGenerationSchema, type QuestionGenerationRequest } from '@shared/schema';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { EditQuestionForm } from '@/components/questions/EditQuestionForm';
 
 // Types (aligned with event-manage.tsx Question)
 interface Question {
@@ -189,7 +187,7 @@ const AIQuestionGeneratorForm: React.FC<{
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-wine-800">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <Wand2 className="h-5 w-5" />
           AI Question Generator
           <Badge variant="secondary" className="bg-purple-100 text-purple-700">
@@ -250,7 +248,7 @@ const AIQuestionGeneratorForm: React.FC<{
             <Button 
               type="submit" 
               disabled={isSubmitting}
-              className="bg-wine-600 hover:bg-wine-700"
+              className=""
             >
               {isSubmitting ? (
                 <>
@@ -275,7 +273,7 @@ const AIQuestionGeneratorForm: React.FC<{
         {showResults && generatedQuestions.length > 0 && (
           <div className="mt-6 space-y-4">
             <div className="border-t pt-4">
-              <h3 className="font-medium text-wine-800 mb-3 flex items-center gap-2">
+              <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
                 <Brain className="h-4 w-4" />
                 Generated Questions Preview
               </h3>
@@ -288,7 +286,7 @@ const AIQuestionGeneratorForm: React.FC<{
                       <Badge variant="outline">{q.difficulty}</Badge>
                       <Badge variant="outline" className="bg-purple-50 text-purple-600">AI Generated</Badge>
                     </div>
-                    <h4 className="font-medium text-gray-900 mb-2">{q.question}</h4>
+                    <h4 className="font-medium text-foreground mb-2">{q.question}</h4>
                     {q.options && q.options.length > 0 && (
                       <div className="grid grid-cols-2 gap-2 mb-2">
                         {q.options.map((option, i) => (
@@ -344,7 +342,8 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
     timeLimit: question.timeLimit || 30,
     orderIndex: question.orderIndex || 1,
     explanation: question.explanation || '',
-    backgroundImageUrl: question.backgroundImageUrl || ''
+    backgroundImageUrl: question.backgroundImageUrl || '',
+    questionType: question.questionType || 'game'
   });
   const [unsplashQuery, setUnsplashQuery] = useState('');
   const [unsplashResults, setUnsplashResults] = useState<UnsplashImage[]>([]);
@@ -384,7 +383,8 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
       timeLimit: form.timeLimit,
       orderIndex: form.orderIndex,
       explanation: form.explanation,
-      backgroundImageUrl: form.backgroundImageUrl || null
+      backgroundImageUrl: form.backgroundImageUrl || null,
+      questionType: form.questionType
     };
     if (selectedImage) trackDownload(selectedImage);
     onSave(updated);
@@ -443,6 +443,17 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
                   <SelectItem value="easy">Easy</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Question Type</Label>
+              <Select value={form.questionType} onValueChange={v=>setForm({...form, questionType:v as 'game'|'training'|'tie-breaker'})}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="game">Game</SelectItem>
+                  <SelectItem value="training">Training</SelectItem>
+                  <SelectItem value="tie-breaker">Tie-breaker</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -510,7 +521,6 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const eventId = propEventId || params?.id;
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
   // Fetch all questions
   const { data: questions = [], isLoading } = useQuery<Question[]>({
@@ -536,7 +546,6 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'questions'] });
       toast({ title: 'Saved', description: 'Question updated.' });
-      setEditingQuestion(null);
     },
     onError: (e:any) => toast({ title: 'Update failed', description: e.message, variant: 'destructive' })
   });
@@ -554,17 +563,6 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
     onError: (e:any) => toast({ title: 'Delete failed', description: e.message, variant: 'destructive' })
   });
 
-  // Auto-open question for editing if questionId is provided in URL
-  React.useEffect(() => {
-    if (propQuestionId && questions.length > 0 && !editingQuestion) {
-      const question = questions.find(q => q.id === propQuestionId);
-      if (question) {
-        console.log('Auto-opening question for editing:', question);
-        setEditingQuestion(question);
-      }
-    }
-  }, [propQuestionId, questions, editingQuestion]);
-
   if (!eventId) return <div className="p-8 text-center">Invalid event.</div>;
 
   if (isLoading) return <div className="p-8 text-center">Loading questions...</div>;
@@ -574,10 +572,10 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={()=>setLocation(`/events/${eventId}/manage`)} className="text-wine-700">
+            <Button variant="ghost" onClick={()=>setLocation(`/events/${eventId}/manage`)} className="text-primary">
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Event
             </Button>
-            <h1 className="text-2xl font-bold text-wine-800 flex items-center gap-2"><Brain className="h-6 w-6" /> Trivia Questions</h1>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2"><Brain className="h-6 w-6" /> Trivia Questions</h1>
           </div>
           <Badge variant="outline">{questions.length} Questions</Badge>
         </div>
@@ -597,15 +595,15 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
           </CardHeader>
           <CardContent>
             {questions.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Brain className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <div className="text-center py-12 text-muted-foreground">
+                <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                 <p className="text-lg font-medium mb-2">No questions yet</p>
                 <p className="text-sm">Use the AI Question Generator above to get started, or manually add questions.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {questions.sort((a,b)=>a.orderIndex-b.orderIndex).map((q,idx)=>(
-                  <div key={q.id} className="border rounded-lg p-4 bg-white hover:shadow-sm transition flex items-start gap-4">
+                  <div key={q.id} className="border rounded-lg p-4 bg-card hover:shadow-sm transition flex items-start gap-4">
                     {/* Question Thumbnail */}
                     <QuestionThumbnail questionId={q.id} backgroundImageUrl={q.backgroundImageUrl} />
                     
@@ -613,19 +611,17 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
                       <div className="flex flex-wrap gap-2 mb-2 items-center">
                         <Badge variant="secondary">#{q.orderIndex || idx+1}</Badge>
                         <Badge variant="outline">{q.type.replace('_',' ')}</Badge>
-                        {q.questionType && (
-                          <Badge variant="outline" className={
-                            q.questionType === 'training' ? 'bg-blue-50 text-blue-700' :
-                            q.questionType === 'tie-breaker' ? 'bg-orange-50 text-orange-700' : 'bg-wine-50 text-wine-700'
-                          }>
-                            {q.questionType === 'tie-breaker' ? 'Tie-Breaker' : q.questionType.charAt(0).toUpperCase() + q.questionType.slice(1)}
-                          </Badge>
-                        )}
+                        <Badge variant="outline" className={
+                          (q.questionType || 'game') === 'training' ? 'bg-accent text-accent-foreground' :
+                          (q.questionType || 'game') === 'tie-breaker' ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
+                        }>
+                          {(q.questionType || 'game') === 'tie-breaker' ? 'Tie-Breaker' : (q.questionType || 'game').charAt(0).toUpperCase() + (q.questionType || 'game').slice(1)}
+                        </Badge>
                         <Badge variant="outline">{q.points} pts</Badge>
                         <Badge variant="outline">{q.timeLimit}s</Badge>
                         {q.aiGenerated && <Badge variant="outline" className="bg-blue-50 text-blue-600">AI</Badge>}
                       </div>
-                      <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">{q.question}</h3>
+                      <h3 className="font-medium text-foreground mb-2 line-clamp-2">{q.question}</h3>
                       {q.options?.length>0 && (
                         <div className="grid grid-cols-2 gap-2 mb-2">
                           {q.options.map((o,i)=>(
@@ -638,7 +634,9 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
                     </div>
                     
                     <div className="flex flex-col gap-2">
-                      <Button size="sm" variant="outline" onClick={()=>setEditingQuestion(q)}><Edit className="h-4 w-4 mr-1" /> Edit</Button>
+                      <Button size="sm" variant="outline" onClick={() => setLocation(`/events/${eventId}/manage/trivia/${q.id}`)}>
+                        <Edit className="h-4 w-4 mr-1" /> Edit
+                      </Button>
                       <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" onClick={()=>{ if(confirm('Delete this question?')) deleteQuestionMutation.mutate(q.id); }}><Trash2 className="h-4 w-4 mr-1" /> Delete</Button>
                     </div>
                   </div>
@@ -647,28 +645,6 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
             )}
           </CardContent>
         </Card>
-
-        {editingQuestion && (
-          <Dialog open={!!editingQuestion} onOpenChange={(open) => { if (!open) setEditingQuestion(null); }}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Edit Question with Image Management</DialogTitle>
-                <DialogDescription>
-                  Modify question content, scoring, ordering, background image, and EventImage record.
-                </DialogDescription>
-              </DialogHeader>
-              <EditQuestionForm
-                question={editingQuestion}
-                onSave={(updatedQuestion, selectedImage) => {
-                  console.log('Trivia page received save:', { updatedQuestion, selectedImage });
-                  updateQuestionMutation.mutate(updatedQuestion);
-                }}
-                onCancel={() => setEditingQuestion(null)}
-                isLoading={updateQuestionMutation.isPending}
-              />
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
     </div>
   );

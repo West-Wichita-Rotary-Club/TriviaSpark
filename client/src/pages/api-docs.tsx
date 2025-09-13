@@ -15,10 +15,10 @@ const ApiDocs = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header Section */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4" data-testid="text-api-docs-title">
+            <h1 className="text-4xl font-bold text-foreground mb-4" data-testid="text-api-docs-title">
               TriviaSpark API Documentation
             </h1>
-            <p className="text-xl text-gray-600 mb-6" data-testid="text-api-docs-subtitle">
+            <p className="text-xl text-muted-foreground mb-6" data-testid="text-api-docs-subtitle">
               Complete reference for integrating with the TriviaSpark platform
             </p>
             <div className="flex items-center space-x-4">
@@ -64,7 +64,7 @@ const ApiDocs = () => {
                   
                   <div>
                     <h3 className="font-semibold mb-2">Authentication</h3>
-                    <p className="text-gray-600">Session-based authentication using HTTP-only cookies. Login required for most endpoints.</p>
+                    <p className="text-muted-foreground">Session-based authentication using HTTP-only cookies. Login required for most endpoints.</p>
                   </div>
 
                   <div>

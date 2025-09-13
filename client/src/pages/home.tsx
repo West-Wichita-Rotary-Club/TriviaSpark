@@ -31,7 +31,7 @@ export default function Home() {
   const [, setLocation] = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="wine-gradient">
@@ -56,7 +56,7 @@ export default function Home() {
                 <Button 
                   size="lg"
                   onClick={() => setLocation("/login")}
-                  className="bg-white text-wine-700 hover:bg-champagne-50 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
+                  className="bg-white text-primary hover:bg-primary/5 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
                   data-testid="button-get-started"
                 >
                   Get Started
@@ -64,7 +64,7 @@ export default function Home() {
                 </Button>
                 <Button 
                   size="lg" 
-                  className="border-2 border-white text-white bg-white/10 hover:bg-white hover:text-wine-700 hover:border-white px-8 py-3 text-lg font-semibold backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
+                  className="border-2 border-white text-white bg-white/10 hover:bg-white hover:text-primary hover:border-white px-8 py-3 text-lg font-semibold backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
                   data-testid="button-learn-more"
                   onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 >
@@ -77,14 +77,14 @@ export default function Home() {
       </div>
 
       {/* Upcoming Events + Demo Section */}
-      <div id="upcoming" className="py-20 bg-gray-50" data-testid="section-upcoming-events">
+      <div id="upcoming" className="py-20 bg-muted/30" data-testid="section-upcoming-events">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold wine-text mb-3" data-testid="text-upcoming-title">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-3" data-testid="text-upcoming-title">
                 Upcoming Events
               </h2>
-              <p className="text-gray-600 max-w-xl" data-testid="text-upcoming-subtitle">
+              <p className="text-muted-foreground max-w-xl" data-testid="text-upcoming-subtitle">
                 Preview real events on the platform and launch a live demo presenter view instantly.
               </p>
             </div>
@@ -95,13 +95,13 @@ export default function Home() {
       </div>
 
       {/* Features Section */}
-      <div id="features" className="py-20 bg-white">
+      <div id="features" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold wine-text mb-4" data-testid="text-features-title">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-features-title">
               Powered by Intelligence
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto" data-testid="text-features-subtitle">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto" data-testid="text-features-subtitle">
               Our AI-driven platform creates personalized trivia experiences that engage, educate, and entertain your guests.
             </p>
           </div>
@@ -112,13 +112,13 @@ export default function Home() {
                 <div className="w-16 h-16 wine-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Brain className="text-champagne-400 h-8 w-8" />
                 </div>
-                <CardTitle className="text-xl wine-text">AI-Powered Content</CardTitle>
+                <CardTitle className="text-xl text-primary">AI-Powered Content</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Generate intelligent questions tailored to your event theme, audience level, and specific topics using advanced AI.
                 </p>
-                <Badge variant="secondary" className="bg-wine-100 text-wine-800">Smart Generation</Badge>
+                <Badge variant="secondary" className="bg-primary/10 text-primary">Smart Generation</Badge>
               </CardContent>
             </Card>
 
@@ -127,13 +127,13 @@ export default function Home() {
                 <div className="w-16 h-16 wine-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                   <QrCode className="text-champagne-400 h-8 w-8" />
                 </div>
-                <CardTitle className="text-xl wine-text">Instant Joining</CardTitle>
+                <CardTitle className="text-xl text-primary">Instant Joining</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Participants join seamlessly by scanning QR codes. No apps to download, no complex setup required.
                 </p>
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">Effortless</Badge>
+                <Badge variant="secondary" className="bg-secondary/50 text-secondary-foreground">Effortless</Badge>
               </CardContent>
             </Card>
 
@@ -142,13 +142,13 @@ export default function Home() {
                 <div className="w-16 h-16 wine-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Trophy className="text-champagne-400 h-8 w-8" />
                 </div>
-                <CardTitle className="text-xl wine-text">Live Engagement</CardTitle>
+                <CardTitle className="text-xl text-primary">Live Engagement</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Real-time scoring, leaderboards, and interactive features keep everyone engaged throughout the event.
                 </p>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">Interactive</Badge>
+                <Badge variant="secondary" className="bg-secondary/50 text-secondary-foreground">Interactive</Badge>
               </CardContent>
             </Card>
           </div>
@@ -156,46 +156,46 @@ export default function Home() {
       </div>
 
       {/* Use Cases Section */}
-      <div className="py-20 bg-gray-50">
+      <div className="py-20 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold wine-text mb-4" data-testid="text-use-cases-title">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4" data-testid="text-use-cases-title">
               Perfect for Every Occasion
             </h2>
-            <p className="text-xl text-gray-600" data-testid="text-use-cases-subtitle">
+            <p className="text-xl text-muted-foreground" data-testid="text-use-cases-subtitle">
               Transform any gathering into an memorable experience
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <Card className="trivia-card text-center p-6" data-testid="card-wine-dinners">
-              <Users className="text-wine-600 h-10 w-10 mx-auto mb-4" />
-              <h3 className="font-semibold text-wine-800 mb-2">Wine Dinners</h3>
-              <p className="text-sm text-gray-600">Sophisticated tastings with wine knowledge and pairings</p>
+              <Users className="text-primary h-10 w-10 mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-2">Wine Dinners</h3>
+              <p className="text-sm text-muted-foreground">Sophisticated tastings with wine knowledge and pairings</p>
             </Card>
 
             <Card className="trivia-card text-center p-6" data-testid="card-corporate-events">
-              <Shield className="text-wine-600 h-10 w-10 mx-auto mb-4" />
-              <h3 className="font-semibold text-wine-800 mb-2">Corporate Events</h3>
-              <p className="text-sm text-gray-600">Team building activities and company culture engagement</p>
+              <Shield className="text-primary h-10 w-10 mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-2">Corporate Events</h3>
+              <p className="text-sm text-muted-foreground">Team building activities and company culture engagement</p>
             </Card>
 
             <Card className="trivia-card text-center p-6" data-testid="card-parties">
-              <Sparkles className="text-wine-600 h-10 w-10 mx-auto mb-4" />
-              <h3 className="font-semibold text-wine-800 mb-2">Parties</h3>
-              <p className="text-sm text-gray-600">Fun, social entertainment for celebrations and gatherings</p>
+              <Sparkles className="text-primary h-10 w-10 mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-2">Parties</h3>
+              <p className="text-sm text-muted-foreground">Fun, social entertainment for celebrations and gatherings</p>
             </Card>
 
             <Card className="trivia-card text-center p-6" data-testid="card-educational">
-              <Brain className="text-wine-600 h-10 w-10 mx-auto mb-4" />
-              <h3 className="font-semibold text-wine-800 mb-2">Educational</h3>
-              <p className="text-sm text-gray-600">Learning experiences with interactive knowledge sharing</p>
+              <Brain className="text-primary h-10 w-10 mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-2">Educational</h3>
+              <p className="text-sm text-muted-foreground">Learning experiences with interactive knowledge sharing</p>
             </Card>
 
             <Card className="trivia-card text-center p-6" data-testid="card-fundraisers">
-              <Trophy className="text-wine-600 h-10 w-10 mx-auto mb-4" />
-              <h3 className="font-semibold text-wine-800 mb-2">Fundraisers</h3>
-              <p className="text-sm text-gray-600">Engaging activities that support your cause and community</p>
+              <Trophy className="text-primary h-10 w-10 mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-2">Fundraisers</h3>
+              <p className="text-sm text-muted-foreground">Engaging activities that support your cause and community</p>
             </Card>
           </div>
         </div>
@@ -214,7 +214,7 @@ export default function Home() {
             <Button 
               size="lg"
               onClick={() => setLocation("/register")}
-              className="bg-white text-wine-700 hover:bg-champagne-50 px-12 py-4 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
+              className="bg-white text-primary hover:bg-primary/5 px-12 py-4 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
               data-testid="button-get-started"
             >
               Get Started Free
@@ -271,20 +271,20 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-testid="loading-upcoming">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="animate-pulse h-48 rounded-xl bg-gradient-to-br from-wine-100/40 to-champagne-100/40 border border-wine-100/50" />
+            <div key={i} className="animate-pulse h-48 rounded-xl bg-gradient-to-br from-primary/10 to-secondary/20 border border-primary/20" />
           ))}
         </div>
       )}
       {!isLoading && error && (
-        <div className="p-6 border rounded-xl bg-white shadow-sm max-w-xl" data-testid="error-upcoming">
-          <p className="text-sm text-gray-600 mb-3">Unable to load events right now.</p>
+        <div className="p-6 border rounded-xl bg-card shadow-sm max-w-xl" data-testid="error-upcoming">
+          <p className="text-sm text-muted-foreground mb-3">Unable to load events right now.</p>
           <Button size="sm" onClick={() => window.location.reload()}>Retry</Button>
         </div>
       )}
       {!isLoading && !error && upcoming.length === 0 && (
-        <div className="p-8 border rounded-xl bg-white text-center shadow-sm" data-testid="empty-upcoming">
-          <Brain className="mx-auto h-10 w-10 text-wine-400 mb-4" />
-            <p className="text-gray-600 mb-4">No upcoming events to show yet.</p>
+        <div className="p-8 border rounded-xl bg-card text-center shadow-sm" data-testid="empty-upcoming">
+          <Brain className="mx-auto h-10 w-10 text-primary/60 mb-4" />
+            <p className="text-muted-foreground mb-4">No upcoming events to show yet.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button onClick={() => onLaunchDemo("seed-event-coast-to-cascades")}>Launch Demo</Button>
               <Button variant="outline" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Create One</Button>
@@ -299,8 +299,8 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
                 <CardTitle className="text-lg line-clamp-2" title={ev.title}>{ev.title}</CardTitle>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
-                <p className="text-sm text-gray-600 mb-3 line-clamp-3" data-testid={`home-event-desc-${ev.id}`}>{ev.description}</p>
-                <div className="space-y-1 text-xs text-gray-500 mb-4">
+                <p className="text-sm text-muted-foreground mb-3 line-clamp-3" data-testid={`home-event-desc-${ev.id}`}>{ev.description}</p>
+                <div className="space-y-1 text-xs text-muted-foreground mb-4">
                   {(ev.eventDate || ev.eventTime) && (
                     <div className="flex items-center gap-1" data-testid={`home-event-datetime-${ev.id}`}>
                       <Calendar className="h-3 w-3" />
@@ -318,7 +318,7 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
                   )}
                   {ev.difficulty && (
                     <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide" data-testid={`home-event-diff-${ev.id}`}>
-                      <span className="px-1.5 py-0.5 rounded bg-wine-100 text-wine-700 font-medium">{ev.difficulty}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">{ev.difficulty}</span>
                     </div>
                   )}
                 </div>
