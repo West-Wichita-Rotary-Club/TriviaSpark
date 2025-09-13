@@ -1,0 +1,22 @@
+### TriviaSpark API Health Endpoint Test
+### This file tests the health endpoint validation and database connectivity
+
+### Variables
+@baseUrl = https://localhost:14165
+
+### Test 1: Basic health check - should return 200 OK with detailed health status
+GET {{baseUrl}}/health
+
+###
+
+### Test 2: Health check with JSON content type
+GET {{baseUrl}}/health
+Content-Type: application/json
+
+###
+
+### Test 3: Health check with no cache headers
+GET {{baseUrl}}/health
+Cache-Control: no-cache
+
+###

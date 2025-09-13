@@ -7,6 +7,7 @@ using TriviaSpark.Api.Services.EfCore;
 using TriviaSpark.Api.Data;
 using TriviaSpark.Api.Data.Entities;
 using TriviaSpark.Api.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace TriviaSpark.Api;
 
@@ -17,38 +18,153 @@ public static class EfCoreApiEndpoints
         var api = app.MapGroup("/api").RequireCors("ApiCors").AddEndpointFilter(new CorsFilter());
         var apiV2 = app.MapGroup("/api/v2").RequireCors("ApiCors").AddEndpointFilter(new CorsFilter());
 
-        // Health check - migrated to EF Core
-        api.MapGet("/health", (TriviaSparkDbContext db, ILogger<Program> logger) =>
+        // Health check - migrated to EF Core with enhanced diagnostics
+        app.MapGet("/health", async (TriviaSparkDbContext db, ILogger<Program> logger) =>
         {
+            var healthStatus = new
+            {
+                status = "unknown",
+                database = new { },
+                timestamp = DateTimeOffset.UtcNow,
+                version = "1.0.0-EfCore",
+                environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown",
+                checks = new List<object>()
+            };
+
+            var checks = new List<object>();
+            bool isHealthy = true;
+
             try
             {
-                // Test database connectivity
-                var canConnect = db.Database.CanConnect();
-                var userCount = db.Users.Count();
-                var eventCount = db.Events.Count();
-                
-                return Results.Ok(new { 
+                // Basic API health check
+                checks.Add(new { 
+                    name = "api", 
                     status = "healthy", 
-                    database = new { 
-                        connected = canConnect,
-                        userCount,
-                        eventCount 
-                    },
-                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    version = "EfCore"
+                    message = "API is responding" 
                 });
+
+                // Database connectivity check
+                try
+                {
+                    var canConnect = await db.Database.CanConnectAsync();
+                    if (canConnect)
+                    {
+                        checks.Add(new { 
+                            name = "database_connectivity", 
+                            status = "healthy", 
+                            message = "Database connection successful" 
+                        });
+
+                        // Data integrity checks
+                        try
+                        {
+                            var userCount = await db.Users.CountAsync();
+                            var eventCount = await db.Events.CountAsync();
+                            
+                            checks.Add(new { 
+                                name = "database_data", 
+                                status = "healthy", 
+                                message = $"Data accessible - {userCount} users, {eventCount} events",
+                                data = new { userCount, eventCount }
+                            });
+                        }
+                        catch (Exception dataEx)
+                        {
+                            logger.LogWarning(dataEx, "Health check - database data access failed");
+                            checks.Add(new { 
+                                name = "database_data", 
+                                status = "degraded", 
+                                message = "Database connected but data access failed",
+                                error = dataEx.Message
+                            });
+                            // Don't mark as unhealthy for data access issues, just degraded
+                        }
+                    }
+                    else
+                    {
+                        logger.LogError("Health check - database connection failed");
+                        checks.Add(new { 
+                            name = "database_connectivity", 
+                            status = "unhealthy", 
+                            message = "Cannot connect to database" 
+                        });
+                        isHealthy = false;
+                    }
+                }
+                catch (Exception dbEx)
+                {
+                    logger.LogError(dbEx, "Health check - database check exception");
+                    checks.Add(new { 
+                        name = "database_connectivity", 
+                        status = "unhealthy", 
+                        message = "Database check failed",
+                        error = dbEx.Message
+                    });
+                    isHealthy = false;
+                }
+
+                // Memory check
+                try
+                {
+                    var workingSet = GC.GetTotalMemory(false);
+                    var workingSetMB = workingSet / 1024 / 1024;
+                    
+                    var memoryStatus = workingSetMB > 500 ? "degraded" : "healthy";
+                    if (workingSetMB > 1000)
+                    {
+                        memoryStatus = "unhealthy";
+                        isHealthy = false;
+                    }
+
+                    checks.Add(new { 
+                        name = "memory", 
+                        status = memoryStatus, 
+                        message = $"Memory usage: {workingSetMB} MB",
+                        workingSetMB
+                    });
+                }
+                catch (Exception memEx)
+                {
+                    logger.LogWarning(memEx, "Health check - memory check failed");
+                    checks.Add(new { 
+                        name = "memory", 
+                        status = "degraded", 
+                        message = "Memory check failed",
+                        error = memEx.Message
+                    });
+                }
+
+                var result = new
+                {
+                    status = isHealthy ? "healthy" : "unhealthy",
+                    timestamp = DateTimeOffset.UtcNow,
+                    version = "1.0.0-EfCore",
+                    environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown",
+                    checks = checks
+                };
+
+                var statusCode = isHealthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable;
+                return Results.Json(result, statusCode: statusCode);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Health check failed");
+                logger.LogError(ex, "Health check failed with unexpected error");
                 return Results.Json(new { 
                     status = "unhealthy", 
-                    error = ex.Message,
-                    timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                    version = "EfCore"
+                    error = "Health check failed",
+                    details = ex.Message,
+                    timestamp = DateTimeOffset.UtcNow,
+                    version = "1.0.0-EfCore",
+                    environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown",
+                    checks = new[] { new { 
+                        name = "health_check", 
+                        status = "unhealthy", 
+                        message = "Health check system failed",
+                        error = ex.Message
+                    }}
                 }, statusCode: StatusCodes.Status503ServiceUnavailable);
             }
-        });
+        }).WithTags("Health").AllowAnonymous().RequireCors("ApiCors");
 
         // Authentication endpoints - migrated to EF Core
         api.MapPost("/auth/login", async ([FromBody] LoginRequest body, ISessionService sessions, IEfCoreUserService userService, HttpResponse res, ILogger<Program> logger) =>
@@ -1680,8 +1796,6 @@ public static class EfCoreApiEndpoints
             if (!isValid || userId == null)
                 return Results.Unauthorized();
 
-
-
             try
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
@@ -2260,229 +2374,6 @@ public static class EfCoreApiEndpoints
                     details = ex.ToString(),
                     tableName = tableName
                 }, statusCode: StatusCodes.Status500InternalServerError);
-            }
-        });
-
-        // === V2 API ENDPOINTS ===
-        // Authentication endpoints - v2 (with enhanced functionality)
-        apiV2.MapPost("/auth/login", async ([FromBody] LoginRequest body, ISessionService sessions, IEfCoreUserService userService, HttpResponse res, ILogger<Program> logger) =>
-        {
-            if (string.IsNullOrWhiteSpace(body.Username) || string.IsNullOrWhiteSpace(body.Password))
-                return Results.BadRequest(new { error = "Username and password are required" });
-
-            try
-            {
-                var user = await userService.GetUserByUsernameAsync(body.Username);
-                if (user == null)
-                {
-                    logger.LogWarning("Login attempt failed - user not found: {Username}", body.Username);
-                    return Results.Unauthorized();
-                }
-
-                // Simple password verification (in production, use proper hashing)
-                if (user.Password != body.Password)
-                {
-                    logger.LogWarning("Login attempt failed - invalid password: {Username}", body.Username);
-                    return Results.Unauthorized();
-                }
-
-                var sessionId = sessions.Create(user.Id);
-                res.Cookies.Append("sessionId", sessionId, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = false, // Set to true in production with HTTPS
-                    SameSite = SameSiteMode.Strict,
-                    MaxAge = TimeSpan.FromHours(24)
-                });
-
-                logger.LogInformation("User successfully logged in: {Username}", body.Username);
-                return Results.Ok(new
-                {
-                    user = new { id = user.Id, username = user.Username, fullName = user.FullName, email = user.Email },
-                    sessionId,
-                    message = "Login successful"
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Login failed for user: {Username}", body.Username);
-                return Results.StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        });
-
-        apiV2.MapPost("/register", async ([FromBody] RegisterRequest body, IEfCoreUserService userService, ISessionService sessions, HttpResponse res, ILogger<Program> logger) =>
-        {
-            if (string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password) || string.IsNullOrWhiteSpace(body.Name))
-                return Results.BadRequest(new { error = "Email, password, and name are required" });
-
-            try
-            {
-                // Check if user already exists
-                var existingUserByEmail = await userService.GetUserByEmailAsync(body.Email);
-                if (existingUserByEmail != null)
-                {
-                    return Results.BadRequest(new { error = "A user with this email already exists" });
-                }
-
-                // Generate username from email
-                var username = body.Email.Split('@')[0].ToLowerInvariant();
-                var existingUserByUsername = await userService.GetUserByUsernameAsync(username);
-                if (existingUserByUsername != null)
-                {
-                    // Make username unique by appending a number
-                    var counter = 1;
-                    var originalUsername = username;
-                    do
-                    {
-                        username = $"{originalUsername}{counter}";
-                        existingUserByUsername = await userService.GetUserByUsernameAsync(username);
-                        counter++;
-                    } while (existingUserByUsername != null && counter < 100);
-                    
-                    if (existingUserByUsername != null)
-                        return Results.BadRequest(new { error = "Unable to generate unique username" });
-                }
-
-                var newUser = new Services.User
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Username = username,
-                    Email = body.Email,
-                    FullName = body.Name,
-                    Password = body.Password, // In production, hash this password
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                var created = await userService.CreateUserAsync(newUser);
-                
-                // Auto-login the new user
-                var sessionId = sessions.Create(created.Id);
-                res.Cookies.Append("sessionId", sessionId, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = false, // Set to true in production with HTTPS
-                    SameSite = SameSiteMode.Strict,
-                    MaxAge = TimeSpan.FromHours(24)
-                });
-
-                logger.LogInformation("User successfully registered and logged in: {Username} ({Email})", created.Username, created.Email);
-                return Results.Created($"/api/users/{created.Id}", new
-                {
-                    user = new { id = created.Id, username = created.Username, fullName = created.FullName, email = created.Email },
-                    sessionId,
-                    message = "User registered successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "User registration failed for email: {Email}", body.Email);
-                return Results.StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        });
-
-        apiV2.MapPost("/auth/logout", (ISessionService sessions, HttpRequest req, HttpResponse res) =>
-        {
-            if (req.Cookies.TryGetValue("sessionId", out var sessionId))
-            {
-                sessions.Delete(sessionId);
-            }
-            res.Cookies.Delete("sessionId");
-            return Results.Ok(new { message = "Logged out successfully" });
-        });
-
-        apiV2.MapGet("/auth/me", async (ISessionService sessions, IEfCoreUserService userService, HttpRequest req, ILogger<Program> logger) =>
-        {
-            var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
-            if (!isValid || userId == null)
-                return Results.Unauthorized();
-
-            try
-            {
-                var user = await userService.GetUserByIdAsync(userId);
-                if (user == null)
-                {
-                    logger.LogWarning("Auth/me request failed - user not found: {UserId}", userId);
-                    return Results.Unauthorized();
-                }
-
-                return Results.Ok(new { 
-                    user = new { 
-                        id = user.Id, 
-                        username = user.Username, 
-                        fullName = user.FullName, 
-                        email = user.Email,
-                        roleId = user.RoleId,
-                        roleName = user.RoleName,
-                        createdAt = user.CreatedAt.ToString("o")
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to retrieve user profile for userId: {UserId}", userId);
-                return Results.StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        });
-
-        apiV2.MapPut("/auth/profile", async ([FromBody] ProfileUpdate body, ISessionService sessions, IEfCoreUserService userService, HttpRequest req, ILogger<Program> logger) =>
-        {
-            var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
-            if (!isValid || userId == null)
-                return Results.Unauthorized();
-
-            try
-            {
-                var user = await userService.GetUserByIdAsync(userId);
-                if (user == null)
-                {
-                    logger.LogWarning("Profile update failed - user not found: {UserId}", userId);
-                    return Results.Unauthorized();
-                }
-
-                // Update user profile
-                user.FullName = body.FullName ?? user.FullName;
-                user.Email = body.Email ?? user.Email;
-                user.Username = body.Username ?? user.Username;
-
-                var updated = await userService.UpdateUserAsync(user);
-                logger.LogInformation("User profile updated successfully: {UserId} ({Username})", userId, updated.Username);
-                return Results.Ok(new { id = updated.Id, username = updated.Username, fullName = updated.FullName, email = updated.Email });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to update user profile for userId: {UserId}", userId);
-                return Results.StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        });
-
-        apiV2.MapPut("/auth/change-password", async ([FromBody] ChangePasswordRequest body, ISessionService sessions, IEfCoreUserService userService, HttpRequest req, ILogger<Program> logger) =>
-        {
-            var (isValid, userId) = sessions.Validate(req.Cookies.TryGetValue("sessionId", out var sid) ? sid : null);
-            if (!isValid || userId == null)
-                return Results.Unauthorized();
-
-            if (string.IsNullOrWhiteSpace(body.CurrentPassword) || string.IsNullOrWhiteSpace(body.NewPassword))
-                return Results.BadRequest(new { error = "Current password and new password are required" });
-
-            if (body.NewPassword.Length < 6)
-                return Results.BadRequest(new { error = "New password must be at least 6 characters long" });
-
-            try
-            {
-                var success = await userService.ChangePasswordAsync(userId, body.CurrentPassword, body.NewPassword);
-                if (!success)
-                {
-                    logger.LogWarning("Password change failed - incorrect current password: {UserId}", userId);
-                    return Results.BadRequest(new { error = "Current password is incorrect" });
-                }
-
-                logger.LogInformation("Password changed successfully for user: {UserId}", userId);
-                return Results.Ok(new { message = "Password changed successfully" });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to change password for userId: {UserId}", userId);
-                return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }
         });
     }

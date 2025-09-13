@@ -99,8 +99,23 @@ try
     // builder.Services.AddSingleton<IStorage, Storage>();
 
     // EF Core configuration
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? Environment.GetEnvironmentVariable("DATABASE_URL") 
+        ?? "Data Source=./data/trivia.db";
+    
+    // Ensure the database directory exists
+    var dbPath = connectionString.Replace("Data Source=", "").Replace("file:", "");
+    var dbDirectory = Path.GetDirectoryName(Path.GetFullPath(dbPath));
+    if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+    {
+        Directory.CreateDirectory(dbDirectory);
+        Log.Information("Created database directory: {DatabaseDirectory}", dbDirectory);
+    }
+    
     builder.Services.AddDbContext<TriviaSparkDbContext>(options =>
-        options.UseSqlite("Data Source=C:\\websites\\TriviaSpark\\trivia.db"));
+        options.UseSqlite(connectionString));
+        
+    Log.Information("Database configured with connection string: {ConnectionString}", connectionString);
 
     // EF Core services
     builder.Services.AddScoped<IEfCoreUserService, EfCoreUserService>();
@@ -196,7 +211,7 @@ try
         await next();
     });
 
-    app.UseCors();
+    app.UseCors("ApiCors"); // Apply CORS policy by name
 
     // Admin authorization middleware (for /admin routes)
     app.UseAdminAuthorization();
@@ -206,6 +221,7 @@ try
     app.MapControllers(); // Map controller routes
 
     // EF Core API endpoints (main implementation) - MIGRATION COMPLETE!
+    // This includes the health endpoint with database connectivity checks
     app.MapEfCoreApiEndpoints();
 
     // Legacy Dapper endpoints (deprecated) - keeping for rollback capability
@@ -213,13 +229,6 @@ try
 
     // Quiet browsers/extensions requesting /favicon.ico
     app.MapGet("/favicon.ico", () => Results.NoContent());
-
-    // Add health check endpoint with logging
-    app.MapGet("/health", (ILoggingService loggingService) =>
-    {
-        loggingService.LogBusinessEvent("HealthCheck", new { Status = "Healthy", Timestamp = DateTime.UtcNow });
-        return Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
-    });
 
     // SPA fallback to index.html for client routes
     app.MapFallbackToFile("index.html");

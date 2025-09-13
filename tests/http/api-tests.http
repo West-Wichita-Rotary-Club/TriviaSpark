@@ -3,10 +3,7 @@
 # Usage: Install VS Code "REST Client" extension. Execute each request (Ctrl/Cmd+Alt+R).
 # Note: Enable cookie jar in settings for session auth (rest-client.enableCookieJarSupport = true).
 
-@scheme = https
-@host = https://triviaspark.markhazleton.com/
-@port = 443
-@baseUrl = {{scheme}}://{{host}}:{{port}}
+@baseUrl = https://localhost:14165
 
 # Seed/demo defaults
 @username = mark
@@ -16,7 +13,7 @@
 
 ###
 # Health check
-GET {{baseUrl}}/health
+GET {{baseUrl}}/api/health
 
 ###
 # DB debug snapshot
