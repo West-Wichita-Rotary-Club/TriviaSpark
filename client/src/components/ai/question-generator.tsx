@@ -16,6 +16,8 @@ import { z } from "zod";
 // Create a form schema that matches React Hook Form expectations
 const formSchema = questionGenerationSchema.extend({
   count: z.number().min(1).max(20), // Remove default for form validation
+  // Ensure questionType remains optional in form; provide fallback at submit time
+  questionType: z.enum(["game", "training", "tie-breaker"]).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -38,6 +40,7 @@ export default function QuestionGenerator() {
       type: "multiple_choice",
       difficulty: "medium",
       count: 1,
+      questionType: "game",
     },
   });
 
@@ -84,7 +87,10 @@ export default function QuestionGenerator() {
   });
 
   const onSubmit = (data: FormData) => {
-    generateQuestionsMutation.mutate(data);
+    generateQuestionsMutation.mutate({
+      ...data,
+      questionType: data.questionType || "game",
+    });
   };
 
   return (
@@ -126,7 +132,7 @@ export default function QuestionGenerator() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="topic" data-testid="label-topic">Topic</Label>
               <Input
@@ -153,6 +159,19 @@ export default function QuestionGenerator() {
                   <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
                   <SelectItem value="true_false">True/False</SelectItem>
                   <SelectItem value="fill_blank">Fill in the Blank</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="questionType">Classification</Label>
+              <Select onValueChange={(value) => setValue("questionType", value as any)} defaultValue="game">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="game">Game</SelectItem>
+                  <SelectItem value="training">Training</SelectItem>
+                  <SelectItem value="tie-breaker">Tie-Breaker</SelectItem>
                 </SelectContent>
               </Select>
             </div>

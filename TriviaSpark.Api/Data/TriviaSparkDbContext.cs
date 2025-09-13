@@ -178,6 +178,7 @@ public class TriviaSparkDbContext : DbContext
         questionEntity.Property(e => e.BackgroundImageUrl).HasColumnName("background_image_url");
         questionEntity.Property(e => e.AiGenerated).HasColumnName("ai_generated");
         questionEntity.Property(e => e.OrderIndex).HasColumnName("order_index");
+        questionEntity.Property(e => e.QuestionType).HasColumnName("QuestionType").HasDefaultValue("game");
         
         questionEntity.Property(e => e.CreatedAt)
             .HasColumnName("created_at")

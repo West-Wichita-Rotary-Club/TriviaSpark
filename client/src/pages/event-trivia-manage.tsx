@@ -22,6 +22,7 @@ interface Question {
   id: string;
   eventId: string;
   type: string;
+  questionType?: 'game' | 'training' | 'tie-breaker';
   question: string;
   options: string[];
   correctAnswer: string;
@@ -523,7 +524,10 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
       const res = await fetch(`/api/questions/${question.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(question),
+        body: JSON.stringify({
+          ...question,
+          questionType: question.questionType ?? 'game'
+        }),
         credentials: 'include'
       });
       if (!res.ok) throw new Error('Failed to update question');
@@ -609,6 +613,14 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
                       <div className="flex flex-wrap gap-2 mb-2 items-center">
                         <Badge variant="secondary">#{q.orderIndex || idx+1}</Badge>
                         <Badge variant="outline">{q.type.replace('_',' ')}</Badge>
+                        {q.questionType && (
+                          <Badge variant="outline" className={
+                            q.questionType === 'training' ? 'bg-blue-50 text-blue-700' :
+                            q.questionType === 'tie-breaker' ? 'bg-orange-50 text-orange-700' : 'bg-wine-50 text-wine-700'
+                          }>
+                            {q.questionType === 'tie-breaker' ? 'Tie-Breaker' : q.questionType.charAt(0).toUpperCase() + q.questionType.slice(1)}
+                          </Badge>
+                        )}
                         <Badge variant="outline">{q.points} pts</Badge>
                         <Badge variant="outline">{q.timeLimit}s</Badge>
                         {q.aiGenerated && <Badge variant="outline" className="bg-blue-50 text-blue-600">AI</Badge>}

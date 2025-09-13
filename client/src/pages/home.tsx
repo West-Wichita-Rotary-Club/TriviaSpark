@@ -329,7 +329,7 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
                     onClick={() => onLaunchDemo(ev.id)}
                     data-testid={`button-demo-${ev.id}`}
                   >
-                    <Play className="mr-2 h-4 w-4" /> Demo
+                    <Play className="mr-2 h-4 w-4" /> Preview
                   </Button>
                 </div>
               </CardContent>

@@ -1,8 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   --background: hsl(0, 0%, 100%);
@@ -68,19 +66,20 @@
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: 1.3rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169, 89.1213%, 53.1373% / 0);
-  --shadow: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0),
-    0px 1px 2px -1px hsl(202.8169, 89.1213%, 53.1373% / 0);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0),
-    0px 2px 4px -1px hsl(202.8169, 89.1213%, 53.1373% / 0);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0),
-    0px 4px 6px -1px hsl(202.8169, 89.1213%, 53.1373% / 0);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0),
-    0px 8px 10px -1px hsl(202.8169, 89.1213%, 53.1373% / 0);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169, 89.1213%, 53.1373% / 0);
+  /* Shadows use modern color syntax (space-separated) for Tailwind v4 compatibility */
+  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+    0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0);
+  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 }
@@ -122,23 +121,241 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: var(--border);
   }
 
   body {
-    @apply font-sans antialiased bg-gray-50 text-foreground;
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--background);
+    color: var(--foreground);
+    color-scheme: light dark; /* Helps form controls & UA components adapt */
+  }
+
+  /* Override body background for presenter pages */
+  body.presenter-page {
+    background-color: #2a1a2b !important;
+    background: linear-gradient(135deg, #2a1a2b 0%, #3b2a3c 100%) !important;
+    /* Force dark mode CSS variables for presenter page */
+    --background: hsl(342, 45%, 18%);
+    --foreground: hsl(0, 0%, 100%);
+    --card: hsl(342, 45%, 18%);
+    --card-foreground: hsl(0, 0%, 100%);
+    --popover: hsl(342, 45%, 18%);
+    --popover-foreground: hsl(0, 0%, 100%);
+    --muted: hsl(342, 45%, 25%);
+    --muted-foreground: hsl(0, 0%, 85%);
+    --accent: hsl(342, 58%, 71%);
+    --accent-foreground: hsl(342, 45%, 18%);
+    --border: hsl(342, 45%, 25%);
+  }
+
+  /* Force dark background on html and body for presenter */
+  html:has(body.presenter-page) {
+    background-color: #2a1a2b !important;
+    background: linear-gradient(135deg, #2a1a2b 0%, #3b2a3c 100%) !important;
+  }
+
+  /* Force dark background on the main container */
+  body.presenter-page > div,
+  body.presenter-page #root,
+  body.presenter-page [data-presenter-page] {
+    background: linear-gradient(135deg, #2a1a2b 0%, #3b2a3c 100%) !important;
+    min-height: 100vh !important;
+  }
+
+  /* Global text shadow for all presenter page text */
+  body.presenter-page * {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+  }
+
+  /* Comprehensive text color fixes for presenter page */
+  body.presenter-page .text-white,
+  body.presenter-page .text-white\/80,
+  body.presenter-page .text-white\/90,
+  body.presenter-page .text-white\/60 {
+    color: rgba(255, 255, 255, 0.95) !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  /* Champagne text colors - make them much more visible */
+  body.presenter-page .text-champagne-200 {
+    color: hsl(43, 90%, 80%) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  body.presenter-page .text-champagne-300 {
+    color: hsl(43, 90%, 70%) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+  }
+
+  body.presenter-page .text-champagne-100 {
+    color: hsl(43, 74%, 90%) !important;
+  }
+
+  body.presenter-page .text-champagne-900 {
+    color: hsl(43, 74%, 25%) !important;
+  }
+
+  /* Color-specific text overrides */
+  body.presenter-page .text-blue-100 {
+    color: hsl(214, 95%, 93%) !important;
+  }
+
+  body.presenter-page .text-blue-200 {
+    color: hsl(213, 94%, 87%) !important;
+  }
+
+  body.presenter-page .text-blue-400 {
+    color: hsl(213, 94%, 68%) !important;
+  }
+
+  body.presenter-page .text-cyan-100 {
+    color: hsl(185, 96%, 90%) !important;
+  }
+
+  body.presenter-page .text-cyan-300 {
+    color: hsl(185, 96%, 70%) !important;
+  }
+
+  body.presenter-page .text-indigo-100 {
+    color: hsl(225, 100%, 93%) !important;
+  }
+
+  body.presenter-page .text-indigo-300 {
+    color: hsl(225, 100%, 73%) !important;
+  }
+
+  body.presenter-page .text-purple-100 {
+    color: hsl(270, 100%, 93%) !important;
+  }
+
+  body.presenter-page .text-purple-200 {
+    color: hsl(270, 100%, 87%) !important;
+  }
+
+  body.presenter-page .text-purple-300 {
+    color: hsl(270, 100%, 77%) !important;
+  }
+
+  body.presenter-page .text-purple-400 {
+    color: hsl(270, 100%, 67%) !important;
+  }
+
+  body.presenter-page .text-green-100\/80 {
+    color: hsla(142, 76%, 90%, 0.8) !important;
+  }
+
+  body.presenter-page .text-green-100\/90 {
+    color: hsla(142, 76%, 90%, 0.9) !important;
+  }
+
+  body.presenter-page .text-green-200 {
+    color: hsl(142, 76%, 80%) !important;
+  }
+
+  body.presenter-page .text-green-300 {
+    color: hsl(142, 76%, 70%) !important;
+  }
+
+  body.presenter-page .text-green-400 {
+    color: hsl(142, 76%, 60%) !important;
+  }
+
+  body.presenter-page .text-yellow-200 {
+    color: hsl(52, 98%, 80%) !important;
+  }
+
+  body.presenter-page .text-yellow-400 {
+    color: hsl(52, 98%, 60%) !important;
+  }
+
+  body.presenter-page .text-yellow-900 {
+    color: hsl(52, 98%, 25%) !important;
+  }
+
+  body.presenter-page .text-orange-200 {
+    color: hsl(32, 98%, 83%) !important;
+  }
+
+  body.presenter-page .text-orange-400 {
+    color: hsl(32, 98%, 63%) !important;
+  }
+
+  body.presenter-page .text-orange-100\/80 {
+    color: hsla(32, 98%, 90%, 0.8) !important;
+  }
+
+  body.presenter-page .text-red-400 {
+    color: hsl(0, 91%, 71%) !important;
+  }
+
+  body.presenter-page .text-gray-900 {
+    color: hsl(0, 0%, 25%) !important;
+  }
+
+  body.presenter-page .text-amber-100 {
+    color: hsl(48, 96%, 90%) !important;
+  }
+
+  /* Button-specific styling to ensure proper appearance on presenter page */
+  body.presenter-page button,
+  body.presenter-page [role="button"] {
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease-in-out !important;
+  }
+
+  /* Primary button styling (like Start button) */
+  body.presenter-page .bg-champagne-500 {
+    background-color: hsl(51, 83%, 53%) !important;
+    color: hsl(342, 79%, 35%) !important;
+    text-shadow: none !important;
+  }
+
+  body.presenter-page .bg-champagne-500:hover {
+    background-color: hsl(54, 95%, 55%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Outline button styling (like Practice button) */
+  body.presenter-page [variant="outline"] {
+    border: 2px solid hsl(54, 95%, 55%) !important;
+    color: hsl(54, 95%, 88%) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  body.presenter-page [variant="outline"]:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Ensure button icons are visible */
+  body.presenter-page button svg,
+  body.presenter-page [role="button"] svg {
+    color: inherit !important;
+    opacity: 0.9 !important;
   }
 }
 
-/* TriviaSpark specific utilities - optimized for home page */
-.wine-gradient {
-  background: linear-gradient(135deg, hsl(14, 75%, 27%), hsl(17, 47%, 22%));
-}
+/* Custom utilities grouped under @layer for predictable precedence (Tailwind v4 best practice) */
+@layer utilities {
+  .wine-gradient {
+    background: linear-gradient(135deg, hsl(14 75% 27%), hsl(17 47% 22%));
+  }
 
-.wine-text {
-  color: hsl(17, 47%, 22%);
-}
+  .wine-text {
+    color: hsl(17 47% 22%);
+  }
 
-.trivia-card {
-  @apply bg-white rounded-xl shadow-sm border border-gray-200;
+  .trivia-card {
+    background-color: var(--card);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    border: 1px solid var(--border);
+  }
 }

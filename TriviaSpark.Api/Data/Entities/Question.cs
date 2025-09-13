@@ -39,6 +39,9 @@ public class Question
     
     public int OrderIndex { get; set; } = 0;
     
+    [Required]
+    public string QuestionType { get; set; } = "game"; // game, training, tie-breaker
+    
     public DateTime CreatedAt { get; set; }
     
     // Navigation properties

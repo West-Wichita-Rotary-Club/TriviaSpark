@@ -948,6 +948,7 @@ public static class EfCoreApiEndpoints
                 question.OrderIndex = body.OrderIndex ?? question.OrderIndex;
                 question.AiGenerated = body.AiGenerated ?? question.AiGenerated;
                 question.BackgroundImageUrl = body.BackgroundImageUrl ?? question.BackgroundImageUrl;
+                question.QuestionType = body.QuestionType ?? question.QuestionType;
 
                 // Handle EventImage creation if SelectedImage data is provided
                 if (body.SelectedImage != null)
@@ -1677,6 +1678,8 @@ public static class EfCoreApiEndpoints
             if (!isValid || userId == null)
                 return Results.Unauthorized();
 
+
+
             try
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
@@ -1786,7 +1789,8 @@ public static class EfCoreApiEndpoints
                         AiGenerated = true,
                         Points = 100,
                         TimeLimit = 30,
-                        OrderIndex = 0 // Will be set by the service
+                        OrderIndex = 0, // Will be set by the service
+                        QuestionType = body.QuestionType ?? "game",
                     }).ToList();
 
                     // Save questions to database
@@ -1944,6 +1948,7 @@ public static class EfCoreApiEndpoints
                         Category = q.Category ?? "General",
                         OrderIndex = nextOrderIndex++,
                         AiGenerated = q.AiGenerated ?? false,
+                        QuestionType = q.QuestionType ?? "game",
                         CreatedAt = DateTime.UtcNow
                     };
                     questions.Add(question);
@@ -2490,7 +2495,7 @@ public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public record CreateEventRequest(string Title, string? Description, string EventType, int MaxParticipants, string Difficulty, string? Status, string? QrCode, DateTime? EventDate, string? EventTime, string? Location, string? SponsoringOrganization, string? Settings);
 public record EventStatusUpdate(string Status);
 public record ReorderQuestionsRequest(List<string> QuestionOrder);
-public record UpdateQuestion(string Question, string Type, List<string>? Options, string CorrectAnswer, string Difficulty, string? Category, string? Explanation, int? TimeLimit, int? OrderIndex, bool? AiGenerated, string? BackgroundImageUrl, SelectedImageData? SelectedImage);
+public record UpdateQuestion(string Question, string Type, List<string>? Options, string CorrectAnswer, string Difficulty, string? Category, string? Explanation, int? TimeLimit, int? OrderIndex, bool? AiGenerated, string? BackgroundImageUrl, SelectedImageData? SelectedImage, string? QuestionType);
 
 public record SelectedImageData(string Id, string Author, string AuthorUrl, string PhotoUrl, string DownloadUrl);
 
@@ -2514,6 +2519,6 @@ class CorsFilter : IEndpointFilter
 }
 
 // New DTOs specific to EF Core endpoints
-public record GenerateQuestionsRequest(string EventId, string Topic, string? Type, int Count);
+public record GenerateQuestionsRequest(string EventId, string Topic, string? Type, int Count, string? QuestionType);
 public record BulkInsertQuestionsRequest(string EventId, List<BulkQuestionData> Questions);
-public record BulkQuestionData(string Question, string Type, List<string>? Options, string CorrectAnswer, string? Difficulty, string? Category, string? Explanation, bool? AiGenerated);
+public record BulkQuestionData(string Question, string Type, List<string>? Options, string CorrectAnswer, string? Difficulty, string? Category, string? Explanation, bool? AiGenerated, string? QuestionType);

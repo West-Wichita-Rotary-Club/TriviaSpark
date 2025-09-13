@@ -106,7 +106,7 @@ export default function Header() {
                 (status.time === 'Static Build' ? "text-blue-700 border-blue-300 bg-blue-50" : "text-red-700 border-red-300 bg-red-50")
               }`}
               title={status.ok ? `API healthy • ${status.time ?? "now"}` : 
-                status.time === 'Static Build' ? "Static demo version" : "API unreachable"
+                status.time === 'Static Build' ? "Static preview version" : "API unreachable"
               }
               data-testid="badge-health"
               aria-live="polite"
@@ -115,7 +115,7 @@ export default function Header() {
                 status.ok ? "bg-green-500" : 
                 (status.time === 'Static Build' ? "bg-blue-500" : "bg-red-500")
               }`} />
-              {status.ok ? "Online" : (status.time === 'Static Build' ? "Demo" : "Offline")}
+              {status.ok ? "Online" : (status.time === 'Static Build' ? "Preview" : "Offline")}
             </span>
             <Button 
               variant="ghost" 
