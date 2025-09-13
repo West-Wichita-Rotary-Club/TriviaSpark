@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, ArrowLeft, Plus, Edit, Trash2, Save, Search, Sparkles, Wand2, Image as ImageIcon } from 'lucide-react';
+import { Brain, ArrowLeft, Plus, Edit, Trash2, Save, Search, Sparkles, Wand2, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { questionGenerationSchema, type QuestionGenerationRequest } from '@shared/schema';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -522,11 +522,75 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
   const { toast } = useToast();
   const eventId = propEventId || params?.id;
 
+  // State for collapsible sections
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    'game': true,
+    'training': true,
+    'tie-breaker': true
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   // Fetch all questions
   const { data: questions = [], isLoading } = useQuery<Question[]>({
     queryKey: ['/api/events', eventId, 'questions'],
     enabled: !!eventId
   });
+
+  // Group questions by type
+  const groupedQuestions = React.useMemo(() => {
+    const groups: Record<string, Question[]> = {
+      'game': [],
+      'training': [],
+      'tie-breaker': []
+    };
+    
+    questions.forEach(question => {
+      const type = question.questionType || 'game';
+      if (groups[type]) {
+        groups[type].push(question);
+      }
+    });
+
+    // Sort questions within each group by orderIndex
+    Object.keys(groups).forEach(key => {
+      groups[key].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+    });
+
+    return groups;
+  }, [questions]);
+
+  // Get section info
+  const getSectionInfo = (type: string) => {
+    switch (type) {
+      case 'training':
+        return {
+          title: 'Training Questions',
+          description: 'Practice questions for participants to get familiar with the format',
+          color: 'bg-accent/10 text-accent-foreground',
+          badgeColor: 'bg-accent text-accent-foreground'
+        };
+      case 'tie-breaker':
+        return {
+          title: 'Tie-Breaker Questions',
+          description: 'Special questions used to break ties between teams',
+          color: 'bg-destructive/10 text-destructive',
+          badgeColor: 'bg-destructive/10 text-destructive'
+        };
+      default:
+        return {
+          title: 'Game Questions',
+          description: 'Main questions used during the trivia event',
+          color: 'bg-primary/10 text-primary',
+          badgeColor: 'bg-primary/10 text-primary'
+        };
+    }
+  };
 
   // Update mutation
   const updateQuestionMutation = useMutation({
@@ -601,46 +665,82 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
                 <p className="text-sm">Use the AI Question Generator above to get started, or manually add questions.</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {questions.sort((a,b)=>a.orderIndex-b.orderIndex).map((q,idx)=>(
-                  <div key={q.id} className="border rounded-lg p-4 bg-card hover:shadow-sm transition flex items-start gap-4">
-                    {/* Question Thumbnail */}
-                    <QuestionThumbnail questionId={q.id} backgroundImageUrl={q.backgroundImageUrl} />
-                    
-                    <div className="flex-1 pr-4">
-                      <div className="flex flex-wrap gap-2 mb-2 items-center">
-                        <Badge variant="secondary">#{q.orderIndex || idx+1}</Badge>
-                        <Badge variant="outline">{q.type.replace('_',' ')}</Badge>
-                        <Badge variant="outline" className={
-                          (q.questionType || 'game') === 'training' ? 'bg-accent text-accent-foreground' :
-                          (q.questionType || 'game') === 'tie-breaker' ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
-                        }>
-                          {(q.questionType || 'game') === 'tie-breaker' ? 'Tie-Breaker' : (q.questionType || 'game').charAt(0).toUpperCase() + (q.questionType || 'game').slice(1)}
-                        </Badge>
-                        <Badge variant="outline">{q.points} pts</Badge>
-                        <Badge variant="outline">{q.timeLimit}s</Badge>
-                        {q.aiGenerated && <Badge variant="outline" className="bg-blue-50 text-blue-600">AI</Badge>}
-                      </div>
-                      <h3 className="font-medium text-foreground mb-2 line-clamp-2">{q.question}</h3>
-                      {q.options?.length>0 && (
-                        <div className="grid grid-cols-2 gap-2 mb-2">
-                          {q.options.map((o,i)=>(
-                            <div key={i} className={`text-xs p-2 rounded ${o===q.correctAnswer ? 'bg-green-100 text-green-800 font-medium':'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65+i)}. {o}</div>
+              <div className="space-y-6">
+                {/* Render each question type group */}
+                {['game', 'training', 'tie-breaker'].map(questionType => {
+                  const sectionQuestions = groupedQuestions[questionType] || [];
+                  const sectionInfo = getSectionInfo(questionType);
+                  const isExpanded = expandedSections[questionType];
+                  
+                  if (sectionQuestions.length === 0) return null;
+                  
+                  return (
+                    <div key={questionType} className="border rounded-lg overflow-hidden">
+                      {/* Section Header */}
+                      <button
+                        onClick={() => toggleSection(questionType)}
+                        className={`w-full px-6 py-4 text-left transition-colors hover:bg-gray-50 border-b ${sectionInfo.color} flex items-center justify-between`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="text-lg font-semibold">{sectionInfo.title}</h3>
+                            <Badge variant="secondary" className={sectionInfo.badgeColor}>
+                              {sectionQuestions.length} question{sectionQuestions.length !== 1 ? 's' : ''}
+                            </Badge>
+                          </div>
+                          <p className="text-sm opacity-75">{sectionInfo.description}</p>
+                        </div>
+                        {isExpanded ? (
+                          <ChevronUp className="h-5 w-5" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5" />
+                        )}
+                      </button>
+                      
+                      {/* Section Content */}
+                      {isExpanded && (
+                        <div className="p-4 space-y-4 bg-gray-50/30">
+                          {sectionQuestions.map((q, idx) => (
+                            <div key={q.id} className="border rounded-lg p-4 bg-white hover:shadow-sm transition flex items-start gap-4">
+                              {/* Question Thumbnail */}
+                              <QuestionThumbnail questionId={q.id} backgroundImageUrl={q.backgroundImageUrl} />
+                              
+                              <div className="flex-1 pr-4">
+                                <div className="flex flex-wrap gap-2 mb-2 items-center">
+                                  <Badge variant="secondary">#{q.orderIndex || idx+1}</Badge>
+                                  <Badge variant="outline">{q.type.replace('_',' ')}</Badge>
+                                  <Badge variant="outline" className={sectionInfo.badgeColor}>
+                                    {questionType === 'tie-breaker' ? 'Tie-Breaker' : questionType.charAt(0).toUpperCase() + questionType.slice(1)}
+                                  </Badge>
+                                  <Badge variant="outline">{q.points} pts</Badge>
+                                  <Badge variant="outline">{q.timeLimit}s</Badge>
+                                  {q.aiGenerated && <Badge variant="outline" className="bg-blue-50 text-blue-600">AI</Badge>}
+                                </div>
+                                <h3 className="font-medium text-foreground mb-2 line-clamp-2">{q.question}</h3>
+                                {q.options?.length>0 && (
+                                  <div className="grid grid-cols-2 gap-2 mb-2">
+                                    {q.options.map((o,i)=>(
+                                      <div key={i} className={`text-xs p-2 rounded ${o===q.correctAnswer ? 'bg-green-100 text-green-800 font-medium':'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65+i)}. {o}</div>
+                                    ))}
+                                  </div>
+                                )}
+                                <p className="text-xs text-green-600 font-medium mb-1">Correct: {q.correctAnswer}</p>
+                                {q.explanation && <p className="text-xs text-gray-500 line-clamp-2">{q.explanation}</p>}
+                              </div>
+                              
+                              <div className="flex flex-col gap-2">
+                                <Button size="sm" variant="outline" onClick={() => setLocation(`/events/${eventId}/manage/trivia/${q.id}`)}>
+                                  <Edit className="h-4 w-4 mr-1" /> Edit
+                                </Button>
+                                <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" onClick={()=>{ if(confirm('Delete this question?')) deleteQuestionMutation.mutate(q.id); }}><Trash2 className="h-4 w-4 mr-1" /> Delete</Button>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       )}
-                      <p className="text-xs text-green-600 font-medium mb-1">Correct: {q.correctAnswer}</p>
-                      {q.explanation && <p className="text-xs text-gray-500 line-clamp-2">{q.explanation}</p>}
                     </div>
-                    
-                    <div className="flex flex-col gap-2">
-                      <Button size="sm" variant="outline" onClick={() => setLocation(`/events/${eventId}/manage/trivia/${q.id}`)}>
-                        <Edit className="h-4 w-4 mr-1" /> Edit
-                      </Button>
-                      <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" onClick={()=>{ if(confirm('Delete this question?')) deleteQuestionMutation.mutate(q.id); }}><Trash2 className="h-4 w-4 mr-1" /> Delete</Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
