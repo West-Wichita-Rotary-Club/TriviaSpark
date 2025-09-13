@@ -1,5 +1,5 @@
 // Generated data from SQLite database
-// Last updated: 2025-09-13T15:01:46.239Z
+// Last updated: 2025-09-13T17:36:05.130Z
 // Database: file:C:\websites\TriviaSpark\trivia.db
 
 export const demoEvent = {
@@ -60,7 +60,7 @@ export const demoQuestions = [
     ],
     "correctAnswer": "Service Above Self",
     "explanation": "Rotary's motto 'Service Above Self' encapsulates the organization's core philosophy of putting service to others before personal interests.",
-    "difficulty": "",
+    "difficulty": "easy",
     "category": "rotary",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1631417178771-df62876dcbaf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxSb3Rhcnl8ZW58MXx8fHwxNzU3NzQ1NzU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
@@ -126,7 +126,7 @@ export const demoQuestions = [
     ],
     "correctAnswer": "14,410 feet",
     "explanation": "Mount Rainier has an officially recognized summit elevation of 14,410 feet (4,392 meters). Located in Washington's Cascade Range, it is the highest mountain in the state. The summit may be shrinking due to glacial ice melt, potentially changing the exact highest point and its official height in the future.",
-    "difficulty": "",
+    "difficulty": "hard",
     "category": "geography",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1627844718626-4c6b963baac0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxtb3VudCUyMFJhaW5pZXJ8ZW58MXx8fHwxNzU3NzQ2MDMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
@@ -594,7 +594,7 @@ export const allEvents = [
 ];
 
 export const buildInfo = {
-  extractedAt: "2025-09-13T15:01:46.240Z",
+  extractedAt: "2025-09-13T17:36:05.131Z",
   databaseUrl: "file:C:\websites\TriviaSpark\trivia.db",
   eventsCount: 1,
   questionsCount: 20,
