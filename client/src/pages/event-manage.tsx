@@ -194,41 +194,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
   const [funFactsText, setFunFactsText] = useState('');
   const [editingFunFacts, setEditingFunFacts] = useState(false);
 
-  // Check authentication
-  const { data: user, isLoading: userLoading, error: userError } = useQuery<{
-    user: {
-      id: string;
-      username: string;
-      email: string;
-      fullName: string;
-    };
-  }>({
-    queryKey: ["/api/auth/me"],
-    retry: false
-  });
-
   const eventId = propEventId || params?.id;
-  console.log("Extracted eventId:", eventId, "from propEventId:", propEventId, "params:", params);
+  console.log("Extracted eventId:", eventId, "from propEventId:", propEventId, "routes:", params);
   console.log("EventManage - eventId:", eventId, "propEventId:", propEventId, "params:", params);
-
-  // Redirect to home if not authenticated
-  if (userError || (!userLoading && !user)) {
-    setLocation("/");
-    return null;
-  }
-
-  if (userLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Brain className="text-champagne-400 h-8 w-8 animate-pulse" />
-          </div>
-          <p className="text-primary">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Early return if no eventId
   if (!eventId) {

@@ -55,7 +55,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
                   size="lg"
-                  onClick={() => setLocation("/login")}
+                  onClick={() => setLocation("/dashboard")}
                   className="bg-white text-primary hover:bg-primary/5 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
                   data-testid="button-get-started"
                 >
@@ -213,21 +213,12 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg"
-              onClick={() => setLocation("/register")}
+              onClick={() => setLocation("/dashboard")}
               className="bg-white text-primary hover:bg-primary/5 px-12 py-4 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
               data-testid="button-get-started"
             >
               Get Started Free
               <Clock className="ml-3 h-6 w-6" />
-            </Button>
-            <Button 
-              size="lg"
-              variant="outline"
-              onClick={() => setLocation("/login")}
-              className="border-white text-white hover:bg-white/10 px-12 py-4 text-xl font-semibold backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
-              data-testid="button-sign-in"
-            >
-              Sign In
             </Button>
           </div>
           <p className="text-white/75 mt-4 drop-shadow-sm" data-testid="text-cta-footer">

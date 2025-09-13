@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Serilog;
 using TriviaSpark.Api.Middleware;
-// using TriviaSpark.Api.SignalR; // Disabled - SignalR integration pending
 using TriviaSpark.Api;
 using TriviaSpark.Api.Data;
 using TriviaSpark.Api.Services;
@@ -91,12 +90,8 @@ try
         configuration.RootPath = "wwwroot";
     });
 
-    // App services
-    builder.Services.AddSingleton<ISessionService, SessionService>();
+    // App services (removed session service)
     builder.Services.AddScoped<ILoggingService, LoggingService>();
-    // Legacy Dapper services (deprecated for rollback only)
-    // builder.Services.AddSingleton<IDb, SqliteDb>();
-    // builder.Services.AddSingleton<IStorage, Storage>();
 
     // EF Core configuration
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
@@ -181,11 +176,7 @@ try
                 diagnosticContext.Set("UserAgent", userAgent);
             }
 
-            if (httpContext.User.Identity?.IsAuthenticated == true &&
-                !string.IsNullOrEmpty(httpContext.User.Identity.Name))
-            {
-                diagnosticContext.Set("UserName", httpContext.User.Identity.Name);
-            }
+            // Removed authentication context
         };
     });
 
@@ -213,8 +204,7 @@ try
 
     app.UseCors("ApiCors"); // Apply CORS policy by name
 
-    // Admin authorization middleware (for /admin routes)
-    app.UseAdminAuthorization();
+    // Removed admin authorization middleware
 
     // Map SignalR hub (disabled - pending EF Core integration)
     // app.MapHub<TriviaHub>("/ws");
@@ -235,13 +225,7 @@ try
 
     Log.Information("TriviaSpark API startup completed successfully");
     
-    // Initialize default roles
-    using (var scope = app.Services.CreateScope())
-    {
-        var adminService = scope.ServiceProvider.GetRequiredService<IAdminService>();
-        await adminService.EnsureDefaultRolesExistAsync();
-        Log.Information("Default roles initialized");
-    }
+    // Removed role initialization
     
     app.Run();
 }

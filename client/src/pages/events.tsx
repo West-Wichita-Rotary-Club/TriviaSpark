@@ -4,16 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Brain, QrCode, Play, Users, Calendar, MapPin, Building2, LogOut } from "lucide-react";
+import { Brain, QrCode, Play, Users, Calendar, MapPin, Building2 } from "lucide-react";
 import { useLocation } from "wouter";
 import QRCodeComponent from "qrcode";
-
-type User = {
-  id: string;
-  username: string;
-  email: string;
-  fullName: string;
-};
 
 type Event = {
   id: string;
@@ -38,37 +31,10 @@ export default function EventManagement() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
 
-  // Check authentication
-  const { data: user, isLoading: userLoading, error: userError } = useQuery<{ user: User }>({
-    queryKey: ["/api/auth/me"],
-    retry: false
-  });
-
   // Get events
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
-    enabled: !!user,
     retry: false
-  });
-
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error("Logout failed");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.clear();
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      setLocation("/login");
-    }
   });
 
   // Start event mutation
@@ -115,14 +81,7 @@ export default function EventManagement() {
     }
   }, [selectedEvent]);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (userError || (!userLoading && !user)) {
-      setLocation("/login");
-    }
-  }, [userError, userLoading, user, setLocation]);
-
-  if (userLoading) {
+  if (eventsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
         <div className="text-center">
@@ -150,19 +109,10 @@ export default function EventManagement() {
                   Event Management
                 </h1>
                 <p className="text-champagne-200" data-testid="text-welcome">
-                  Welcome back, {user?.user.fullName}
+                  Manage your trivia events
                 </p>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              onClick={() => logoutMutation.mutate()}
-              className="text-white hover:bg-white/10"
-              data-testid="button-logout"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
           </div>
         </div>
       </div>

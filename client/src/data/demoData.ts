@@ -1,5 +1,5 @@
 // Generated data from SQLite database
-// Last updated: 2025-09-13T17:36:05.130Z
+// Last updated: 2025-09-13T18:21:55.953Z
 // Database: file:C:\websites\TriviaSpark\trivia.db
 
 export const demoEvent = {
@@ -67,7 +67,7 @@ export const demoQuestions = [
     "timeLimit": 20,
     "orderIndex": 1,
     "aiGenerated": false,
-    "createdAt": "2025-09-12T14:24:09.439Z"
+    "createdAt": "2025-09-12T09:24:09.439Z"
   },
   {
     "id": "q10-mount-st-helens",
@@ -82,7 +82,7 @@ export const demoQuestions = [
     ],
     "correctAnswer": "Mount St. Helens",
     "explanation": "Mount St. Helens erupted catastrophically on May 18, 1980, in the most significant volcanic event in the contiguous United States in modern times, reducing its elevation from 9,677 to 8,363 feet.",
-    "difficulty": "",
+    "difficulty": "medium",
     "category": "geography",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1745780898354-81b3dd5d02c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxMHx8TW91bnQlMjBTdC4lMjBIZWxlbnN8ZW58MXx8fHwxNzU3NzQ2NTE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
@@ -90,28 +90,6 @@ export const demoQuestions = [
     "orderIndex": 2,
     "aiGenerated": false,
     "createdAt": "2025-09-12T14:24:09.451Z"
-  },
-  {
-    "id": "q3-rotary-global-grant",
-    "eventId": "seed-event-coast-to-cascades",
-    "type": "multiple_choice",
-    "question": "What is the main goal of the 'Rotary Global Grant' projects in economic development?",
-    "options": [
-      "Building hospitals",
-      "Providing vocational training",
-      "Installing water systems",
-      "Teaching literacy"
-    ],
-    "correctAnswer": "Providing vocational training",
-    "explanation": "Rotary Global Grant projects often focus on providing vocational training to improve employment opportunities and stimulate economic development in communities.",
-    "difficulty": "medium",
-    "category": "Give examples of Rotary projects for economic development",
-    "backgroundImageUrl": "https://images.unsplash.com/photo-1616674202799-054e7c831378?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwyfHx2b2NhdGlvbmFsJTIwdHJhaW5pbmd8ZW58MXx8fHwxNzU3NzQ1OTk1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    "points": 100,
-    "timeLimit": 20,
-    "orderIndex": 3,
-    "aiGenerated": false,
-    "createdAt": "2025-09-12T19:24:09.441Z"
   },
   {
     "id": "q4-mount-rainier",
@@ -148,7 +126,7 @@ export const demoQuestions = [
     ],
     "correctAnswer": "Pinot Noir",
     "explanation": "Pinot Noir is Oregon's signature and most widely planted wine grape. It accounts for nearly 60% of the state's total vineyard plantings.",
-    "difficulty": "",
+    "difficulty": "medium",
     "category": "wine",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1664432786719-3f0deff9f17d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw2fHxQaW5vdCUyME5vaXJ8ZW58MXx8fHwxNzU3NzQ2MDUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
@@ -170,8 +148,8 @@ export const demoQuestions = [
     ],
     "correctAnswer": "Columbia Gorge",
     "explanation": "The Columbia Gorge AVA is renowned for its diverse microclimates and soil types, including volcanic and loess soils. The proximity to the Columbia River and Cascade Range provides a unique marine influence, allowing for a wide range of grape varieties and wine styles.",
-    "difficulty": "",
-    "category": "Pacific Northwest Wine Regions terroirs",
+    "difficulty": "medium",
+    "category": "wine",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1657518860188-daa43c146ed8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw2fHxDb2x1bWJpYSUyMEdvcmdlfGVufDF8fHx8MTc1Nzc0NjIzMHww&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
     "timeLimit": 20,
@@ -193,7 +171,7 @@ export const demoQuestions = [
     "correctAnswer": "Cascade Mountains",
     "explanation": "The Cascade Mountains create a rain shadow effect, giving Oregon's wine regions their Mediterranean-like climate with wet winters and dry summers.",
     "difficulty": "easy",
-    "category": "geography",
+    "category": "wine",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1553117595-56534f5d7492?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxDYXNjYWRlJTIwTW91bnRhaW5zfGVufDF8fHx8MTc1Nzc0NjM2M3ww&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
     "timeLimit": 20,
@@ -215,7 +193,7 @@ export const demoQuestions = [
     "correctAnswer": "Polio Plus",
     "explanation": "In 1985, Rotary International launched the Polio Plus program to tackle global polio eradication through the mass vaccination of children. The \"Plus\" signifies efforts to provide other health initiatives not just the polio vaccine. Since its launch, the initiative has reduced polio cases by more than 99% worldwide.",
     "difficulty": "easy",
-    "category": "Rotary International",
+    "category": "rotary",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1521295121783-8a321d551ad2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwyfHxnbG9iYWx8ZW58MXx8fHwxNzU3NzQ2MzExfDA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
     "timeLimit": 20,
@@ -236,7 +214,7 @@ export const demoQuestions = [
     ],
     "correctAnswer": "Heceta Head Lighthouse",
     "explanation": "Heceta Head Lighthouse, built in 1894, is one of the most photographed lighthouses in the world and sits dramatically on a 205-foot cliff overlooking the Pacific Ocean.",
-    "difficulty": "",
+    "difficulty": "medium",
     "category": "geography",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1652972756748-4f3b87e32b9e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHw3fHxoZWNldGElMjBoZWFkfGVufDF8fHx8MTc1Nzc0NjM5NXww&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
@@ -258,7 +236,7 @@ export const demoQuestions = [
     ],
     "correctAnswer": "Cannon Beach",
     "explanation": "Haystack Rock at Cannon Beach is one of Oregon's most recognizable landmarks and a designated Oregon Islands National Wildlife Refuge, providing habitat for seabirds and marine life.",
-    "difficulty": "",
+    "difficulty": "medium",
     "category": "geography",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1543371392-48cfd9ba7270?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwyfHxIYXlzdGFjayUyMFJvY2t8ZW58MXx8fHwxNzU3NzQ2NTgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
@@ -266,28 +244,6 @@ export const demoQuestions = [
     "orderIndex": 11,
     "aiGenerated": false,
     "createdAt": "2025-09-12T19:24:09.453Z"
-  },
-  {
-    "id": "q13-farmers-cooperative",
-    "eventId": "seed-event-coast-to-cascades",
-    "type": "multiple_choice",
-    "question": "Which project is an example of Rotary's efforts to support agricultural development in rural areas?",
-    "options": [
-      "Urban Garden Initiative",
-      "Farmers' Cooperative Initiatives",
-      "Crop Insurance Program",
-      "Agricultural Research Grants"
-    ],
-    "correctAnswer": "Farmers' Cooperative Initiatives",
-    "explanation": "Rotary's 'Farmers' Cooperative Initiatives' aim to support agricultural development by forming cooperatives that provide resources, training, and market access to rural farmers.",
-    "difficulty": "",
-    "category": "Give examples of Rotary projects for economic development",
-    "backgroundImageUrl": "https://images.unsplash.com/photo-1683628759584-2990629fa49e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwyfHxmYXJtZXJzJTIwY28tb3B8ZW58MXx8fHwxNzU3NzQ2NDQ1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    "points": 100,
-    "timeLimit": 20,
-    "orderIndex": 13,
-    "aiGenerated": false,
-    "createdAt": "2025-09-12T19:24:09.456Z"
   },
   {
     "id": "q14-oregon-dunes",
@@ -309,7 +265,7 @@ export const demoQuestions = [
     "timeLimit": 20,
     "orderIndex": 14,
     "aiGenerated": false,
-    "createdAt": "2025-09-13T00:24:09.457Z"
+    "createdAt": "2025-09-12T19:24:09.457Z"
   },
   {
     "id": "q15-mount-hood-range",
@@ -325,7 +281,7 @@ export const demoQuestions = [
     "correctAnswer": "Cascade Range",
     "explanation": "Mount Hood is part of the Cascade Range, a major mountain range of western North America, extending from southern British Columbia through Washington and Oregon to Northern California.",
     "difficulty": "easy",
-    "category": "Mount Hood",
+    "category": "geography",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1588973046899-21ad07fbc507?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxtb3VudCUyMGhvb2R8ZW58MXx8fHwxNzU3NzQ3NzU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
     "timeLimit": 20,
@@ -347,7 +303,7 @@ export const demoQuestions = [
     "correctAnswer": "Timberline Lodge",
     "explanation": "Timberline Lodge, constructed during the Great Depression as a Works Progress Administration project, is a National Historic Landmark and offers year-round skiing.",
     "difficulty": "medium",
-    "category": "Mount Hood",
+    "category": "geography",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1544427920-c49ccfb85579?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
     "points": 100,
     "timeLimit": 20,
@@ -369,7 +325,7 @@ export const demoQuestions = [
     "correctAnswer": "C. 11,240 feet",
     "explanation": "Mount Hood's summit reaches approximately 11,240 feet, making it the highest point in Oregon and a prominent peak in the Cascade Volcanic Arc.",
     "difficulty": "medium",
-    "category": "Mount Hood",
+    "category": "geography",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1544427920-c49ccfb85579?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
     "points": 100,
     "timeLimit": 20,
@@ -391,7 +347,7 @@ export const demoQuestions = [
     "correctAnswer": "C. Its long growing season",
     "explanation": "The Yakima Valley AVA benefits from a long growing season, which is crucial for the development of complex flavors in grapes. The region's climate, with hot days and cool nights, allows for a longer period of vine growth, essential for producing high-quality wines.",
     "difficulty": "medium",
-    "category": "Pacific Northwest Wine Regions terroirs",
+    "category": "wine",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
     "points": 100,
     "timeLimit": 20,
@@ -413,7 +369,7 @@ export const demoQuestions = [
     "correctAnswer": "Microcredit for Empowerment",
     "explanation": "The 'Microcredit for Empowerment' project offers small loans to women in developing countries, helping them to start or expand small businesses, which in turn stimulates local economies.",
     "difficulty": "medium",
-    "category": "Give examples of Rotary projects for economic development",
+    "category": "rotary",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1559027615-cd4628902d4a?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
     "points": 100,
     "timeLimit": 20,
@@ -434,8 +390,8 @@ export const demoQuestions = [
     ],
     "correctAnswer": "The tasting room is located in a historic schoolhouse",
     "explanation": "L'Ecole No 41 is famous for its location in a historic schoolhouse, which adds a unique charm and historical context to the wine tasting experience in Walla Walla. The winery's name, L'Ecole, is French for \"the school\".",
-    "difficulty": "",
-    "category": "Unique Pacific Northwest Wineries",
+    "difficulty": "medium",
+    "category": "wine",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1669666254570-cfcbc6958853?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwzfHxXaW5lcnklMjBTY2hvb2xob3VzZXxlbnwxfHx8fDE3NTc3NDY0MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
     "timeLimit": 20,
@@ -457,7 +413,7 @@ export const demoQuestions = [
     "correctAnswer": "A to Z Wineworks",
     "explanation": "A to Z Wineworks became the first winery in the United States to be certified as a B Corporation in May 2014. The Willamette Valley winery was recognized for its commitment to social and environmental performance.",
     "difficulty": "hard",
-    "category": "Unique Pacific Northwest Wineries",
+    "category": "wine",
     "backgroundImageUrl": "https://images.unsplash.com/photo-1583803804313-cf4b9ecd674b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxMXx8d2luZXJ5fGVufDF8fHx8MTc1Nzc0NjI4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
     "points": 100,
     "timeLimit": 20,
@@ -486,6 +442,28 @@ export const demoQuestions = [
     "orderIndex": 22,
     "aiGenerated": false,
     "createdAt": "2025-09-11T23:24:09.437Z"
+  },
+  {
+    "id": "cce1881f-239f-4b78-991a-bc0bcb6b19b0",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Approximately how many volunteer hours are contributed annually worldwide according to the United Nations?",
+    "options": [
+      "Exactly 4,700",
+      "Roughly 47,000",
+      "As many as 470,000",
+      "Over 47 Million "
+    ],
+    "correctAnswer": "Over 47 Million",
+    "explanation": "Rotary Clubs contribute approximately 47 million volunteer hours annually worldwide.\n This figure is based on a report by the Johns Hopkins Center for Civil Society Studies, which estimated that Rotarians provide about 47 million hours of volunteer effort each year",
+    "difficulty": "",
+    "category": "Volunteer Hours annually worldwide",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1631417178771-df62876dcbaf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxSb3Rhcnl8ZW58MXx8fHwxNzU3NzQ1NzU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 30,
+    "orderIndex": 23,
+    "aiGenerated": true,
+    "createdAt": "2025-09-13T12:52:36.869Z"
   }
 ];
 
@@ -594,10 +572,10 @@ export const allEvents = [
 ];
 
 export const buildInfo = {
-  extractedAt: "2025-09-13T17:36:05.131Z",
+  extractedAt: "2025-09-13T18:21:55.953Z",
   databaseUrl: "file:C:\websites\TriviaSpark\trivia.db",
   eventsCount: 1,
-  questionsCount: 20,
+  questionsCount: 19,
   funFactsCount: 6,
   primaryEventId: "seed-event-coast-to-cascades",
 };
