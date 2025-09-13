@@ -76,10 +76,10 @@ export default function DashboardStats({ stats, isLoading }: DashboardStatsProps
                   <IconComponent className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900" data-testid={`${stat.testId}-value`}>
+                  <p className="text-2xl font-bold text-wine-900" data-testid={`${stat.testId}-value`}>
                     {stat.title === "Avg. Rating" ? stat.value.toFixed(1) : stat.value}
                   </p>
-                  <p className="text-gray-600 text-sm" data-testid={`${stat.testId}-label`}>
+                  <p className="text-wine-700 text-sm" data-testid={`${stat.testId}-label`}>
                     {stat.title}
                   </p>
                 </div>

@@ -35,20 +35,20 @@ export default function Home() {
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="wine-gradient">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
             <div className="text-center">
               <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-                  <Brain className="text-champagne-300 h-10 w-10" />
+                <div className="w-20 h-20 bg-white/25 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/40 shadow-lg">
+                  <Brain className="text-white h-10 w-10 drop-shadow-lg" />
                 </div>
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6" data-testid="text-hero-title">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg" data-testid="text-hero-title">
                 TriviaSpark
               </h1>
-              <p className="text-xl md:text-2xl text-champagne-200 mb-4" data-testid="text-hero-subtitle">
+              <p className="text-xl md:text-2xl text-white/90 mb-4 drop-shadow-md font-medium" data-testid="text-hero-subtitle">
                 Where Every Event Becomes Unforgettable
               </p>
-              <p className="text-lg text-champagne-100 mb-8 max-w-2xl mx-auto" data-testid="text-hero-description">
+              <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto drop-shadow-sm" data-testid="text-hero-description">
                 Create intelligent, immersive trivia experiences that transform any gathering into lasting memories. 
                 From wine dinners to corporate events, our AI-powered platform makes every moment count.
               </p>
@@ -56,7 +56,7 @@ export default function Home() {
                 <Button 
                   size="lg"
                   onClick={() => setLocation("/login")}
-                  className="bg-white text-wine-700 hover:bg-champagne-50 px-8 py-3 text-lg"
+                  className="bg-white text-wine-700 hover:bg-champagne-50 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
                   data-testid="button-get-started"
                 >
                   Get Started
@@ -64,7 +64,7 @@ export default function Home() {
                 </Button>
                 <Button 
                   size="lg" 
-                  className="border-2 border-white text-white bg-transparent hover:bg-white hover:text-wine-700 hover:border-white px-8 py-3 text-lg font-medium"
+                  className="border-2 border-white text-white bg-white/10 hover:bg-white hover:text-wine-700 hover:border-white px-8 py-3 text-lg font-semibold backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
                   data-testid="button-learn-more"
                   onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
                 >
@@ -203,18 +203,18 @@ export default function Home() {
 
       {/* CTA Section */}
       <div className="wine-gradient py-20">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6" data-testid="text-cta-title">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6 drop-shadow-lg" data-testid="text-cta-title">
             Ready to Spark Something Amazing?
           </h2>
-          <p className="text-xl text-champagne-200 mb-8" data-testid="text-cta-subtitle">
+          <p className="text-xl text-white/90 mb-8 drop-shadow-md font-medium" data-testid="text-cta-subtitle">
             Join event hosts who are creating unforgettable experiences with TriviaSpark
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg"
               onClick={() => setLocation("/register")}
-              className="bg-white text-wine-700 hover:bg-champagne-50 px-12 py-4 text-xl"
+              className="bg-white text-wine-700 hover:bg-champagne-50 px-12 py-4 text-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
               data-testid="button-get-started"
             >
               Get Started Free
@@ -224,13 +224,13 @@ export default function Home() {
               size="lg"
               variant="outline"
               onClick={() => setLocation("/login")}
-              className="border-white text-white hover:bg-white/10 px-12 py-4 text-xl"
+              className="border-white text-white hover:bg-white/10 px-12 py-4 text-xl font-semibold backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:-translate-y-0.5"
               data-testid="button-sign-in"
             >
               Sign In
             </Button>
           </div>
-          <p className="text-champagne-300 mt-4" data-testid="text-cta-footer">
+          <p className="text-white/75 mt-4 drop-shadow-sm" data-testid="text-cta-footer">
             A WebSpark Solution by Mark Hazleton
           </p>
         </div>

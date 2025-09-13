@@ -48,4 +48,6 @@ public class Question
     public virtual Event Event { get; set; } = null!;
     
     public virtual ICollection<Response> Responses { get; set; } = new List<Response>();
+    
+    public virtual ICollection<EventImage> EventImages { get; set; } = new List<EventImage>();
 }

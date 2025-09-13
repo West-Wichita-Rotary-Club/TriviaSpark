@@ -43,57 +43,43 @@ export default function PresenterView() {
   const [currentQuestionType, setCurrentQuestionType] = useState<"training" | "game" | "tie-breaker">("training");
   const [practiceComplete, setPracticeComplete] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [gameState, setGameState] = useState<"waiting" | "rules" | "practice" | "game-start" | "question" | "answer" | "leaderboard" | "tie-check" | "tie-breaker" | "wrap-up">("waiting");
+  const [gameState, setGameState] = useState<"waiting" | "rules" | "training" | "practice" | "game-start" | "question" | "answer" | "leaderboard" | "tie-check" | "tie-breaker" | "wrap-up">("waiting");
   const [timeLeft, setTimeLeft] = useState(20); // 20 seconds per question
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   
-  // Use public presenter API endpoints (no authentication required)
-  const { data: apiEvent } = useQuery<any>({
-    queryKey: ["/api/presenter/events", eventId],
-    enabled: !!eventId,
-  });
-
-  const { data: apiQuestions } = useQuery<any[]>({
-    queryKey: ["/api/presenter/events", eventId, "questions"],
-    enabled: !!eventId,
-  });
-
-  const { data: apiParticipants } = useQuery<any[]>({
-    queryKey: ["/api/presenter/events", eventId, "participants"],
-    enabled: !!eventId,
-  });
-
-  const { data: apiTeams } = useQuery<any[]>({
-    queryKey: ["/api/presenter/events", eventId, "teams"],
-    enabled: !!eventId,
-  });
-
-  const { data: apiFunFacts } = useQuery<any[]>({
-    queryKey: ["/api/presenter/events", eventId, "fun-facts"],
-    enabled: !!eventId,
-  });
-
   // Determine if we are on a demo route
   const isDemoRoute = !!demoParams?.id;
 
-  // Fallback to embedded demo data if API returns nothing (e.g., static build or offline demo)
-  const event = apiEvent ?? (isDemoRoute && demoEvent.id === eventId ? demoEvent : undefined);
-  const questions = apiQuestions ?? (isDemoRoute && demoEvent.id === eventId ? demoQuestions : undefined);
-  const participants = apiParticipants || [];
-  const teams = apiTeams || [];
-  const funFacts = apiFunFacts ?? (isDemoRoute && demoEvent.id === eventId ? demoFunFacts : undefined);
+  // Use single hydrated API endpoint that returns event with all child attributes
+  const { data: hydratedEvent } = useQuery<any>({
+    queryKey: ["/api/events", eventId],
+    enabled: !!eventId && !isDemoRoute, // Skip API call for demo routes
+  });
+
+  // Extract data from hydrated response or fallback to demo data
+  const event = hydratedEvent ?? (isDemoRoute && demoEvent.id === eventId ? demoEvent : undefined);
+  const questions = hydratedEvent?.questions ?? (isDemoRoute && demoEvent.id === eventId ? demoQuestions : undefined);
+  const participants = hydratedEvent?.participants || [];
+  const teams = hydratedEvent?.teams || [];
+  const funFacts = hydratedEvent?.funFacts ?? (isDemoRoute && demoEvent.id === eventId ? demoFunFacts : undefined);
 
   // Check if participants are allowed for this event
   const allowParticipants = event?.allowParticipants ?? false;
 
-  // Filter questions by type
+  // Filter questions by type and normalize API response format
   const getQuestionsByType = (type: "training" | "game" | "tie-breaker") => {
     if (!questions) return [];
     return questions
       .filter((q: any) => (q.questionType || 'game') === type)
-      .sort((a: any, b: any) => (a.orderIndex || 0) - (b.orderIndex || 0));
+      .sort((a: any, b: any) => (a.orderIndex || 0) - (b.orderIndex || 0))
+      .map((q: any) => ({
+        ...q,
+        // Normalize API response format to match demo data format
+        question: q.questionText || q.question,
+        options: typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || [])
+      }));
   };
 
   const trainingQuestions = getQuestionsByType("training");
@@ -242,9 +228,9 @@ export default function PresenterView() {
   };
 
   const handleStartQuestions = () => {
-    // Always show training questions first if they exist (regardless of completion status)
+    // Always show training questions first if they exist
     if (trainingQuestions.length > 0) {
-      setGameState("practice");
+      setGameState("training");
     } else {
       // No training questions, skip directly to game start
       setGameState("game-start");
@@ -256,12 +242,15 @@ export default function PresenterView() {
       case "rules":
         setGameState("waiting");
         break;
-      case "practice":
+      case "training":
         setGameState("rules");
+        break;
+      case "practice":
+        setGameState("training");
         break;
       case "game-start":
         if (trainingQuestions.length > 0 && practiceComplete) {
-          setGameState("practice");
+          setGameState("training");
         } else {
           setGameState("rules");
         }
@@ -269,7 +258,7 @@ export default function PresenterView() {
       case "question":
       case "answer":
         if (currentQuestionType === "training") {
-          setGameState("practice");
+          setGameState("training");
         } else if (currentQuestionType === "game") {
           setGameState("game-start");
         } else if (currentQuestionType === "tie-breaker") {
@@ -430,11 +419,84 @@ export default function PresenterView() {
                 <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
               {trainingQuestions.length > 0 && (
-                <Button variant="outline" size="lg" onClick={handleStartQuestions} className="border-champagne-300 text-champagne-200 hover:bg-white/10" data-testid="btn-practice">
-                  Practice
+                <Button variant="outline" size="lg" onClick={handleStartQuestions} className="border-champagne-300 text-champagne-200 hover:bg-white/10" data-testid="btn-training">
+                  Training
                 </Button>
               )}
             </div>
+          </div>
+        )}
+
+        {gameState === "training" && (
+          <div className="text-center w-full max-w-6xl px-4" data-testid="view-training">
+            <Card className="bg-gradient-to-br from-blue-600/30 via-indigo-600/30 to-purple-600/30 backdrop-blur-sm border-blue-400/50 text-white overflow-hidden relative">
+              {/* Animated background elements */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-400/10 rounded-full animate-pulse"></div>
+                <div className="absolute top-1/2 -left-4 w-16 h-16 bg-purple-400/10 rounded-full animate-pulse delay-1000"></div>
+                <div className="absolute bottom-4 right-1/3 w-20 h-20 bg-indigo-400/10 rounded-full animate-pulse delay-2000"></div>
+              </div>
+              
+              <CardHeader className="relative z-10">
+                <div className="flex items-center justify-center mb-6">
+                  <div className="relative">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto shadow-2xl">
+                      <Star className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-white animate-pulse" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-yellow-900">🎯</span>
+                    </div>
+                  </div>
+                </div>
+                <CardTitle className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-200 via-indigo-200 to-purple-200 bg-clip-text text-transparent">
+                  🎓 Training
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent className="space-y-6 sm:space-y-8 relative z-10">
+                {/* Welcome Message */}
+                <div className="text-center space-y-4">
+                  <div className="inline-block bg-blue-500/20 px-6 py-3 rounded-full border border-blue-400/30">
+                    <p className="text-lg sm:text-xl lg:text-2xl text-blue-100 font-medium">
+                      🎯 Practice Round - Get Ready!
+                    </p>
+                  </div>
+                  <p className="text-base sm:text-lg lg:text-xl text-white/90 leading-relaxed max-w-3xl mx-auto">
+                    Time for a quick practice round! These training questions will help you warm up and 
+                    get comfortable with the trivia format before the main game begins.
+                  </p>
+                </div>
+
+                {/* Training Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
+                  <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl p-4 border border-blue-400/30">
+                    <div className="text-2xl sm:text-3xl font-bold text-cyan-300 mb-2">{trainingQuestions.length}</div>
+                    <div className="text-sm sm:text-base text-cyan-100">Training Questions</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-xl p-4 border border-indigo-400/30">
+                    <div className="text-2xl sm:text-3xl font-bold text-indigo-300 mb-2">20s</div>
+                    <div className="text-sm sm:text-base text-indigo-100">Per Question</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-xl p-4 border border-purple-400/30">
+                    <div className="text-2xl sm:text-3xl font-bold text-purple-300 mb-2">0</div>
+                    <div className="text-sm sm:text-base text-purple-100">Points (Practice)</div>
+                  </div>
+                </div>
+
+                {/* Training Objectives */}
+                <div className="bg-gradient-to-r from-green-600/20 to-teal-600/20 rounded-xl p-4 sm:p-6 border border-green-400/30 max-w-4xl mx-auto">
+                  <div className="flex items-center justify-center space-x-3 mb-3">
+                    <span className="text-2xl">🎯</span>
+                    <h4 className="text-lg sm:text-xl font-bold text-green-200">Training Goals</h4>
+                    <span className="text-2xl">🎯</span>
+                  </div>
+                  <p className="text-sm sm:text-base text-green-100/90 text-center leading-relaxed">
+                    Use these questions to practice the format, timing, and mechanics before the real game starts. 
+                    No points will be scored - this is just to help everyone get comfortable!
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -987,6 +1049,27 @@ export default function PresenterView() {
               >
                 <Play className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                 Let's Play!
+              </Button>
+            </>
+          )}
+
+          {gameState === "training" && (
+            <>
+              <Button
+                onClick={handleGoBack}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 sm:px-6 lg:px-8 py-2 lg:py-4 text-sm sm:text-base lg:text-lg font-semibold flex-shrink-0"
+                data-testid="button-back-training"
+              >
+                <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Back
+              </Button>
+              <Button
+                onClick={handleStartPractice}
+                className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white px-6 sm:px-8 lg:px-12 py-3 lg:py-5 text-base sm:text-lg lg:text-xl font-bold flex-shrink-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-blue-400/30"
+                data-testid="button-start-training"
+              >
+                <Star className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
+                🎯 Start Training
               </Button>
             </>
           )}

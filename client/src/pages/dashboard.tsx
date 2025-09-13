@@ -83,27 +83,28 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2" data-testid="welcome-heading">
-            Welcome back, {user?.user?.fullName}!
-          </h2>
-          <p className="text-gray-600" data-testid="welcome-description">
-            Create unforgettable trivia experiences with AI-powered content generation
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-wine-900 mb-2" data-testid="welcome-heading">
+              Welcome back, {user?.user?.fullName}!
+            </h2>
+            <p className="text-wine-700" data-testid="welcome-description">
+              Create unforgettable trivia experiences with AI-powered content generation
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={() => logoutMutation.mutate()}
+            className="text-wine-700 hover:text-wine-900 hover:bg-wine-100"
+            data-testid="button-logout"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          onClick={() => logoutMutation.mutate()}
-          className="text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-          data-testid="button-logout"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
-        </Button>
-      </div>
 
       {/* Quick Stats */}
       <DashboardStats stats={stats} isLoading={statsLoading} />
@@ -210,6 +211,7 @@ export default function Dashboard() {
         >
           <Calendar className="h-6 w-6" />
         </Button>
+      </div>
       </div>
     </div>
   );

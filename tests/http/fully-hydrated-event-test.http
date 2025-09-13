@@ -1,0 +1,30 @@
+@TriviaSpark.Api_HostAddress = https://localhost:14165
+
+### Test fully hydrated event endpoint
+# This should return a complete event with all related data:
+# - Host information
+# - Questions with EventImages
+# - Teams with Participants
+# - Participants
+# - Fun Facts
+
+# First, login to get session cookie
+POST {{TriviaSpark.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+    "username": "mark",
+    "password": "mark123"
+}
+
+###
+
+# Get a fully hydrated event
+GET {{TriviaSpark.Api_HostAddress}}/api/events/seed-event-coast-to-cascades
+
+###
+
+# Test with a different event ID if available
+GET {{TriviaSpark.Api_HostAddress}}/api/events
+
+###

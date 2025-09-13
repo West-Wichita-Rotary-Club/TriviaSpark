@@ -80,6 +80,13 @@ public class EfCoreEventService : IEfCoreEventService
     {
         return await _context.Events
             .Include(e => e.Host)
+            .Include(e => e.Questions.OrderBy(q => q.OrderIndex))
+                .ThenInclude(q => q.EventImages)
+            .Include(e => e.Teams.OrderBy(t => t.TableNumber ?? int.MaxValue).ThenBy(t => t.Name))
+                .ThenInclude(t => t.Participants.Where(p => p.IsActive).OrderBy(p => p.Name))
+            .Include(e => e.Participants.Where(p => p.IsActive).OrderBy(p => p.Name))
+            .Include(e => e.FunFacts.Where(f => f.IsActive).OrderBy(f => f.OrderIndex))
+            .AsSplitQuery() // Use split query for better performance with multiple includes
             .FirstOrDefaultAsync(e => e.Id == eventId);
     }
 

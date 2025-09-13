@@ -377,10 +377,10 @@ public class TriviaSparkDbContext : DbContext
             .HasForeignKey(f => f.EventId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Question -> EventImages (one-to-one)
+        // Question -> EventImages (one-to-many)
         modelBuilder.Entity<EventImage>()
             .HasOne(ei => ei.Question)
-            .WithMany()
+            .WithMany(q => q.EventImages)
             .HasForeignKey(ei => ei.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);
 
