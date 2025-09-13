@@ -85,12 +85,12 @@ export default function Home() {
                 Upcoming Events
               </h2>
               <p className="text-muted-foreground max-w-xl" data-testid="text-upcoming-subtitle">
-                Preview real events on the platform and launch a live demo presenter view instantly.
+                Preview real events on the platform and launch a live presenter view instantly.
               </p>
             </div>
           </div>
 
-          <UpcomingEvents onLaunchDemo={(id) => setLocation(`/demo/${id}`)} />
+          <UpcomingEvents onLaunchDemo={(id) => setLocation(`/presenter/${id}`)} />
         </div>
       </div>
 
@@ -277,7 +277,7 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
           <Brain className="mx-auto h-10 w-10 text-primary/60 mb-4" />
             <p className="text-muted-foreground mb-4">No upcoming events to show yet.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => onLaunchDemo("seed-event-coast-to-cascades")}>Launch Demo</Button>
+              <Button onClick={() => onLaunchDemo("seed-event-coast-to-cascades")}>Launch Presentation</Button>
               <Button variant="outline" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Create One</Button>
             </div>
         </div>
@@ -320,7 +320,7 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
                     onClick={() => onLaunchDemo(ev.id)}
                     data-testid={`button-demo-${ev.id}`}
                   >
-                    <Play className="mr-2 h-4 w-4" /> Preview
+                    <Play className="mr-2 h-4 w-4" /> Present
                   </Button>
                 </div>
               </CardContent>

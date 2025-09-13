@@ -103,7 +103,7 @@ status.time === 'Static Build' ? "Static preview version" : "API unreachable"
 The changes can be verified by visiting:
 
 - **Home Page**: `https://localhost:14165/`
-- **Demo Page**: `https://localhost:14165/demo/seed-event-coast-to-cascades`
+- **Demo Page**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`
 
 ## Alternative Demo Identification
 
@@ -153,5 +153,5 @@ The demo/preview page now provides a clean, professional experience that better 
 
 ---
 
-**Testing URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`  
+**Testing URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`  
 **Result**: User-facing "Demo" text removed, replaced with "Preview"

@@ -14,16 +14,15 @@ const SimpleProgress = ({ value, className }: { value: number; className?: strin
   </div>
 );
 import { Play, Pause, RotateCcw, Trophy, ChevronRight, Star, ChevronUp, ChevronDown, ArrowLeft } from "lucide-react";
-// Demo fallback data
+// Seed event fallback data
 import { demoEvent, demoQuestions, demoFunFacts } from "@/data/demoData";
 
 export default function PresenterView() {
   const [, presenterParams] = useRoute("/presenter/:id");
-  const [, demoParams] = useRoute("/demo/:id");
   const [, setLocation] = useLocation();
   
   // Check which route we're on and get the eventId accordingly
-  const eventId = presenterParams?.id || demoParams?.id;
+  const eventId = presenterParams?.id;
   
   // Redirect to home if no event ID is provided
   if (!eventId) {
@@ -49,19 +48,19 @@ export default function PresenterView() {
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
   
-  // Determine if we are on a demo route
-  const isDemoRoute = !!demoParams?.id;
-
   // Use single hydrated API endpoint that returns event with all child attributes
   const { data: hydratedEvent } = useQuery<any>({
     queryKey: ["/api/events", eventId],
-    enabled: !!eventId && !isDemoRoute, // Skip API call for demo routes
+    enabled: !!eventId, // Always make API call for presenter routes
   });
 
-  // Extract data from hydrated response or fallback to demo data
-  const event = hydratedEvent ?? (isDemoRoute && demoEvent.id === eventId ? demoEvent : undefined);
-  const questions = hydratedEvent?.questions ?? (isDemoRoute && demoEvent.id === eventId ? demoQuestions : undefined);
-  const funFacts = hydratedEvent?.funFacts ?? (isDemoRoute && demoEvent.id === eventId ? demoFunFacts : undefined);
+  // Extract data from hydrated response or fallback to seed data for the seed event
+  const event = hydratedEvent ?? (demoEvent.id === eventId ? demoEvent : undefined);
+  const questions = hydratedEvent?.questions ?? (demoEvent.id === eventId ? demoQuestions : undefined);
+  const funFacts = hydratedEvent?.funFacts ?? (demoEvent.id === eventId ? demoFunFacts : undefined);
+
+  // Check if this is the seed event (for seed data purposes)
+  const isSeedEvent = eventId === demoEvent.id;
 
   // Filter questions by type and normalize API response format
   const getQuestionsByType = (type: "training" | "game" | "tie-breaker") => {
@@ -71,7 +70,7 @@ export default function PresenterView() {
       .sort((a: any, b: any) => (a.orderIndex || 0) - (b.orderIndex || 0))
       .map((q: any) => ({
         ...q,
-        // Normalize API response format to match demo data format
+        // Normalize API response format to match seed data format
         question: q.questionText || q.question,
         options: typeof q.options === 'string' ? JSON.parse(q.options) : (q.options || [])
       }));
@@ -299,7 +298,7 @@ export default function PresenterView() {
                   {event.title}
                 </h1>
                 <p className="hidden sm:block text-sm lg:text-lg text-white/80 truncate" data-testid="text-event-description">
-                  {isDemoRoute ? "TriviaSpark Game" : event.description}
+                  {isSeedEvent ? "TriviaSpark Game" : event.description}
                 </p>
               </div>
               <div className="flex items-center space-x-4 text-right flex-shrink-0">
@@ -338,13 +337,13 @@ export default function PresenterView() {
               <Trophy className="h-10 w-10 lg:h-16 lg:w-16 text-white" />
             </div>
             <h2 className="text-4xl lg:text-6xl font-bold mb-4 text-champagne-200">
-              {isDemoRoute ? "TriviaSpark Game" : "Welcome to Trivia!"}
+              {isSeedEvent ? "TriviaSpark Game" : "Welcome to Trivia!"}
             </h2>
             <p className="text-lg lg:text-2xl text-white/80 mb-6">
-              {isDemoRoute ? "Experience our interactive trivia platform" : "Get ready for an amazing experience"}
+              {isSeedEvent ? "Experience our interactive trivia platform" : "Get ready for an amazing experience"}
             </p>
             <div className="text-base text-champagne-300">
-              {isDemoRoute ? "" : "Content-focused trivia experience"}
+              {isSeedEvent ? "" : "Content-focused trivia experience"}
             </div>
             <div className="mt-8 flex items-center justify-center gap-4">
               <Button size="lg" onClick={handleStartGame} className="bg-champagne-500 text-wine-800 hover:bg-champagne-400" data-testid="btn-start-game">
@@ -666,23 +665,22 @@ export default function PresenterView() {
           <div className="w-full max-w-7xl h-full flex flex-col gap-6 overflow-auto" data-testid="view-answer">
             {/* Answer Section at Top */}
             <Card className="bg-white/20 backdrop-blur-sm border-white/40 text-white">
-              <CardContent className="py-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              <CardContent className="py-6">
+                <div className="flex flex-col gap-6">
                   <div className="text-center">
-                    <div className="w-20 h-20 lg:w-24 lg:h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Star className="h-10 w-10 lg:h-12 lg:w-12 text-white" />
-                    </div>
-                    <h3 className="text-3xl lg:text-5xl font-bold text-green-300">Correct Answer</h3>
+                    <h3 className="text-xl lg:text-3xl font-bold text-green-300">Correct Answer</h3>
                   </div>
-                  <div className="text-center flex items-center justify-center">
-                    <p className="text-4xl lg:text-6xl xl:text-7xl font-bold text-white break-words leading-tight" data-testid="text-correct-answer">
-                      {(() => {
-                        const correctIndex = currentQuestion.options?.indexOf(currentQuestion.correctAnswer) ?? -1;
-                        const answerLetter = correctIndex >= 0 ? String.fromCharCode(65 + correctIndex) : '';
-                        const questionNumber = currentQuestionIndex + 1;
-                        return answerLetter ? `${questionNumber}.${answerLetter} ${currentQuestion.correctAnswer}` : currentQuestion.correctAnswer;
-                      })()}
-                    </p>
+                  <div className="text-center flex items-center justify-center w-full">
+                    <div className="w-full max-w-6xl">
+                      <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold text-white break-words leading-tight px-4" data-testid="text-correct-answer">
+                        {(() => {
+                          const correctIndex = currentQuestion.options?.indexOf(currentQuestion.correctAnswer) ?? -1;
+                          const answerLetter = correctIndex >= 0 ? String.fromCharCode(65 + correctIndex) : '';
+                          const questionNumber = currentQuestionIndex + 1;
+                          return answerLetter ? `${questionNumber}.${answerLetter} ${currentQuestion.correctAnswer}` : currentQuestion.correctAnswer;
+                        })()}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 {currentQuestion.explanation && (
@@ -698,14 +696,15 @@ export default function PresenterView() {
             {/* Fun Fact Section at Bottom */}
             {funFacts && funFacts.length > 0 && (
               <Card className="bg-champagne-600/20 backdrop-blur-sm border-champagne-400/30 text-white flex-1">
-                <CardContent className="text-center py-8 h-full flex flex-col justify-center overflow-auto">
-                  <h4 className="text-2xl lg:text-4xl xl:text-5xl font-bold mb-6 text-champagne-200">Fun Fact!</h4>
+                <CardContent className="text-center py-4 lg:py-8 h-full flex flex-col justify-center">
                   {(() => {
                     const funFact = funFacts[currentQuestionIndex % funFacts.length];
                     return (
-                      <div>
-                        <h5 className="text-xl lg:text-3xl xl:text-4xl font-semibold mb-4 text-champagne-100">{funFact.title}</h5>
-                        <p className="text-lg lg:text-2xl xl:text-3xl text-white/90 max-w-6xl mx-auto leading-relaxed">
+                      <div className="space-y-2 lg:space-y-4">
+                        <h4 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-bold text-champagne-200">
+                          Fun Fact: <span className="text-champagne-100">{funFact.title}</span>
+                        </h4>
+                        <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-white/90 max-w-4xl mx-auto leading-relaxed px-4">
                           {funFact.content}
                         </p>
                       </div>

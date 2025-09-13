@@ -187,5 +187,5 @@ The demo copy has been successfully updated to use "TriviaSpark Game" consistent
 
 ---
 
-**Testing URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`  
+**Testing URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`  
 **Result**: Clean "TriviaSpark Game" branding with no demo/preview promotional text

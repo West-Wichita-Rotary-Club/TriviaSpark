@@ -284,5 +284,7 @@ The question and answer display now works flawlessly across all screen sizes, pr
 **Testing Status**: ✅ No overlap on any screen size  
 **Deployment**: ✅ Ready for all canvas sizes
 
-**Testing URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`  
+## Testing Results ✅
+
+**Testing URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`  
 **Result**: Perfect question/answer separation without overlap on any canvas size

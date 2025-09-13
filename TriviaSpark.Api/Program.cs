@@ -9,6 +9,7 @@ using TriviaSpark.Api.Data;
 using TriviaSpark.Api.Services;
 using TriviaSpark.Api.Services.EfCore;
 
+
 // Configure minimal bootstrap logger - only errors and critical messages
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Error)
