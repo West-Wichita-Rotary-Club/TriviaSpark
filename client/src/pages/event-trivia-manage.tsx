@@ -68,6 +68,10 @@ const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: str
         credentials: 'include'
       });
       if (!response.ok) {
+        // Return null for 404 (no image found) instead of throwing error
+        if (response.status === 404) {
+          return null;
+        }
         throw new Error('Failed to fetch event image');
       }
       const result = await response.json();
@@ -322,6 +326,46 @@ const AIQuestionGeneratorForm: React.FC<{
   );
 };
 
+// Helper function to infer question type based on question properties
+const inferQuestionType = (question: Question): 'game' | 'training' | 'tie-breaker' => {
+  // If questionType is explicitly set, use it
+  if (question.questionType) {
+    return question.questionType as 'game' | 'training' | 'tie-breaker';
+  }
+  
+  // Inference based on question ID patterns or order index
+  const questionId = question.id.toLowerCase();
+  
+  // Check for tie-breaker patterns in question ID
+  if (questionId.includes('tie') || questionId.includes('breaker') || 
+      questionId.includes('tiebreaker') || questionId.includes('tie-breaker')) {
+    return 'tie-breaker';
+  }
+  
+  // Check for training patterns in question ID
+  if (questionId.includes('training') || questionId.includes('practice') || 
+      questionId.includes('warm') || questionId.includes('sample')) {
+    return 'training';
+  }
+  
+  // Inference based on order index (tie-breakers typically have higher order indices)
+  if (question.orderIndex && question.orderIndex >= 15) {
+    return 'tie-breaker';
+  }
+  
+  // Inference based on question ID patterns (e.g., q15+ might be tie-breakers)
+  const questionMatch = questionId.match(/q(\d+)/);
+  if (questionMatch) {
+    const questionNumber = parseInt(questionMatch[1]);
+    if (questionNumber >= 15) {
+      return 'tie-breaker';
+    }
+  }
+  
+  // Default to game question
+  return 'game';
+};
+
 // Full page edit form component
 const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; onSave: (q: Question) => void; saving: boolean; }> = ({ question, onClose, onSave, saving }) => {
   type UnsplashImage = {
@@ -332,6 +376,7 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
     links: { html: string; download_location?: string };
     user: { name: string; links: { html: string } };
   };
+
   const [form, setForm] = useState({
     question: question.question,
     correctAnswer: question.correctAnswer,
@@ -343,7 +388,7 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
     orderIndex: question.orderIndex || 1,
     explanation: question.explanation || '',
     backgroundImageUrl: question.backgroundImageUrl || '',
-    questionType: question.questionType || 'game'
+    questionType: inferQuestionType(question)
   });
   const [unsplashQuery, setUnsplashQuery] = useState('');
   const [unsplashResults, setUnsplashResults] = useState<UnsplashImage[]>([]);
@@ -542,6 +587,46 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
     enabled: !!eventId
   });
 
+  // Helper function to infer question type based on question properties
+  const inferQuestionType = (question: Question): 'game' | 'training' | 'tie-breaker' => {
+    // If questionType is explicitly set, use it
+    if (question.questionType) {
+      return question.questionType as 'game' | 'training' | 'tie-breaker';
+    }
+    
+    // Inference based on question ID patterns or order index
+    const questionId = question.id.toLowerCase();
+    
+    // Check for tie-breaker patterns in question ID
+    if (questionId.includes('tie') || questionId.includes('breaker') || 
+        questionId.includes('tiebreaker') || questionId.includes('tie-breaker')) {
+      return 'tie-breaker';
+    }
+    
+    // Check for training patterns in question ID
+    if (questionId.includes('training') || questionId.includes('practice') || 
+        questionId.includes('warm') || questionId.includes('sample')) {
+      return 'training';
+    }
+    
+    // Inference based on order index (tie-breakers typically have higher order indices)
+    if (question.orderIndex && question.orderIndex >= 15) {
+      return 'tie-breaker';
+    }
+    
+    // Inference based on question ID patterns (e.g., q15+ might be tie-breakers)
+    const questionMatch = questionId.match(/q(\d+)/);
+    if (questionMatch) {
+      const questionNumber = parseInt(questionMatch[1]);
+      if (questionNumber >= 15) {
+        return 'tie-breaker';
+      }
+    }
+    
+    // Default to game question
+    return 'game';
+  };
+
   // Group questions by type
   const groupedQuestions = React.useMemo(() => {
     const groups: Record<string, Question[]> = {
@@ -551,7 +636,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
     };
     
     questions.forEach(question => {
-      const type = question.questionType || 'game';
+      const type = inferQuestionType(question);
       if (groups[type]) {
         groups[type].push(question);
       }
@@ -600,7 +685,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...question,
-          questionType: question.questionType ?? 'game'
+          questionType: question.questionType || inferQuestionType(question)
         }),
         credentials: 'include'
       });

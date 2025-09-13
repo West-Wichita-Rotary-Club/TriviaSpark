@@ -13,7 +13,7 @@ const SimpleProgress = ({ value, className }: { value: number; className?: strin
     />
   </div>
 );
-import { Play, Pause, RotateCcw, Trophy, ChevronRight, Star, ChevronUp, ChevronDown, ArrowLeft } from "lucide-react";
+import { Play, Pause, RotateCcw, Trophy, ChevronRight, Star, ChevronUp, ChevronDown, ArrowLeft, Maximize, Minimize } from "lucide-react";
 // Seed event fallback data
 import { demoEvent, demoQuestions, demoFunFacts } from "@/data/demoData";
 
@@ -47,6 +47,7 @@ export default function PresenterView() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Use single hydrated API endpoint that returns event with all child attributes
   const { data: hydratedEvent } = useQuery<any>({
@@ -116,6 +117,19 @@ export default function PresenterView() {
     return () => clearInterval(interval);
   }, [isTimerActive, timeLeft, autoAdvance, gameState]);
 
+  // Fullscreen effect
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(isCurrentlyFullscreen);
+      // Sync header collapse state with fullscreen state
+      setIsHeaderCollapsed(isCurrentlyFullscreen);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const handleNextQuestion = () => {
     if (currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -183,6 +197,23 @@ export default function PresenterView() {
     setGameState("answer");
     setIsTimerActive(false);
   };
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        // Hide header when entering fullscreen
+        setIsHeaderCollapsed(true);
+      } else {
+        await document.exitFullscreen();
+        // Show header when exiting fullscreen
+        setIsHeaderCollapsed(false);
+      }
+    } catch (error) {
+      console.error('Error toggling fullscreen:', error);
+    }
+  };
+
   const handleRestart = () => {
     setCurrentQuestionIndex(0);
     setCurrentQuestionType("training");
@@ -333,9 +364,6 @@ export default function PresenterView() {
       <div className="flex-1 flex items-center justify-center p-4 pb-20 min-h-0">
         {gameState === "waiting" && (
           <div className="text-center w-full max-w-4xl px-4" data-testid="view-waiting">
-            <div className="w-20 h-20 lg:w-32 lg:h-32 wine-gradient rounded-full flex items-center justify-center mx-auto mb-6">
-              <Trophy className="h-10 w-10 lg:h-16 lg:w-16 text-white" />
-            </div>
             <h2 className="text-4xl lg:text-6xl font-bold mb-4 text-champagne-200">
               {isSeedEvent ? "TriviaSpark Game" : "Welcome to Trivia!"}
             </h2>
@@ -344,17 +372,6 @@ export default function PresenterView() {
             </p>
             <div className="text-base text-champagne-300">
               {isSeedEvent ? "" : "Content-focused trivia experience"}
-            </div>
-            <div className="mt-8 flex items-center justify-center gap-4">
-              <Button size="lg" onClick={handleStartGame} className="bg-champagne-500 text-wine-800 hover:bg-champagne-400" data-testid="btn-start-game">
-                Start
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-              {trainingQuestions.length > 0 && (
-                <Button variant="outline" size="lg" onClick={handleStartQuestions} className="border-champagne-300 text-champagne-200 hover:bg-white/10" data-testid="btn-training">
-                  Training
-                </Button>
-              )}
             </div>
           </div>
         )}
@@ -719,28 +736,35 @@ export default function PresenterView() {
 
       {/* Control Panel - Fixed bottom with better mobile responsiveness */}
       <div className="absolute bottom-0 left-0 right-0 bg-black/90 backdrop-blur-sm border-t border-white/20 p-2 lg:p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-center space-x-2 lg:space-x-4 overflow-x-auto">
-          {gameState === "waiting" && (
-            <Button
-              onClick={handleStartGame}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
-              data-testid="button-start-game"
-            >
-              <Play className="mr-2 h-5 w-5" />
-              Start Game
-            </Button>
-          )}
-
-          {gameState === "rules" && (
-            <>
+        <div className="max-w-7xl mx-auto flex items-center justify-between space-x-2 lg:space-x-4 overflow-x-auto">
+          {/* Left side - Back buttons */}
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {(gameState === "rules" || gameState === "training" || gameState === "game-start" || gameState === "question") && (
               <Button
                 onClick={handleGoBack}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
-                data-testid="button-back-rules"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 lg:px-6 py-2 lg:py-3 text-sm lg:text-base font-semibold flex-shrink-0"
+                data-testid={`button-back-${gameState}`}
               >
-                <ArrowLeft className="mr-2 h-5 w-5" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
+            )}
+          </div>
+
+          {/* Center - Main action buttons */}
+          <div className="flex items-center justify-center space-x-2 lg:space-x-4 flex-1">
+            {gameState === "waiting" && (
+              <Button
+                onClick={handleStartGame}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
+                data-testid="button-start-game"
+              >
+                <Play className="mr-2 h-5 w-5" />
+                Start Game
+              </Button>
+            )}
+
+            {gameState === "rules" && (
               <Button
                 onClick={handleStartQuestions}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
@@ -749,19 +773,9 @@ export default function PresenterView() {
                 <Play className="mr-2 h-5 w-5" />
                 Let's Play!
               </Button>
-            </>
-          )}
+            )}
 
-          {gameState === "training" && (
-            <>
-              <Button
-                onClick={handleGoBack}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
-                data-testid="button-back-training"
-              >
-                <ArrowLeft className="mr-2 h-5 w-5" />
-                Back
-              </Button>
+            {gameState === "training" && (
               <Button
                 onClick={handleStartPractice}
                 className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white px-8 lg:px-12 py-3 lg:py-5 text-lg lg:text-xl font-bold flex-shrink-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-blue-400/30"
@@ -770,19 +784,9 @@ export default function PresenterView() {
                 <Star className="mr-3 h-6 w-6 animate-pulse" />
                 🎯 Start Training
               </Button>
-            </>
-          )}
+            )}
 
-          {gameState === "game-start" && (
-            <>
-              <Button
-                onClick={handleGoBack}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
-                data-testid="button-back-game-start"
-              >
-                <ArrowLeft className="mr-2 h-5 w-5" />
-                Back
-              </Button>
+            {gameState === "game-start" && (
               <Button
                 onClick={handleStartMainGame}
                 className="bg-green-600 hover:bg-green-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
@@ -791,106 +795,98 @@ export default function PresenterView() {
                 <Play className="mr-2 h-5 w-5" />
                 Start Main Game
               </Button>
-            </>
-          )}
+            )}
 
-          {gameState === "tie-check" && (
-            <>
-              {tieBreakerQuestions.length > 0 && (
+            {gameState === "tie-check" && (
+              <>
+                {tieBreakerQuestions.length > 0 && (
+                  <Button
+                    onClick={handleStartTieBreaker}
+                    className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
+                    data-testid="button-start-tie-breaker"
+                  >
+                    <Play className="mr-2 h-5 w-5" />
+                    Start Tie-breakers
+                  </Button>
+                )}
                 <Button
-                  onClick={handleStartTieBreaker}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
-                  data-testid="button-start-tie-breaker"
+                  onClick={handleSkipTieBreaker}
+                  className="bg-wine-600 hover:bg-wine-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
+                  data-testid="button-skip-tie-breaker"
                 >
-                  <Play className="mr-2 h-5 w-5" />
-                  Start Tie-breakers
+                  <ChevronRight className="mr-2 h-5 w-5" />
+                  No Ties - Finish
                 </Button>
-              )}
+              </>
+            )}
+
+            {gameState === "wrap-up" && (
               <Button
-                onClick={handleSkipTieBreaker}
+                onClick={handleRestart}
                 className="bg-wine-600 hover:bg-wine-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
-                data-testid="button-skip-tie-breaker"
+                data-testid="button-finish-event"
               >
-                <ChevronRight className="mr-2 h-5 w-5" />
-                No Ties - Finish
+                <RotateCcw className="mr-2 h-5 w-5" />
+                New Event
               </Button>
-            </>
-          )}
+            )}
 
-          {gameState === "wrap-up" && (
-            <Button
-              onClick={handleRestart}
-              className="bg-wine-600 hover:bg-wine-700 text-white px-6 lg:px-8 py-2 lg:py-4 text-base lg:text-lg font-semibold flex-shrink-0"
-              data-testid="button-finish-event"
-            >
-              <RotateCcw className="mr-2 h-5 w-5" />
-              New Event
-            </Button>
-          )}
-
-          {gameState === "question" && (
-            <>
-              <div className="flex items-center space-x-4 flex-shrink-0">
-                <div className={`text-2xl font-bold ${
-                  timeLeft <= 10 ? 'text-red-400' : 
-                  timeLeft <= 20 ? 'text-yellow-400' : 'text-white'
-                }`}>
-                  <span className="hidden sm:inline">Time: </span>{timeLeft}s
+            {gameState === "question" && (
+              <>
+                <div className="flex items-center space-x-4 flex-shrink-0">
+                  <div className={`text-2xl font-bold ${
+                    timeLeft <= 10 ? 'text-red-400' : 
+                    timeLeft <= 20 ? 'text-yellow-400' : 'text-white'
+                  }`}>
+                    <span className="hidden sm:inline">Time: </span>{timeLeft}s
+                  </div>
+                  <Button
+                    onClick={() => setIsTimerActive(!isTimerActive)}
+                    size="sm"
+                    className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 border p-2"
+                    data-testid="button-toggle-timer"
+                  >
+                    {isTimerActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  </Button>
                 </div>
                 <Button
-                  onClick={() => setIsTimerActive(!isTimerActive)}
-                  size="sm"
-                  className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 border p-2"
-                  data-testid="button-toggle-timer"
+                  onClick={handleShowAnswer}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg flex-shrink-0"
+                  data-testid="button-show-answer"
                 >
-                  {isTimerActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                  Show Answer
                 </Button>
-              </div>
-              <Button
-                onClick={handleGoBack}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 text-lg flex-shrink-0"
-                data-testid="button-back-question"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-              <Button
-                onClick={handleShowAnswer}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg flex-shrink-0"
-                data-testid="button-show-answer"
-              >
-                Show Answer
-              </Button>
-            </>
-          )}
+              </>
+            )}
 
-          {gameState === "answer" && (
-            <>
-              <Button
-                onClick={handleNextQuestion}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-semibold flex-shrink-0"
-                data-testid="button-next-question"
-              >
-                <ChevronRight className="mr-2 h-5 w-5" />
-                {currentQuestions && currentQuestionIndex >= currentQuestions.length - 1 ? (
-                  currentQuestionType === "training" ? "Start Game" :
-                  currentQuestionType === "tie-breaker" ? "Finish" :
-                  "Check Ties"
-                ) : "Next"}
-              </Button>
-              <Button
-                onClick={() => setAutoAdvance(!autoAdvance)}
-                size="sm"
-                className="bg-champagne-700 hover:bg-champagne-600 text-white border border-champagne-500 px-2 py-1 text-xs flex-shrink-0"
-                data-testid="button-toggle-auto"
-              >
-                Auto: {autoAdvance ? "ON" : "OFF"}
-              </Button>
-            </>
-          )}
+            {gameState === "answer" && (
+              <>
+                <Button
+                  onClick={handleNextQuestion}
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-semibold flex-shrink-0"
+                  data-testid="button-next-question"
+                >
+                  <ChevronRight className="mr-2 h-5 w-5" />
+                  {currentQuestions && currentQuestionIndex >= currentQuestions.length - 1 ? (
+                    currentQuestionType === "training" ? "Start Game" :
+                    currentQuestionType === "tie-breaker" ? "Finish" :
+                    "Check Ties"
+                  ) : "Next"}
+                </Button>
+                <Button
+                  onClick={() => setAutoAdvance(!autoAdvance)}
+                  size="sm"
+                  className="bg-champagne-700 hover:bg-champagne-600 text-white border border-champagne-500 px-2 py-1 text-xs flex-shrink-0"
+                  data-testid="button-toggle-auto"
+                >
+                  Auto: {autoAdvance ? "ON" : "OFF"}
+                </Button>
+              </>
+            )}
+          </div>
 
-          {/* Always available controls - Responsive */}
-          <div className="flex items-center space-x-2 ml-8 flex-shrink-0">
+          {/* Right side - Utility buttons */}
+          <div className="flex items-center space-x-2 flex-shrink-0">
             <Button
               onClick={handleRestart}
               size="sm"
@@ -898,6 +894,15 @@ export default function PresenterView() {
               data-testid="button-reset"
             >
               <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={toggleFullscreen}
+              size="sm"
+              className="bg-blue-700 hover:bg-blue-600 text-white border border-blue-500 p-2"
+              data-testid="button-fullscreen"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
             </Button>
           </div>
         </div>

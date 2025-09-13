@@ -697,11 +697,17 @@ public static class EfCoreApiEndpoints
 
                 var question = await questionService.GetQuestionByIdAsync(id);
                 if (question == null)
+                {
+                    logger.LogWarning("Question not found for update: {QuestionId}", id);
                     return Results.NotFound(new { error = "Question not found" });
+                }
 
                 var eventEntity = await eventService.GetEventByIdAsync(question.EventId);
                 if (eventEntity == null)
+                {
+                    logger.LogWarning("Event not found for question {QuestionId}: {EventId}", id, question.EventId);
                     return Results.NotFound(new { error = "Event not found" });
+                }
 
                 // Update question
                 question.QuestionText = body.Question ?? question.QuestionText;
@@ -717,23 +723,32 @@ public static class EfCoreApiEndpoints
                 question.BackgroundImageUrl = body.BackgroundImageUrl ?? question.BackgroundImageUrl;
                 question.QuestionType = body.QuestionType ?? question.QuestionType;
 
-                // Handle EventImage creation if SelectedImage data is provided
+                // Update question first to ensure it exists in the database
+                var updated = await questionService.UpdateQuestionAsync(question);
+
+                // Handle EventImage creation if SelectedImage data is provided - do this AFTER the question is updated
                 if (body.SelectedImage != null)
                 {
-                    logger.LogInformation("Creating EventImage for question {QuestionId} with image {ImageId}", question.Id, body.SelectedImage.Id);
-                    var createImageRequest = new CreateEventImageRequest
+                    try
                     {
-                        QuestionId = question.Id,
-                        UnsplashImageId = body.SelectedImage.Id,
-                        SizeVariant = "regular",
-                        UsageContext = "question_background",
-                        SelectedByUserId = "anonymous" // Default user since no auth
-                    };
-                    var eventImage = await eventImageService.SaveImageForQuestionAsync(createImageRequest);
-                    logger.LogInformation("EventImage creation result: {Success}", eventImage != null ? "Success" : "Failed");
+                        logger.LogInformation("Creating EventImage for question {QuestionId} with image {ImageId}", question.Id, body.SelectedImage.Id);
+                        var createImageRequest = new CreateEventImageRequest
+                        {
+                            QuestionId = question.Id,
+                            UnsplashImageId = body.SelectedImage.Id,
+                            SizeVariant = "regular",
+                            UsageContext = "question_background",
+                            SelectedByUserId = "anonymous" // Default user since no auth
+                        };
+                        var eventImage = await eventImageService.SaveImageForQuestionAsync(createImageRequest);
+                        logger.LogInformation("EventImage creation result: {Success}", eventImage != null ? "Success" : "Failed");
+                    }
+                    catch (Exception imageEx)
+                    {
+                        // Log the image error but don't fail the entire question update
+                        logger.LogError(imageEx, "Failed to save EventImage for question {QuestionId}, but question update succeeded", question.Id);
+                    }
                 }
-
-                var updated = await questionService.UpdateQuestionAsync(question);
                 return Results.Ok(updated);
             }
             catch (Exception ex)

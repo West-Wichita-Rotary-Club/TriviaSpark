@@ -9,8 +9,6 @@
     "build": "vite build",
     "build:static": "cross-env DATABASE_URL=\"file:C:\\websites\\TriviaSpark\\trivia.db\" node scripts/extract-data.mjs && cross-env NODE_ENV=production STATIC_BUILD=true vite build",
     "extract-data": "node scripts/extract-data.mjs",
-    "seed": "node tools/reset-and-seed.mjs",
-    "seed:data-only": "node scripts/seed-database.mjs -force",
     "start": "vite preview --host",
     "check": "tsc",
     "db:push": "drizzle-kit push"

@@ -78,6 +78,10 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
         credentials: 'include',
       });
       if (!response.ok) {
+        // Return null for 404 (no image found) instead of throwing error
+        if (response.status === 404) {
+          return null;
+        }
         throw new Error("Failed to fetch event image");
       }
       return response.json();
