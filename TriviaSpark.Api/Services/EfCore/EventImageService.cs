@@ -139,6 +139,20 @@ public class EventImageService : IEventImageService
             // Create image selection
             var imageSelection = _unsplashService.ToImageSelection(unsplashImage, request.SizeVariant);
 
+            // Ensure we always have a valid user ID - default to mark-user-id if null or invalid
+            var selectedByUserId = string.IsNullOrWhiteSpace(request.SelectedByUserId) ? "mark-user-id" : request.SelectedByUserId;
+            
+            // Validate that the user exists if specified
+            if (!string.IsNullOrWhiteSpace(selectedByUserId) && selectedByUserId != "mark-user-id")
+            {
+                var userExists = await _context.Users.AnyAsync(u => u.Id == selectedByUserId, cancellationToken);
+                if (!userExists)
+                {
+                    _logger.LogWarning("User {UserId} not found, defaulting to mark-user-id", selectedByUserId);
+                    selectedByUserId = "mark-user-id";
+                }
+            }
+
             // Create new EventImage entity
             var eventImage = new EventImage
             {
@@ -156,7 +170,7 @@ public class EventImageService : IEventImageService
                 Color = imageSelection.Color,
                 SizeVariant = request.SizeVariant,
                 UsageContext = request.UsageContext,
-                SelectedByUserId = request.SelectedByUserId,
+                SelectedByUserId = selectedByUserId,
                 SearchContext = request.SearchContext,
                 DownloadTracked = false,
                 CreatedAt = DateTime.UtcNow,

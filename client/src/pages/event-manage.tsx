@@ -461,6 +461,22 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
         }
       }, [eventImageData]);
 
+      // Update form state when question prop changes (fixes difficulty dropdown not updating)
+      useEffect(() => {
+        setEditForm({
+          question: question.question || "",
+          correctAnswer: question.correctAnswer || "",
+          options: Array.isArray(question.options) ? [...question.options] : [],
+          points: question.points || 100,
+          timeLimit: question.timeLimit || 30,
+          difficulty: question.difficulty || "medium",
+          category: question.category || "",
+          explanation: question.explanation || "",
+          orderIndex: question.orderIndex || 1,
+          backgroundImageUrl: question.backgroundImageUrl || ""
+        });
+      }, [question]);
+
       // Mutation for saving event image
       const saveEventImageMutation = useMutation({
         mutationFn: async () => {

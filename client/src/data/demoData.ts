@@ -1,5 +1,5 @@
 // Generated data from SQLite database
-// Last updated: 2025-09-13T18:21:55.953Z
+// Last updated: 2025-09-13T19:57:05.146Z
 // Database: file:C:\websites\TriviaSpark\trivia.db
 
 export const demoEvent = {
@@ -136,6 +136,28 @@ export const demoQuestions = [
     "createdAt": "2025-09-12T19:24:09.444Z"
   },
   {
+    "id": "q16-timberline-lodge",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "What is the name of the historic lodge located on Mount Hood, which has become a popular tourist destination?",
+    "options": [
+      "Mount Hood Lodge",
+      "Timberline Lodge",
+      "Government Camp Inn",
+      "Cascade Lodge"
+    ],
+    "correctAnswer": "Timberline Lodge",
+    "explanation": "Timberline Lodge, constructed during the Great Depression as a Works Progress Administration project, is a National Historic Landmark and offers year-round skiing.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1649570155908-d6b35b9d7bbc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxMnx8dGltYmVybGluZSUyMGxvZGdlfGVufDF8fHx8MTc1Nzc5MjA5OHww&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 20,
+    "orderIndex": 5,
+    "aiGenerated": false,
+    "createdAt": "2025-09-13T00:24:09.460Z"
+  },
+  {
     "id": "q6-columbia-gorge-ava",
     "eventId": "seed-event-coast-to-cascades",
     "type": "multiple_choice",
@@ -246,6 +268,28 @@ export const demoQuestions = [
     "createdAt": "2025-09-12T19:24:09.453Z"
   },
   {
+    "id": "q17-mount-hood-elevation",
+    "eventId": "seed-event-coast-to-cascades",
+    "type": "multiple_choice",
+    "question": "Mount Hood is the highest peak in Oregon. What is its approximate elevation?",
+    "options": [
+      "A. 10,500 feet",
+      "B. 12,800 feet",
+      "C. 11,240 feet",
+      "D. 13,600 feet"
+    ],
+    "correctAnswer": "C. 11,240 feet",
+    "explanation": "Mount Hood's summit reaches approximately 11,240 feet, making it the highest point in Oregon and a prominent peak in the Cascade Volcanic Arc.",
+    "difficulty": "medium",
+    "category": "geography",
+    "backgroundImageUrl": "https://images.unsplash.com/photo-1588973046899-21ad07fbc507?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3OTkxNDV8MHwxfHNlYXJjaHwxfHxNb3VudCUyMEhvb2R8ZW58MXx8fHwxNzU3NzkxOTczfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "points": 100,
+    "timeLimit": 20,
+    "orderIndex": 11,
+    "aiGenerated": false,
+    "createdAt": "2025-09-13T00:24:09.462Z"
+  },
+  {
     "id": "q14-oregon-dunes",
     "eventId": "seed-event-coast-to-cascades",
     "type": "multiple_choice",
@@ -288,50 +332,6 @@ export const demoQuestions = [
     "orderIndex": 15,
     "aiGenerated": false,
     "createdAt": "2025-09-12T19:24:09.459Z"
-  },
-  {
-    "id": "q16-timberline-lodge",
-    "eventId": "seed-event-coast-to-cascades",
-    "type": "multiple_choice",
-    "question": "What is the name of the historic lodge located on Mount Hood, which has become a popular tourist destination?",
-    "options": [
-      "Mount Hood Lodge",
-      "Timberline Lodge",
-      "Government Camp Inn",
-      "Cascade Lodge"
-    ],
-    "correctAnswer": "Timberline Lodge",
-    "explanation": "Timberline Lodge, constructed during the Great Depression as a Works Progress Administration project, is a National Historic Landmark and offers year-round skiing.",
-    "difficulty": "medium",
-    "category": "geography",
-    "backgroundImageUrl": "https://images.unsplash.com/photo-1544427920-c49ccfb85579?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    "points": 100,
-    "timeLimit": 20,
-    "orderIndex": 16,
-    "aiGenerated": false,
-    "createdAt": "2025-09-13T00:24:09.460Z"
-  },
-  {
-    "id": "q17-mount-hood-elevation",
-    "eventId": "seed-event-coast-to-cascades",
-    "type": "multiple_choice",
-    "question": "Mount Hood is the highest peak in Oregon. What is its approximate elevation?",
-    "options": [
-      "A. 10,500 feet",
-      "B. 12,800 feet",
-      "C. 11,240 feet",
-      "D. 13,600 feet"
-    ],
-    "correctAnswer": "C. 11,240 feet",
-    "explanation": "Mount Hood's summit reaches approximately 11,240 feet, making it the highest point in Oregon and a prominent peak in the Cascade Volcanic Arc.",
-    "difficulty": "medium",
-    "category": "geography",
-    "backgroundImageUrl": "https://images.unsplash.com/photo-1544427920-c49ccfb85579?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80",
-    "points": 100,
-    "timeLimit": 20,
-    "orderIndex": 17,
-    "aiGenerated": false,
-    "createdAt": "2025-09-13T00:24:09.462Z"
   },
   {
     "id": "q18-yakima-valley",
@@ -572,7 +572,7 @@ export const allEvents = [
 ];
 
 export const buildInfo = {
-  extractedAt: "2025-09-13T18:21:55.953Z",
+  extractedAt: "2025-09-13T19:57:05.146Z",
   databaseUrl: "file:C:\websites\TriviaSpark\trivia.db",
   eventsCount: 1,
   questionsCount: 19,

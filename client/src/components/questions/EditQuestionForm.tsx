@@ -96,6 +96,22 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
     searchContext: ""
   });
 
+  // Update form state when question prop changes (fixes difficulty dropdown not updating)
+  useEffect(() => {
+    setEditForm({
+      question: question.question || "",
+      correctAnswer: question.correctAnswer || "",
+      options: Array.isArray(question.options) ? [...question.options] : [],
+      points: question.points || 100,
+      timeLimit: question.timeLimit || 30,
+      difficulty: question.difficulty || "medium",
+      category: question.category || "",
+      explanation: question.explanation || "",
+      orderIndex: question.orderIndex || 1,
+      backgroundImageUrl: question.backgroundImageUrl || ""
+    });
+  }, [question.id, JSON.stringify(question)]);
+
   // Update event image form when data is loaded
   useEffect(() => {
     if (eventImageData?.eventImage) {
@@ -294,9 +310,9 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
           <Label className="text-foreground font-medium">Difficulty</Label>
           <Select value={editForm.difficulty} onValueChange={(value) => setEditForm({ ...editForm, difficulty: value })}>
             <SelectTrigger className="mt-1 bg-background border-border text-foreground focus:border-primary focus:ring-1 focus:ring-primary">
-              <SelectValue />
+              <SelectValue placeholder="Select difficulty" />
             </SelectTrigger>
-            <SelectContent className="bg-popover border-border">
+            <SelectContent className="bg-popover border-border text-popover-foreground">
               <SelectItem value="easy" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Easy</SelectItem>
               <SelectItem value="medium" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Medium</SelectItem>
               <SelectItem value="hard" className="text-popover-foreground hover:bg-accent hover:text-accent-foreground">Hard</SelectItem>

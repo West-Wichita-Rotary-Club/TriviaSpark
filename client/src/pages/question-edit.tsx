@@ -69,6 +69,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors, isDirty }
   } = useForm<QuestionFormData>({
     defaultValues: {
@@ -108,6 +109,14 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
   // Find the specific question from the list
   const question = questions?.find(q => q.id === questionId);
 
+  console.log('QuestionEdit: Current state', {
+    questionId,
+    questionsCount: questions?.length,
+    question,
+    questionDifficulty: question?.difficulty,
+    formDifficulty: watch('difficulty')
+  });
+
   // Fetch event image data
   const { data: eventImageData, refetch: refetchEventImage } = useQuery({
     queryKey: ['/api/questions', questionId, 'eventimage'],
@@ -123,20 +132,44 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
 
   // Update form when question data loads
   useEffect(() => {
+    console.log('QuestionEdit: question data changed', { 
+      questionId, 
+      question,
+      difficulty: question?.difficulty 
+    });
     if (question) {
-      setValue('question', question.question);
-      setValue('correctAnswer', question.correctAnswer);
-      setValue('points', question.points);
-      setValue('timeLimit', question.timeLimit);
-      setValue('difficulty', question.difficulty);
-      setValue('category', question.category);
-      setValue('explanation', question.explanation || '');
-      setValue('orderIndex', question.orderIndex);
-      setValue('backgroundImageUrl', question.backgroundImageUrl || '');
-      setValue('questionType', question.questionType || 'game');
+      console.log('Setting form values:', {
+        difficulty: question.difficulty,
+        question: question.question,
+        allValues: question
+      });
+      
+      // Use reset instead of individual setValue calls to ensure proper form state update
+      reset({
+        question: question.question,
+        correctAnswer: question.correctAnswer,
+        points: question.points,
+        timeLimit: question.timeLimit,
+        difficulty: question.difficulty,
+        category: question.category,
+        explanation: question.explanation || '',
+        orderIndex: question.orderIndex,
+        backgroundImageUrl: question.backgroundImageUrl || '',
+        questionType: question.questionType || 'game'
+      });
+      
       setOptions(question.options || ['', '', '', '']);
+      
+      // Log what we just set
+      setTimeout(() => {
+        console.log('Form values after reset:', {
+          difficulty: watch('difficulty'),
+          question: watch('question'),
+          allFormValues: watch()
+        });
+      }, 100);
     }
-  }, [question, setValue]);
+  }, [question, questionId, reset, watch]);
 
   // Update event image form when data loads
   useEffect(() => {
@@ -208,7 +241,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
       const payload = {
         NewUnsplashImageId: selectedImage.id,
         SizeVariant: eventImageForm.sizeVariant,
-        SelectedByUserId: null // Optional field
+        SelectedByUserId: "mark-user-id" // Default user ID since no auth
       };
 
       const res = await fetch(`/api/EventImages/question/${questionId}/replace`, {
@@ -359,7 +392,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form key={questionId} onSubmit={onSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Question Form */}
           <div className="lg:col-span-2 space-y-6">
             <Card>
@@ -497,6 +530,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                         <SelectItem value="hard">Hard</SelectItem>
                       </SelectContent>
                     </Select>
+                    <div className="text-xs text-muted-foreground mt-1">Debug: {watch('difficulty')}</div>
                   </div>
 
                   <div>

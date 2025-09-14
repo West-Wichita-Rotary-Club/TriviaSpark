@@ -298,7 +298,7 @@ public static class EfCoreApiEndpoints
             try
             {
                 // Use a default host ID since no authentication is required
-                var defaultHostId = "anonymous-host";
+                var defaultHostId = "mark-user-id";
 
                 // Check for duplicate event title for this host
                 var existingEvents = await eventService.GetEventsForHostAsync(defaultHostId);
@@ -738,7 +738,7 @@ public static class EfCoreApiEndpoints
                             UnsplashImageId = body.SelectedImage.Id,
                             SizeVariant = "regular",
                             UsageContext = "question_background",
-                            SelectedByUserId = "anonymous" // Default user since no auth
+                            SelectedByUserId = "mark-user-id" // Default user since no auth
                         };
                         var eventImage = await eventImageService.SaveImageForQuestionAsync(createImageRequest);
                         logger.LogInformation("EventImage creation result: {Success}", eventImage != null ? "Success" : "Failed");
@@ -854,7 +854,7 @@ public static class EfCoreApiEndpoints
                     UnsplashImageId = body.UnsplashImageId,
                     SizeVariant = body.SizeVariant ?? "regular",
                     UsageContext = body.UsageContext ?? "question_background",
-                    SelectedByUserId = "anonymous", // Default user since no auth
+                    SelectedByUserId = "mark-user-id", // Default user since no auth
                     SearchContext = body.SearchContext
                 };
 

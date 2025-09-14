@@ -390,6 +390,23 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
     backgroundImageUrl: question.backgroundImageUrl || '',
     questionType: inferQuestionType(question)
   });
+
+  // Update form state when question prop changes (fixes difficulty dropdown not updating)
+  useEffect(() => {
+    setForm({
+      question: question.question,
+      correctAnswer: question.correctAnswer,
+      options: [...(question.options || [])],
+      difficulty: question.difficulty || 'medium',
+      category: question.category || '',
+      points: question.points || 100,
+      timeLimit: question.timeLimit || 30,
+      orderIndex: question.orderIndex || 1,
+      explanation: question.explanation || '',
+      backgroundImageUrl: question.backgroundImageUrl || '',
+      questionType: inferQuestionType(question)
+    });
+  }, [question]);
   const [unsplashQuery, setUnsplashQuery] = useState('');
   const [unsplashResults, setUnsplashResults] = useState<UnsplashImage[]>([]);
   const [unsplashLoading, setUnsplashLoading] = useState(false);

@@ -26,9 +26,13 @@ TriviaSpark is an intelligent event trivia platform that transforms gatherings i
 
 ### Database
 
-- **SQLite** with local file storage (`./data/trivia.db`) for development/production
+**CRITICAL DATABASE RULE**: ALWAYS use the production database at `C:\websites\TriviaSpark\trivia.db`.
+**NEVER create or use local database files in the repository** (such as `./data/trivia.db`).
+
+- **SQLite** with production file storage at `C:\websites\TriviaSpark\trivia.db`
 - **Entity Framework Core** for type-safe database operations
 - **Turso/LibSQL** option for distributed deployments
+- **Repository data/ folder**: Used only for documentation, never for actual database files
 
 ### Deployment Options
 
@@ -69,7 +73,7 @@ TriviaSpark/
 ├── tests/               # Testing files organized by type
 ├── copilot/             # Generated documentation
 ├── scripts/             # Database seeding and utility scripts
-├── data/                # SQLite database files
+├── data/                # Documentation and schema files ONLY (NOT database files)
 ├── docs/                # Static build output (GitHub Pages)
 ├── shared/              # Shared TypeScript types and schemas
 ├── temp/                # Temporary files (gitignored)
@@ -194,21 +198,30 @@ The ASP.NET Core API serves the React SPA from its `wwwroot` directory. Never us
 
 ### Environment Variables
 
+**CRITICAL**: Always use the production database path in all configurations:
+
 ```bash
-DATABASE_URL=file:./data/trivia.db
+DATABASE_URL=file:C:\websites\TriviaSpark\trivia.db
 OPENAI_API_KEY=your_openai_api_key_here
 NODE_ENV=development
 ```
 
 Note: ASP.NET Core uses `appsettings.json` and `appsettings.Development.json` for configuration.
 
+**NEVER use**:
+
+- `./data/trivia.db`
+- `./trivia.db`
+- Any database path within the repository
+
 ### Development Workflow Guidelines
 
-1. **Documentation Location**: All generated documentation (.md files) MUST be placed in `/copilot` folder at the project root
-2. **Terminal Usage**: Reuse existing terminals whenever possible - do not create new terminals without asking the user first
-3. **Testing Protocol**: When making changes that affect functionality, ASK the user to run the site and test the changes before proceeding with additional modifications
-4. **File Organization**: ALWAYS place new files in the correct directory according to the repository structure
-5. **Repository Cleanliness**: Keep the root directory clean - only configuration files, documentation, and solution files belong in root
+1. **CRITICAL DATABASE RULE**: ALWAYS use the production database at `C:\websites\TriviaSpark\trivia.db`. NEVER create or use local database files in the repository (such as `./data/trivia.db`)
+2. **Documentation Location**: All generated documentation (.md files) MUST be placed in `/copilot` folder at the project root
+3. **Terminal Usage**: Reuse existing terminals whenever possible - do not create new terminals without asking the user first
+4. **Testing Protocol**: When making changes that affect functionality, ASK the user to run the site and test the changes before proceeding with additional modifications
+5. **File Organization**: ALWAYS place new files in the correct directory according to the repository structure
+6. **Repository Cleanliness**: Keep the root directory clean - only configuration files, documentation, and solution files belong in root
 
 ### Development Tools Location
 
