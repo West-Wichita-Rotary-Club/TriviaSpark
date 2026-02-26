@@ -128,8 +128,9 @@ When the system starts for the first time with an empty database (no users), a d
 - What happens when the admin's session expires mid-operation (e.g., while editing an event)? The system should detect the expired session via a global 401 response interceptor in the TanStack Query client, redirect to login preserving the URL so the user can return after re-authenticating.
 - How does the system handle concurrent login sessions from the same user? Allow multiple sessions (different devices/browsers) by default.
 - What happens when the last admin user is deleted? The system must prevent deletion of the last remaining admin account to avoid lockout.
-- How does the system handle login attempts with a correct username but wrong password? Show a generic "invalid credentials" message (no user enumeration) and apply rate limiting after repeated failures. *(Note: rate limiting is deferred to infrastructure-level implementation or a future enhancement — not a hard requirement for this MVP.)*
+- How does the system handle login attempts with a correct username but wrong password? Show a generic "invalid credentials" message (no user enumeration) and apply rate limiting after repeated failures. *(Note: rate limiting is deferred to infrastructure-level implementation or a future enhancement — not a hard requirement for this MVP.)* Additionally, the system MUST use constant-time comparison (running a dummy BCrypt verify when user not found) to prevent timing oracle attacks that reveal valid usernames.
 - What happens if the database has users but no roles? The role seeding should run independently and repair missing roles on startup.
+- How does the system handle password changes? A logged-in user can change their own password by providing their current password and a new password. The system validates the current password before accepting the change.
 
 ## Requirements *(mandatory)*
 
@@ -151,6 +152,11 @@ When the system starts for the first time with an empty database (no users), a d
 - **FR-014**: System MUST store passwords securely using one-way hashing; plaintext passwords must never be stored or logged.
 - **FR-015**: System MUST display a generic error message for failed login attempts without revealing whether the username or password was incorrect.
 - **FR-016**: System MUST connect the existing Admin.tsx frontend to working backend admin endpoints so the admin panel is fully functional.
+- **FR-017**: System MUST provide a password change endpoint that accepts current password and new password, validates the current password, and updates to the new (hashed) password for the authenticated user.
+- **FR-018**: System MUST use constant-time comparison for login failures to prevent timing oracle attacks that could reveal whether a username exists (run dummy BCrypt verify when user not found).
+- **FR-019**: System MUST clean up expired sessions from the database on application startup.
+- **FR-020**: System MUST integrate with ASP.NET Core's native authentication/authorization pipeline via a custom `AuthenticationHandler<T>` so that `[Authorize]` attributes work on both Minimal API endpoints and MVC controllers.
+- **FR-021**: System MUST enforce HTTPS in production to ensure session cookies are transmitted securely.
 
 ### Key Entities
 
@@ -163,14 +169,14 @@ When the system starts for the first time with an empty database (no users), a d
 
 ### Out of Scope (MVP)
 
-- **Password reset / forgot password flow**: Not included in this feature. Admins who forget their password must have another admin reset it, or the database can be manually updated.
+- **Password reset / forgot password flow**: Not included in this feature. Admins who forget their password must have another admin reset it, or the database can be manually updated. *(Note: password **change** for logged-in users IS in scope — see FR-017. Only the "forgot password" / email-based reset flow is out of scope.)*
 - **OAuth / SSO integration**: No external identity provider support. Authentication is username/email + password only.
 - **Self-registration**: Users cannot create their own accounts. Only administrators can create new user accounts through the admin panel.
 
 ### Assumptions
 - The existing User and Role entity models and EF Core database configuration are correct and sufficient; no schema changes are needed beyond what already exists.
 - The existing EfCoreAdminService implementation is functionally correct and can be exposed directly through API endpoints.
-- Session-based authentication with HTTP-only cookies is the appropriate approach, consistent with the existing cookie infrastructure in the codebase.
+- Session-based authentication with HTTP-only cookies is the appropriate approach. A custom `AuthenticationHandler<T>` integrates session validation with ASP.NET Core's native auth pipeline, enabling `[Authorize]` attribute support across both Minimal API endpoints and MVC controllers.
 - The application runs behind HTTPS in production, ensuring session cookies are transmitted securely.
 - Sessions use a sliding 2-hour inactivity timeout; each request resets the expiration clock.
 - The default admin password must be changed on first login for security (enforced via documentation/UI prompt, not a hard block).
@@ -188,3 +194,5 @@ When the system starts for the first time with an empty database (no users), a d
 - **SC-006**: 100% of protected routes (both API and frontend) correctly reject unauthenticated access and redirect to the login page or return an appropriate error.
 - **SC-007**: Users with non-admin roles (owner, participant) cannot access admin-only features (user management, role management), verifiable by role-based access tests.
 - **SC-008**: An administrator can create a new user account and that user can subsequently log in with the assigned credentials on their first attempt.
+- **SC-009**: A logged-in administrator can change their password, and subsequent login attempts use the new password.
+- **SC-010**: All API endpoints — including those served by MVC controllers — correctly enforce authentication and authorization via `[Authorize]` attributes or equivalent filters.

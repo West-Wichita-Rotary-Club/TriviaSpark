@@ -48,20 +48,27 @@
 ### Session Service
 
 - [ ] T008 [P] Create ISessionService interface with CreateSessionAsync, ValidateSessionAsync, DeleteSessionAsync, DeleteUserSessionsAsync, SlideExpirationAsync methods in `TriviaSpark.Api/Services/ISessionService.cs`
-- [ ] T009 Create EfCoreSessionService implementing ISessionService with 2-hour sliding expiration, BCrypt-free session ID (GUID), and expired session cleanup in `TriviaSpark.Api/Services/EfCore/EfCoreSessionService.cs`
+- [ ] T009 Create EfCoreSessionService implementing ISessionService with 2-hour sliding expiration, CSPRNG session tokens (`RandomNumberGenerator.GetHexString(32)`), debounced sliding expiration (only update DB if `LastAccessAt` is older than 5 minutes — see `AuthConstants.SlidingExpirationDebounceMinutes`), and reference `AuthConstants` for all session configuration in `TriviaSpark.Api/Services/EfCore/EfCoreSessionService.cs`
 - [ ] T010 Register `ISessionService` as `AddScoped<ISessionService, EfCoreSessionService>()` in `TriviaSpark.Api/Program.cs` DI container
 
 ### Authentication Middleware
 
-- [ ] T011 Create SessionAuthMiddleware that reads `triviaspark_session` cookie, validates session via ISessionService, slides expiration, and sets `HttpContext.Items["User"]` with user object (including role) in `TriviaSpark.Api/Middleware/SessionAuthMiddleware.cs`
-- [ ] T012 Wire SessionAuthMiddleware into Program.cs pipeline after CORS and before endpoint mapping, remove the existing no-op cookie middleware (search for the `app.Use(async (context, next) => { ... cookie ... })` inline delegate block) in `TriviaSpark.Api/Program.cs`
+- [ ] T011 Create SessionAuthMiddleware that reads session cookie (name from `AuthConstants`), validates session via ISessionService, slides expiration (debounced per `AuthConstants.SlidingExpirationDebounceMinutes`), and sets `HttpContext.Items["User"]` with user object (including role). Must be placed **after** `UseStaticFiles()`/`UseSpaStaticFiles()` to avoid unnecessary DB queries on static asset requests in `TriviaSpark.Api/Middleware/SessionAuthMiddleware.cs`
+- [ ] T012 Wire SessionAuthMiddleware into Program.cs pipeline **after** `UseStaticFiles()`/`UseSpaStaticFiles()` and **before** endpoint mapping (must skip static file requests to avoid unnecessary DB queries). Remove the existing no-op cookie middleware (search for the `app.Use(async (context, next) => { ... cookie ... })` inline delegate block) in `TriviaSpark.Api/Program.cs`
 
 ### Data Seeding
 
 - [ ] T013 Add role seeding on startup: create Admin, Owner, Participant roles if they don't already exist, using a scoped IAdminService.EnsureDefaultRolesExistAsync() call before app.Run() in `TriviaSpark.Api/Program.cs`
 - [ ] T014 Add default admin user creation on startup when zero users exist: username "admin", email "admin@triviaspark.local", password "ChangeMe123!" (BCrypt hashed), Admin role, using scoped IAdminService in `TriviaSpark.Api/Program.cs`
 
-**Checkpoint**: Session infrastructure ready. Database has UserSessions table, middleware populates auth context, default admin user exists. User story implementation can now begin.
+### Centralized Auth Configuration & ASP.NET Core Integration
+
+- [ ] T048 [P] Create `AuthConstants` static class with centralized cookie name (`triviaspark_session`), cookie options factory method (`CreateCookieOptions(bool isProduction)`), session duration (2 hours), sliding expiration debounce interval (5 minutes), and a pre-computed dummy BCrypt hash (computed once at static init) for constant-time login comparison in `TriviaSpark.Api/Utils/AuthConstants.cs`
+- [ ] T049 Create `SessionAuthenticationHandler` extending `AuthenticationHandler<AuthenticationSchemeOptions>` that reads the session cookie, validates via ISessionService, and sets `ClaimsPrincipal` with user ID, username, and role claims — enabling native `[Authorize]` attribute support on both Minimal API and MVC controllers in `TriviaSpark.Api/Middleware/SessionAuthenticationHandler.cs`
+- [ ] T050 Register ASP.NET Core authentication/authorization services in Program.cs: `AddAuthentication("Session").AddScheme<SessionAuthenticationHandler>("Session", null)`, `AddAuthorization()` with role-based policies ("Admin", "Owner"), `UseAuthentication()` + `UseAuthorization()` placed after static files and before endpoint mapping in `TriviaSpark.Api/Program.cs`
+- [ ] T051 Add expired session cleanup on application startup: delete all UserSession rows where `ExpiresAt < DateTime.UtcNow` using a scoped DbContext call before `app.Run()` in `TriviaSpark.Api/Program.cs`
+
+**Checkpoint**: Session infrastructure ready. Database has UserSessions table, middleware populates auth context, ASP.NET Core auth pipeline integrated (`[Authorize]` works), default admin user exists, expired sessions cleaned up. User story implementation can now begin.
 
 ---
 
@@ -75,7 +82,7 @@
 
 ### Backend — Auth Endpoints
 
-- [ ] T015 [US1] Add auth endpoint group with POST `/api/auth/login` that accepts `{ identifier, password }`, looks up user by username OR email via IAdminService, verifies password with BCrypt, creates session via ISessionService, sets `triviaspark_session` HTTP-only cookie (SameSite=Lax, Secure in production, Path=/, Max-Age=7200), returns user profile per contracts/auth.md in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T015 [US1] Add auth endpoint group with POST `/api/auth/login` that accepts `{ identifier, password }`, looks up user by username OR email via IAdminService (verify EF Core query plan: `FirstOrDefaultAsync(u => u.Username == id || u.Email == id)` should use existing unique indexes via SQLite OR-optimization), verifies password with BCrypt (if user not found, run `BCrypt.Verify` against `AuthConstants.DummyBCryptHash` for constant-time response), creates session via ISessionService, sets session cookie using `AuthConstants.CreateCookieOptions()`, returns user profile per contracts/auth.md in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T016 [US1] Add POST `/api/auth/logout` endpoint that reads session cookie, deletes session via ISessionService, clears cookie, returns `{ message: "Logged out" }` (idempotent — 200 even with no active session) in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T017 [US1] Add GET `/api/auth/me` endpoint that returns authenticated user from `HttpContext.Items["User"]` (id, username, email, fullName, role with id and name, createdAt) or 401 `{ message: "Not authenticated" }` in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 
@@ -107,6 +114,7 @@
 - [ ] T023 [US2] Replace all occurrences of hardcoded `"mark-user-id"` string literal in event creation endpoint with `GetAuthenticatedUserId(context)` call in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T024 [P] [US2] Replace all occurrences of hardcoded `"mark-user-id"` string literal in question selection endpoints with `GetAuthenticatedUserId(context)` call (search for the literal string across the file) in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T025 [P] [US2] Update EventImageService.cs fallback logic to use authenticated user ID from HttpContext instead of hardcoded `"mark-user-id"` in `TriviaSpark.Api/Services/EfCore/EventImageService.cs`
+- [ ] T052 [P] [US2] Replace hardcoded `'mark-user-id'` in `client/src/pages/question-edit.tsx` (line ~224) with authenticated user ID from AuthContext/useAuth hook, removing the `// Default user ID since no auth` comment
 
 ### Backend — Event Auth Enforcement
 
@@ -130,7 +138,8 @@
 - [ ] T028 [US3] Create `AdminAuthFilter` endpoint filter that checks `HttpContext.Items["User"]` has Admin role (role name == "Admin"), returns 403 Forbidden if not admin, 401 Unauthorized if unauthenticated in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T029 [US3] Map admin user management endpoints at `/api/admin/users`: GET (list all), GET `/{id}` (get by ID), POST (create), PUT `/{id}` (update), DELETE `/{id}` (delete with last-admin guard), POST `/{userId}/change-role` — all wired to IAdminService, all using AdminAuthFilter, per contracts/admin-users.md in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T030 [US3] Map admin role management endpoints at `/api/admin/roles`: GET (list all), GET `/{id}` (get by ID), POST (create), PUT `/{id}` (update), DELETE `/{id}` (with assigned-users guard) — all wired to IAdminService, all using AdminAuthFilter, per contracts/admin-roles.md in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
-- [ ] T031 [US3] Verify EfCoreAdminService.DeleteUserAsync prevents deletion of last admin user (FR-013); add guard if missing in `TriviaSpark.Api/Services/EfCore/EfCoreAdminService.cs`
+- [ ] T031 [US3] Implement last-admin-delete guard in `EfCoreAdminService.DeleteUserAsync`: before deleting, count users with Admin role; if count ≤ 1 and the target user has the Admin role, throw `InvalidOperationException("Cannot delete the last admin user")`. This guard does NOT currently exist — it must be added (FR-013) in `TriviaSpark.Api/Services/EfCore/EfCoreAdminService.cs`
+- [ ] T053 [US3] Wire user deletion to session invalidation: call `ISessionService.DeleteUserSessionsAsync(userId)` before removing the user record in the DELETE `/api/admin/users/{id}` endpoint to prevent deleted users from remaining logged in via stale sessions in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 
 ### Frontend — Admin Panel Integration
 
@@ -171,7 +180,10 @@
 *Note: Core seeding logic was implemented in Phase 2 (T013, T014). This phase handles the user-facing enhancements and edge cases.*
 
 - [ ] T038 [US5] Add first-login detection: when user logs in with default password, include a `passwordChangeRequired: true` flag in the `/api/auth/me` response in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
-- [ ] T039 [US5] Display password change banner/prompt on dashboard when `passwordChangeRequired` is true, guiding admin to change default password via user management in `client/src/pages/Admin.tsx` or dashboard component
+- [ ] T054 [US5] Add `ChangePasswordAsync(string userId, string currentPassword, string newPassword)` method to `IAdminService` interface and implement in `EfCoreAdminService`: verify current password with BCrypt, validate new password (minimum 8 characters), hash new password with BCrypt, update `User.Password` field in `TriviaSpark.Api/Services/IAdminService.cs` and `TriviaSpark.Api/Services/EfCore/EfCoreAdminService.cs`
+- [ ] T055 [US5] Add POST `/api/auth/change-password` endpoint accepting `{ currentPassword, newPassword }`, requires authenticated session, calls `IAdminService.ChangePasswordAsync(userId, currentPassword, newPassword)`, returns 200 on success / 400 on validation error / 401 if not authenticated or wrong current password, per contracts/auth.md in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T056 [P] [US5] Verify password change contract definition in `.documentation/specs/003-admin-login-system/contracts/auth.md` matches implementation — POST `/api/auth/change-password` section was added during planning (CR-2)
+- [ ] T039 [US5] Display password change banner/prompt on dashboard when `passwordChangeRequired` is true with a working password change form (calling POST `/api/auth/change-password`), guiding admin to change default password in `client/src/pages/Admin.tsx` or dashboard component
 - [ ] T040 [US5] Verify idempotent seeding: restart app multiple times with existing data — confirm no duplicate roles or users created (already implemented in T013/T014 but verify edge cases) in `TriviaSpark.Api/Program.cs`
 - [ ] T041 [US5] Verify independent role repair: if database has users but missing roles, startup creates only the missing roles without errors in `TriviaSpark.Api/Program.cs`
 
@@ -183,12 +195,15 @@
 
 **Purpose**: Testing, documentation, and quality improvements that span multiple user stories
 
-- [ ] T042 [P] Create HTTP test file with test cases for all auth endpoints (login success, login failure, logout, me authenticated, me unauthenticated), all admin endpoints (user CRUD, role CRUD, permission checks), concurrent session validation (login twice with same user, verify both sessions valid), and include response-time expectations (auth rejection <1s per SC-002) per constitution principle IV in `tests/http/auth-admin-tests.http`
+- [ ] T042 [P] Create HTTP test file with test cases for all auth endpoints (login success, login failure, logout, me authenticated, me unauthenticated, change-password success/failure), all admin endpoints (user CRUD, role CRUD, permission checks), controller-migrated endpoints (Unsplash, EventImages, EventsV2 — verify auth enforcement), concurrent session validation (login twice with same user, verify both sessions valid), and include response-time expectations (auth rejection <1s per SC-002) per constitution principle IV in `tests/http/auth-admin-tests.http`
 - [ ] T043 [P] Update feature documentation with implementation notes and any deviations from plan in `.documentation/specs/003-admin-login-system/`
 - [ ] T044 [P] Add security logging: log login attempts (success/failure without passwords), session creation/deletion, admin user management actions via ILoggingService in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T045 Run quickstart.md end-to-end validation: build frontend (`npm run build`), start server (`dotnet run`), test login (time the full flow — must complete in <30s per SC-001), verify admin panel, test protected routes, test public routes
 - [ ] T046 Verify no `console.log` statements in frontend auth code, no credential logging in backend, HTTP-only cookies set correctly — security review per constitution
 - [ ] T047 [US4] Add global 401 response interceptor in TanStack Query client (`defaultOptions.queries.onError` or `queryClient` configuration) that detects expired session responses mid-operation and redirects to `/login?redirect={currentPath}` in `client/src/contexts/AuthContext.tsx` or `client/src/lib/queryClient.ts`
+- [ ] T057 Migrate 4 MVC controllers to Minimal API endpoint groups with `[Authorize]` attributes: `EfCoreTestController` (restrict to Development environment only or remove), `EventImagesController`, `EventsV2Controller`, `UnsplashController` — apply appropriate auth filters (admin-only for test endpoints, authenticated for event/image endpoints), remove controller files after migration per constitution principle VII in `TriviaSpark.Api/Controllers/` → `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T058 [P] Add TanStack Query cache invalidation: call `queryClient.clear()` on successful login and logout mutations to prevent stale data from previous auth state being served from cache in `client/src/contexts/AuthContext.tsx`
+- [ ] T059 [P] Add HTTPS enforcement in production: configure `UseHttpsRedirection()` in the production pipeline and verify Kestrel HTTPS endpoint configuration in `TriviaSpark.Api/Program.cs` and `appsettings.json`
 
 ---
 
@@ -210,28 +225,32 @@ Phase 8 (Polish)         → Depends on all user stories being complete
 ### User Story Dependencies
 
 - **US1 (P1)**: Can start after Phase 2. No dependencies on other stories. **MVP target.**
-- **US2 (P2)**: Can start after Phase 2. Backend tasks (T022-T027) have no dependency on US1. Can run in parallel.
-- **US3 (P3)**: Can start after Phase 2. Backend tasks (T028-T031) have no dependency on US1. Frontend task (T032) needs auth context from US1 for testing.
+- **US2 (P2)**: Can start after Phase 2. Backend tasks (T022-T027) have no dependency on US1. T052 (frontend mark-user-id) needs AuthContext from US1. Can run in parallel with US1 for backend.
+- **US3 (P3)**: Can start after Phase 2. Backend tasks (T028-T031, T053) have no dependency on US1. Frontend task (T032) needs auth context from US1 for testing.
 - **US4 (P4)**: Depends on US1 completion (needs AuthContext, useAuth, login page, /login route).
-- **US5 (P5)**: Depends on Phase 2 seeding + US1 login flow for testing password change prompt.
+- **US5 (P5)**: Depends on Phase 2 seeding + US1 login flow for testing password change. T054-T055 (password change backend) depend on Phase 2 + IAdminService.
 
 ### Parallel Execution Opportunities
 
 **Within Phase 2** (after T007 migration):
-- T008 (ISessionService) can run in parallel — separate file
+- T008 (ISessionService) + T048 (AuthConstants) can run in parallel — separate files
 
 **Within Phase 3** (US1):
 - T018 (AuthContext) + T019 (useAuth) can run in parallel — different files
 - T015-T017 (backend) can run in parallel with T018-T019 (frontend) — different codebases
 
 **Within Phase 4** (US2):
-- T024 (question selection fixes) + T025 (EventImageService fix) can run in parallel — different files
+- T024 (question selection fixes) + T025 (EventImageService fix) + T052 (question-edit.tsx frontend fix) can run in parallel — different files
 
 **Across User Stories** (after Phase 2):
 - US1 backend (T015-T017) || US2 backend (T022-T027) || US3 backend (T028-T031) — all in ApiEndpoints.EfCore.cs but different endpoint groups, manageable in sequence within the file
 
+**Within Phase 7** (US5):
+- T056 (password change contract doc) can run in parallel with T054 (backend implementation)
+
 **Within Phase 8**:
-- T042 (HTTP tests) + T043 (docs) + T044 (logging) can all run in parallel — different files
+- T042 (HTTP tests) + T043 (docs) + T044 (logging) + T058 (cache invalidation) + T059 (HTTPS) can all run in parallel — different files
+- T057 (controller migration) depends on T049/T050 (AuthenticationHandler + ASP.NET Core auth registration from Phase 2)
 
 ---
 
@@ -248,7 +267,7 @@ This delivers:
 - Frontend auth context tracks login state
 - Default admin user seeded on first run
 
-**Task Count**: T001-T021 (21 tasks)
+**Task Count**: T001-T021, T048-T051 (25 tasks)
 
 ### Full Feature Delivery
 
@@ -260,18 +279,18 @@ All phases (1-8) deliver the complete admin login system with:
 - First-run setup with default admin
 - HTTP endpoint tests
 
-**Total Task Count**: 47 tasks
+**Total Task Count**: 59 tasks
 
 ### Task Breakdown by Phase
 
 | Phase | Description | Tasks | Parallelizable |
 |-------|-------------|-------|---------|
 | 1 | Setup | T001-T004 (4) | All [P] (auto-pass) |
-| 2 | Foundational | T005-T014 (10) | T008 [P] |
+| 2 | Foundational | T005-T014, T048-T051 (14) | T008, T048 [P] |
 | 3 | US1: Login/Logout | T015-T021 (7) | T018, T019 [P] |
-| 4 | US2: Events | T022-T027 (6) | T024, T025 [P] |
-| 5 | US3: Admin | T028-T032 (5) | — |
+| 4 | US2: Events | T022-T027, T052 (7) | T024, T025, T052 [P] |
+| 5 | US3: Admin | T028-T032, T053 (6) | — |
 | 6 | US4: Protected Routes | T033-T037 (5) | T036 [P] |
-| 7 | US5: First-Run Setup | T038-T041 (4) | — |
-| 8 | Polish | T042-T047 (6) | T042, T043, T044 [P] |
-| **Total** | | **47** | **12 parallelizable** |
+| 7 | US5: First-Run Setup | T038, T054-T056, T039-T041 (7) | T056 [P] |
+| 8 | Polish | T042-T047, T057-T059 (9) | T042, T043, T044, T058, T059 [P] |
+| **Total** | | **59** | **17 parallelizable** |

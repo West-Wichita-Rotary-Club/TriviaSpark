@@ -5,7 +5,7 @@
 
 ## Summary
 
-Enable and fix the admin system and user login capabilities. The backend has an existing `IAdminService`/`EfCoreAdminService` with full user/role CRUD and BCrypt password hashing, but no API endpoints expose it and all auth middleware was removed. The frontend `Admin.tsx` page exists but calls non-existent endpoints. This plan wires up authentication endpoints (login/logout/me), admin management endpoints, session middleware, frontend login page, auth context, and protected route enforcement — reconnecting existing service implementations to working API routes and creating the missing frontend auth layer.
+Enable and fix the admin system and user login capabilities. The backend has an existing `IAdminService`/`EfCoreAdminService` with full user/role CRUD and BCrypt password hashing, but no API endpoints expose it and all auth middleware was removed. The frontend `Admin.tsx` page exists but calls non-existent endpoints. This plan wires up authentication endpoints (login/logout/me/change-password), admin management endpoints, a custom `AuthenticationHandler<T>` for ASP.NET Core pipeline integration, session middleware, frontend login page, auth context, and protected route enforcement. Additionally, the 4 existing MVC controllers will be migrated to Minimal API with auth filters, and cookie configuration will be centralized. Session tokens use cryptographically secure random generation (`RandomNumberGenerator.GetHexString(32)`), and sliding expiration is debounced (5-minute threshold) to reduce SQLite write contention.
 
 ## Technical Context
 
@@ -49,10 +49,10 @@ Enable and fix the admin system and user login capabilities. The backend has an 
 - [x] **IV. Testing**: HTTP test file in `tests/http/auth-admin-tests.http`. Constitution acknowledges 0 existing tests — incremental.
 - [x] **V. Error Handling**: Auth errors flow through `ExceptionHandlingMiddleware`. Generic login error messages. `ILoggingService` for auth event logging. No console.log.
 - [x] **VI. File Organization**: All new files in correct directories (see Source Code tree below).
-- [x] **VII. API Architecture**: All new endpoints use Minimal API pattern in `ApiEndpoints.EfCore.cs`. No new controllers.
+- [x] **VII. API Architecture**: All new endpoints use Minimal API pattern in `ApiEndpoints.EfCore.cs`. Existing 4 MVC controllers (EfCoreTestController, EventImagesController, EventsV2Controller, UnsplashController) will be migrated to Minimal API with auth filters per constitution principle VII.
 - [x] **VIII. Code Quality**: XML docs on all new C# classes/methods/interfaces. TypeScript interfaces for all props and API types.
-- [x] **Security**: BCrypt hashing (existing), HTTP-only session cookies, generic login errors, no credential logging, CORS with `AllowCredentials` already configured.
-- [x] **Performance**: `.AsNoTracking()` for read-only user/role queries. Session table indexed on `UserId` and `ExpiresAt`.
+- [x] **Security**: BCrypt hashing (existing), HTTP-only session cookies (centralized config via `AuthConstants`), generic login errors with constant-time comparison (anti-timing oracle), CSPRNG session tokens (`RandomNumberGenerator.GetHexString(32)`), no credential logging, CORS with `AllowCredentials` already configured, HTTPS enforcement in production.
+- [x] **Performance**: `.AsNoTracking()` for read-only user/role queries. Session table indexed on `UserId` and `ExpiresAt`. Sliding expiration debounced (5-minute threshold) to reduce SQLite write contention. `SessionAuthMiddleware` placed after `UseStaticFiles()` to avoid unnecessary DB queries on static asset requests. Expired session cleanup on startup.
 
 **Post-Design Gate Result**: PASS — no violations. All design artifacts align with constitution.
 
@@ -77,6 +77,9 @@ specs/003-admin-login-system/
 TriviaSpark.Api/
 ├── Middleware/
 │   └── SessionAuthMiddleware.cs        # NEW - Session validation middleware
+│   └── SessionAuthenticationHandler.cs # NEW - ASP.NET Core AuthenticationHandler<T> integration
+├── Utils/
+│   └── AuthConstants.cs               # NEW - Centralized cookie config, session constants
 ├── Services/
 │   └── ISessionService.cs             # NEW - Session management interface
 │   └── EfCore/
@@ -85,8 +88,9 @@ TriviaSpark.Api/
 │   └── Entities/
 │       └── UserSession.cs             # NEW - Session entity
 │   └── TriviaSparkDbContext.cs        # MODIFY - Add UserSessions DbSet
-├── ApiEndpoints.EfCore.cs             # MODIFY - Add auth + admin endpoint groups
-├── Program.cs                         # MODIFY - Re-enable auth middleware, role seeding
+├── Controllers/                        # REMOVE - Migrate all 4 controllers to Minimal API
+├── ApiEndpoints.EfCore.cs             # MODIFY - Add auth + admin + migrated controller endpoint groups
+├── Program.cs                         # MODIFY - Auth pipeline, middleware, role seeding, HTTPS
 
 client/src/
 ├── pages/
@@ -107,4 +111,10 @@ tests/http/
 
 ## Complexity Tracking
 
-No constitution violations to justify. All design choices align with existing patterns.
+| Decision | Justification |
+|----------|---------------|
+| Custom `AuthenticationHandler<T>` instead of pure middleware | Required for `[Authorize]` attribute support on existing MVC controllers during migration period and for Minimal API endpoints. Integrates with ASP.NET Core's native auth pipeline. (CR-1) |
+| Controller migration to Minimal API | Constitution principle VII mandates Minimal API. 4 MVC controllers lack auth and must be secured. Migration + auth enforcement done together. (CR-4) |
+| CSPRNG session tokens over GUID | `RandomNumberGenerator.GetHexString(32)` communicates cryptographic intent more clearly than `Guid.NewGuid()`. Both are CSPRNG-backed but the explicit form is best practice for security tokens. (CR-5) |
+| Debounced sliding expiration | SQLite single-writer limitation means per-request writes create contention. 5-minute debounce reduces write frequency ~99% with negligible security impact for a 2-hour window. (HI-1) |
+| Centralized AuthConstants | Prevents cookie attribute inconsistency across login, logout, and middleware code paths. Single source of truth for session configuration. (CR-5) |

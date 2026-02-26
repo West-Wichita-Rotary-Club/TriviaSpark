@@ -58,5 +58,32 @@ Get the currently authenticated user's profile.
 
 | Status | Description | Body |
 |--------|-------------|------|
-| 200 | Authenticated | `{ "id": "string", "username": "string", "email": "string", "fullName": "string", "role": { "id": "string", "name": "string" }, "createdAt": "string (ISO 8601)" }` |
+| 200 | Authenticated | `{ "id": "string", "username": "string", "email": "string", "fullName": "string", "role": { "id": "string", "name": "string" }, "createdAt": "string (ISO 8601)", "passwordChangeRequired": "boolean" }` |
 | 401 | Not authenticated | `{ "message": "Not authenticated" }` |
+
+---
+
+## POST /api/auth/change-password
+
+Change the authenticated user's password.
+
+**Request** (requires active session):
+```json
+{
+  "currentPassword": "string",
+  "newPassword": "string"
+}
+```
+
+**Responses**:
+
+| Status | Description | Body |
+|--------|-------------|------|
+| 200 | Password changed | `{ "message": "Password changed successfully" }` |
+| 400 | Validation error | `{ "message": "New password must be at least 8 characters" }` |
+| 401 | Not authenticated | `{ "message": "Not authenticated" }` |
+| 401 | Wrong current password | `{ "message": "Current password is incorrect" }` |
+
+**Side Effects**:
+- User's password is updated in the database (BCrypt hashed)
+- Existing sessions remain valid (no forced re-authentication)
