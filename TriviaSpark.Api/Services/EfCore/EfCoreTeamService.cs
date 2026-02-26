@@ -4,15 +4,27 @@ using TriviaSpark.Api.Data.Entities;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// Interface for team management operations using Entity Framework Core.
+/// </summary>
 public interface IEfCoreTeamService
 {
+    /// <summary>Gets all teams for an event, ordered by table number then name.</summary>
     Task<IList<Team>> GetTeamsForEventAsync(string eventId);
+    /// <summary>Gets a team by ID with its participants and event included.</summary>
     Task<Team?> GetTeamByIdAsync(string teamId);
+    /// <summary>Creates a new team and sets its creation timestamp.</summary>
     Task<Team> CreateTeamAsync(Team team);
+    /// <summary>Updates an existing team entity.</summary>
     Task<Team> UpdateTeamAsync(Team team);
+    /// <summary>Deletes a team by ID. Returns false if not found.</summary>
     Task<bool> DeleteTeamAsync(string teamId);
 }
 
+/// <summary>
+/// EF Core implementation of team management operations.
+/// Provides CRUD operations for trivia event teams.
+/// </summary>
 public class EfCoreTeamService : IEfCoreTeamService
 {
     private readonly TriviaSparkDbContext _context;

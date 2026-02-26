@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Upload, Palette, Eye } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, Upload, Palette, Eye } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface BrandingTabProps {
   event: any;
@@ -35,23 +35,28 @@ export function BrandingTab({ event, onUpdate, isLoading }: BrandingTabProps) {
       }
 
       const data = await response.json();
-      
+
       // Update the appropriate field based on type
-      const field = type === 'promotional' ? 'eventCopy' : 
-                   type === 'welcome' ? 'welcomeMessage' :
-                   type === 'thankyou' ? 'thankYouMessage' : 'eventRules';
-      
+      const field =
+        type === 'promotional'
+          ? 'eventCopy'
+          : type === 'welcome'
+            ? 'welcomeMessage'
+            : type === 'thankyou'
+              ? 'thankYouMessage'
+              : 'eventRules';
+
       onUpdate({ [field]: data.copy });
-      
+
       toast({
-        title: "AI Copy Generated",
+        title: 'AI Copy Generated',
         description: `Generated ${type} content successfully!`,
       });
     } catch (error) {
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate AI copy. Please try again.",
-        variant: "destructive",
+        title: 'Generation Failed',
+        description: 'Failed to generate AI copy. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setGeneratingCopy(false);
@@ -155,20 +160,28 @@ export function BrandingTab({ event, onUpdate, isLoading }: BrandingTabProps) {
               />
             </div>
           </div>
-          
+
           {/* Theme Preview */}
-          <div className="p-4 border rounded-lg" style={{
-            backgroundColor: event.secondaryColor || '#FEF3C7',
-            fontFamily: event.fontFamily || 'Inter'
-          }}>
+          <div
+            className="p-4 border rounded-lg"
+            style={{
+              backgroundColor: event.secondaryColor || '#FEF3C7',
+              fontFamily: event.fontFamily || 'Inter',
+            }}
+          >
             <div className="text-center">
-              <h3 className="text-xl font-bold mb-2" style={{ color: event.primaryColor || '#7C2D12' }}>
+              <h3
+                className="text-xl font-bold mb-2"
+                style={{ color: event.primaryColor || '#7C2D12' }}
+              >
                 {event.title || 'Your Event Title'}
               </h3>
-              <Badge style={{
-                backgroundColor: event.primaryColor || '#7C2D12',
-                color: 'white'
-              }}>
+              <Badge
+                style={{
+                  backgroundColor: event.primaryColor || '#7C2D12',
+                  color: 'white',
+                }}
+              >
                 Theme Preview
               </Badge>
             </div>

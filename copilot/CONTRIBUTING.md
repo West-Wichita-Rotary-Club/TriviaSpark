@@ -13,10 +13,10 @@ Thank you for your interest in contributing! This guide keeps contributions cons
 ## Development Environment
 
 - Cross-platform development (Windows, macOS, Linux) with VS Code recommended
-- Node.js 18+ LTS, npm or yarn
-- Frontend: React 19 + TypeScript 5 + Vite 7 + Tailwind 3 + shadcn/ui
-- Backend: Express.js + TypeScript (ESM) + WebSocket + Drizzle ORM
-- SQLite for local development
+- Node.js 22+ (18+ supported), npm
+- Frontend: React 19 + TypeScript 5 + Vite 7 + Tailwind CSS 4 + shadcn/ui
+- Backend: ASP.NET Core 9 Web API + Entity Framework Core + SQLite + Serilog
+- Database: SQLite at `C:\websites\TriviaSpark\trivia.db` (production path)
 
 ## Workflow
 
@@ -30,23 +30,61 @@ Thank you for your interest in contributing! This guide keeps contributions cons
 - Testing notes (what you validated)
 - Screenshots or short clips for UI changes (optional)
 
+## Code Quality Standards
+
+### Before Every PR
+
+```bash
+# Frontend: lint + format + test
+npm run lint          # Zero errors required (no-console enforced)
+npm run format:check  # Verify formatting
+npm test              # Run Vitest tests
+
+# Backend: build + test
+dotnet build ./TriviaSpark.Api/TriviaSpark.Api.csproj
+dotnet test
+```
+
+### Frontend Rules
+
+- **No `console.log`** — enforced by ESLint `no-console: error`. Use toast notifications for user feedback.
+- **TypeScript strict mode** — no implicit any, proper return types.
+- **ESLint v10 flat config** — `eslint.config.js` at repo root.
+- **Prettier formatting** — printWidth: 100, singleQuote, semi, trailingComma: es5.
+
+### Backend Rules
+
+- **XML documentation** — all public classes, interfaces, and methods in `Services/` and `Controllers/` must have `<summary>` XML docs.
+- **EF Core** — use LINQ, avoid raw SQL. Type-safe database operations.
+- **Serilog logging** — use `ILoggingService` for structured logging, never `Console.WriteLine`.
+- **Production database path** — always `C:\websites\TriviaSpark\trivia.db`, never `./data/trivia.db`.
+
 ## Code Style
 
-- Backend: Express.js + TypeScript (ESM) + WebSocket + SQLite + Drizzle ORM
-  - Type-safe database operations with Drizzle ORM
+- Backend: ASP.NET Core 9 + C# + EF Core + SQLite + Serilog
+  - Type-safe database operations with Entity Framework Core
   - Proper error handling with HTTP status codes
   - Session-based authentication with secure cookies
-  - WebSocket connections for real-time features
-- Frontend: React 19 + TypeScript 5 + Vite 7 + Tailwind 3 + shadcn/ui
+  - SignalR hubs for real-time features (when enabled)
+- Frontend: React 19 + TypeScript 5 + Vite 7 + Tailwind CSS 4 + shadcn/ui
   - Functional components; strong typing; TS strict mode
   - TanStack Query for server state management
   - Small, accessible components; mobile-first design
 
+## File Organization
+
+- **Development scripts** → `tools/`
+- **HTTP test files** → `tests/http/` (ALL `.http` files)
+- **Backend tests** → `tests/TriviaSpark.Tests/`
+- **Frontend tests** → `client/src/**/*.test.tsx`
+- **Documentation** → `copilot/`
+- **Temporary files** → `temp/` (gitignored)
+
 ## Tests
 
-- Backend: Unit tests for API endpoints and services
-- Frontend: React Testing Library + Vitest for component testing
-- WebSocket connection testing for real-time features
+- Frontend: Vitest + React Testing Library for component testing
+- Backend: MSTest with EF Core InMemory for service/integration testing
+- HTTP tests: `tests/http/` with VS Code REST Client extension
 
 ## Docs
 

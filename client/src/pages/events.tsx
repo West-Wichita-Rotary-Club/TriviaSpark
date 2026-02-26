@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { Brain, QrCode, Play, Users, Calendar, MapPin, Building2 } from "lucide-react";
-import { useLocation } from "wouter";
-import QRCodeComponent from "qrcode";
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { Brain, QrCode, Play, Users, Calendar, MapPin, Building2 } from 'lucide-react';
+import { useLocation } from 'wouter';
+import QRCodeComponent from 'qrcode';
 
 type Event = {
   id: string;
@@ -29,41 +29,41 @@ export default function EventManagement() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
   // Get events
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
-    queryKey: ["/api/events"],
-    retry: false
+    queryKey: ['/api/events'],
+    retry: false,
   });
 
   // Start event mutation
   const startEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
       const response = await fetch(`/api/events/${eventId}/start`, {
-        method: "POST",
+        method: 'POST',
         credentials: 'include',
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to start event");
+        throw new Error(errorData.error || 'Failed to start event');
       }
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/events'] });
       toast({
-        title: "Event Started!",
+        title: 'Event Started!',
         description: `${data.title} is now live and accepting participants.`,
       });
     },
     onError: (error) => {
       toast({
-        title: "Failed to start event",
+        title: 'Failed to start event',
         description: (error as Error).message,
-        variant: "destructive",
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   // Generate QR Code when event is selected
@@ -75,8 +75,8 @@ export default function EventManagement() {
         margin: 2,
         color: {
           dark: '#7C2D12', // wine-800
-          light: '#FFFFFF'
-        }
+          light: '#FFFFFF',
+        },
       }).then(setQrCodeDataUrl);
     }
   }, [selectedEvent]);
@@ -136,8 +136,8 @@ export default function EventManagement() {
                 ) : events && events.length > 0 ? (
                   <div className="space-y-4">
                     {events.map((event) => (
-                      <Card 
-                        key={event.id} 
+                      <Card
+                        key={event.id}
                         className={`cursor-pointer transition-all hover:shadow-md ${
                           selectedEvent?.id === event.id ? 'ring-2 ring-wine-500 bg-wine-50' : ''
                         }`}
@@ -147,14 +147,19 @@ export default function EventManagement() {
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
-                              <h3 className="font-semibold text-wine-800 text-lg" data-testid={`text-event-title-${event.id}`}>
+                              <h3
+                                className="font-semibold text-wine-800 text-lg"
+                                data-testid={`text-event-title-${event.id}`}
+                              >
                                 {event.title}
                               </h3>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge 
+                              <Badge
                                 variant={event.status === 'active' ? 'default' : 'secondary'}
-                                className={event.status === 'active' ? 'bg-emerald-100 text-emerald-800' : ''}
+                                className={
+                                  event.status === 'active' ? 'bg-emerald-100 text-emerald-800' : ''
+                                }
                                 data-testid={`badge-status-${event.id}`}
                               >
                                 {event.status}
@@ -173,7 +178,10 @@ export default function EventManagement() {
                               </Button>
                             </div>
                           </div>
-                          <p className="text-gray-600 text-sm mb-3" data-testid={`text-event-description-${event.id}`}>
+                          <p
+                            className="text-gray-600 text-sm mb-3"
+                            data-testid={`text-event-description-${event.id}`}
+                          >
                             {event.description}
                           </p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-500">
@@ -208,7 +216,10 @@ export default function EventManagement() {
                   <div className="text-center py-8">
                     <Brain className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                     <p className="text-gray-600 mb-4">No events found</p>
-                    <Button onClick={() => setLocation("/dashboard")} data-testid="button-create-event">
+                    <Button
+                      onClick={() => setLocation('/dashboard')}
+                      data-testid="button-create-event"
+                    >
                       Create Your First Event
                     </Button>
                   </div>
@@ -223,9 +234,7 @@ export default function EventManagement() {
               <div className="space-y-6">
                 <Card className="trivia-card" data-testid="card-event-details">
                   <CardHeader>
-                    <CardTitle className="wine-text text-lg">
-                      {selectedEvent.title}
-                    </CardTitle>
+                    <CardTitle className="wine-text text-lg">{selectedEvent.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -254,9 +263,9 @@ export default function EventManagement() {
                         <div className="text-center space-y-4">
                           <div className="w-full max-w-sm mx-auto">
                             {qrCodeDataUrl && (
-                              <img 
-                                src={qrCodeDataUrl} 
-                                alt="Join Event QR Code" 
+                              <img
+                                src={qrCodeDataUrl}
+                                alt="Join Event QR Code"
                                 className="w-full h-auto rounded-lg shadow-md"
                                 data-testid="image-qr-code"
                               />
@@ -264,12 +273,16 @@ export default function EventManagement() {
                           </div>
                           <div className="bg-gray-50 p-3 rounded-lg">
                             <p className="text-sm font-medium text-gray-700 mb-1">Join Code:</p>
-                            <p className="text-lg font-mono text-wine-800" data-testid="text-join-code">
+                            <p
+                              className="text-lg font-mono text-wine-800"
+                              data-testid="text-join-code"
+                            >
                               {selectedEvent.qrCode}
                             </p>
                           </div>
                           <p className="text-sm text-gray-600">
-                            Participants can scan the QR code or visit:<br/>
+                            Participants can scan the QR code or visit:
+                            <br />
                             <span className="font-mono text-wine-800">
                               /join/{selectedEvent.qrCode}
                             </span>
@@ -305,7 +318,7 @@ export default function EventManagement() {
         <div className="mt-8 text-center">
           <Button
             variant="outline"
-            onClick={() => setLocation("/dashboard")}
+            onClick={() => setLocation('/dashboard')}
             className="border-wine-200 text-wine-700 hover:bg-wine-50"
             data-testid="button-dashboard"
           >

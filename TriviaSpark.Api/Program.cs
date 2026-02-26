@@ -97,7 +97,7 @@ try
     // EF Core configuration
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
         ?? Environment.GetEnvironmentVariable("DATABASE_URL") 
-        ?? "Data Source=./data/trivia.db";
+        ?? "Data Source=C:\\websites\\TriviaSpark\\trivia.db";
     
     // Ensure the database directory exists
     var dbPath = connectionString.Replace("Data Source=", "").Replace("file:", "");
@@ -111,6 +111,7 @@ try
     builder.Services.AddDbContext<TriviaSparkDbContext>(options =>
         options.UseSqlite(connectionString));
         
+    Log.Information("Database path: {DatabasePath}", dbPath);
     Log.Information("Database configured with connection string: {ConnectionString}", connectionString);
 
     // EF Core services

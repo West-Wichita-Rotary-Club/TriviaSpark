@@ -5,19 +5,36 @@ using DapperUser = TriviaSpark.Api.Services.User;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// Interface for user management operations using Entity Framework Core.
+/// Maps between EF Core User entities and legacy DTO User objects.
+/// </summary>
 public interface IEfCoreUserService
 {
+    /// <summary>Gets a user by their unique ID.</summary>
     Task<DapperUser?> GetUserByIdAsync(string userId);
+    /// <summary>Gets a user by their username.</summary>
     Task<DapperUser?> GetUserByUsernameAsync(string username);
+    /// <summary>Gets a user by their email address.</summary>
     Task<DapperUser?> GetUserByEmailAsync(string email);
+    /// <summary>Creates a new user with an optional default role assignment.</summary>
     Task<DapperUser> CreateUserAsync(DapperUser user);
+    /// <summary>Updates an existing user entity.</summary>
     Task<DapperUser> UpdateUserAsync(DapperUser user);
+    /// <summary>Deletes a user by ID. Returns false if not found.</summary>
     Task<bool> DeleteUserAsync(string userId);
+    /// <summary>Validates a user's password using BCrypt comparison.</summary>
     Task<bool> ValidatePasswordAsync(string username, string password);
+    /// <summary>Changes a user's password after validating the current password.</summary>
     Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
+    /// <summary>Gets the total count of registered users.</summary>
     Task<int> GetUserCountAsync();
 }
 
+/// <summary>
+/// EF Core implementation of user management with DTO mapping between
+/// Entity Framework User entities and legacy Dapper-style User DTOs.
+/// </summary>
 public class EfCoreUserService : IEfCoreUserService
 {
     private readonly TriviaSparkDbContext _context;

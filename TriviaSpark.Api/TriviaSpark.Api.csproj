@@ -4,6 +4,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <UserSecretsId>93f20d8f-4276-48c5-91da-dd408b33630b</UserSecretsId>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>1591</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />

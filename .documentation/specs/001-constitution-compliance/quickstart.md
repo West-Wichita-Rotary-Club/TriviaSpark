@@ -568,6 +568,8 @@ npm run lint && npm test && npm run build && dotnet test
 
 ## Getting Help
 
+- **Pre-commit Hook**: A pre-commit hook template is available at `.githooks/pre-commit`. To enable it, run `git config core.hooksPath .githooks` from the repo root. This will run lint and format checks automatically before each commit.
+
 - **Constitution**: `.documentation/memory/constitution.md`
 - **Feature Spec**: `.documentation/specs/001-constitution-compliance/spec.md`
 - **Research**: `.documentation/specs/001-constitution-compliance/research.md`

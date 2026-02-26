@@ -4,6 +4,10 @@ using TriviaSpark.Api.Services;
 
 namespace TriviaSpark.Api.Controllers;
 
+/// <summary>
+/// Test controller demonstrating EF Core data access for events.
+/// Provides read-only endpoints for teams, participants, questions, and fun facts.
+/// </summary>
 [ApiController]
 [Route("api/efcore")]
 public class EfCoreTestController : ControllerBase
@@ -17,6 +21,11 @@ public class EfCoreTestController : ControllerBase
         _loggingService = loggingService;
     }
 
+    /// <summary>
+    /// Gets all teams for a specified event using EF Core.
+    /// </summary>
+    /// <param name="eventId">The event identifier.</param>
+    /// <returns>List of teams with member counts.</returns>
     [HttpGet("events/{eventId}/teams")]
     public async Task<IActionResult> GetTeamsEfCore(string eventId)
     {
@@ -61,6 +70,11 @@ public class EfCoreTestController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets all participants for a specified event using EF Core.
+    /// </summary>
+    /// <param name="eventId">The event identifier.</param>
+    /// <returns>List of participants with activity status.</returns>
     [HttpGet("events/{eventId}/participants")]
     public async Task<IActionResult> GetParticipantsEfCore(string eventId)
     {
@@ -106,6 +120,11 @@ public class EfCoreTestController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets all questions for a specified event using EF Core.
+    /// </summary>
+    /// <param name="eventId">The event identifier.</param>
+    /// <returns>List of questions with categories and difficulty levels.</returns>
     [HttpGet("events/{eventId}/questions")]
     public async Task<IActionResult> GetQuestionsEfCore(string eventId)
     {
@@ -158,6 +177,11 @@ public class EfCoreTestController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets all fun facts for a specified event using EF Core.
+    /// </summary>
+    /// <param name="eventId">The event identifier.</param>
+    /// <returns>List of active fun facts.</returns>
     [HttpGet("events/{eventId}/fun-facts")]
     public async Task<IActionResult> GetFunFactsEfCore(string eventId)
     {

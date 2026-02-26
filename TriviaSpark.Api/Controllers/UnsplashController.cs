@@ -311,12 +311,12 @@ public class UnsplashController : ControllerBase
     }
 
     /// <summary>
-    /// Track image download for Unsplash API compliance
-    /// This should be called when an image is actually used in the application
+    /// Track image download for Unsplash API compliance.
+    /// This should be called when an image is actually used in the application.
     /// </summary>
-    /// <param name="downloadUrl">Download tracking URL from Unsplash image</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Success status</returns>
+    /// <param name="request">Request containing the download tracking URL.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Success status.</returns>
     [HttpPost("track-download")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]

@@ -16,10 +16,10 @@ interface ThemeSwitcherProps {
   size?: 'sm' | 'default' | 'lg';
 }
 
-export function ThemeSwitcher({ 
-  className, 
+export function ThemeSwitcher({
+  className,
   variant = 'dropdown',
-  size = 'default' 
+  size = 'default',
 }: ThemeSwitcherProps) {
   const { theme, resolvedTheme, setTheme } = useTheme();
 
@@ -38,16 +38,18 @@ export function ThemeSwitcher({
       if (theme === 'system') {
         return <Monitor className={cn(iconSize, 'transition-transform duration-300')} />;
       }
-      return resolvedTheme === 'dark' 
-        ? <Moon className={cn(iconSize, 'transition-transform duration-300')} /> 
-        : <Sun className={cn(iconSize, 'transition-transform duration-300')} />;
+      return resolvedTheme === 'dark' ? (
+        <Moon className={cn(iconSize, 'transition-transform duration-300')} />
+      ) : (
+        <Sun className={cn(iconSize, 'transition-transform duration-300')} />
+      );
     };
 
     const getTooltip = () => {
       const nextTheme = {
         light: 'Switch to dark mode',
-        dark: 'Switch to system mode', 
-        system: 'Switch to light mode'
+        dark: 'Switch to system mode',
+        system: 'Switch to light mode',
       }[theme];
       return nextTheme;
     };
@@ -57,10 +59,7 @@ export function ThemeSwitcher({
         variant="ghost"
         size={size}
         onClick={cycleTheme}
-        className={cn(
-          'transition-colors hover:bg-accent hover:text-accent-foreground',
-          className
-        )}
+        className={cn('transition-colors hover:bg-accent hover:text-accent-foreground', className)}
         title={getTooltip()}
       >
         {getIcon()}
@@ -73,8 +72,8 @@ export function ThemeSwitcher({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size={size}
           className={cn(
             'transition-colors hover:bg-accent hover:text-accent-foreground',
@@ -92,33 +91,23 @@ export function ThemeSwitcher({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px]">
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => setTheme('light')}
-          className={cn(
-            'flex items-center gap-2 cursor-pointer',
-            theme === 'light' && 'bg-accent'
-          )}
+          className={cn('flex items-center gap-2 cursor-pointer', theme === 'light' && 'bg-accent')}
         >
           <Sun className="h-4 w-4" />
           <span>Light</span>
-          {theme === 'light' && (
-            <div className="ml-auto h-2 w-2 rounded-full bg-primary" />
-          )}
+          {theme === 'light' && <div className="ml-auto h-2 w-2 rounded-full bg-primary" />}
         </DropdownMenuItem>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => setTheme('dark')}
-          className={cn(
-            'flex items-center gap-2 cursor-pointer',
-            theme === 'dark' && 'bg-accent'
-          )}
+          className={cn('flex items-center gap-2 cursor-pointer', theme === 'dark' && 'bg-accent')}
         >
           <Moon className="h-4 w-4" />
           <span>Dark</span>
-          {theme === 'dark' && (
-            <div className="ml-auto h-2 w-2 rounded-full bg-primary" />
-          )}
+          {theme === 'dark' && <div className="ml-auto h-2 w-2 rounded-full bg-primary" />}
         </DropdownMenuItem>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => setTheme('system')}
           className={cn(
             'flex items-center gap-2 cursor-pointer',
@@ -127,9 +116,7 @@ export function ThemeSwitcher({
         >
           <Monitor className="h-4 w-4" />
           <span>System</span>
-          {theme === 'system' && (
-            <div className="ml-auto h-2 w-2 rounded-full bg-primary" />
-          )}
+          {theme === 'system' && <div className="ml-auto h-2 w-2 rounded-full bg-primary" />}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Users, Brain, Star } from "lucide-react";
+import { Card, CardContent } from '@/components/ui/card';
+import { Calendar, Users, Brain, Star } from 'lucide-react';
 
 interface DashboardStatsProps {
   stats?: {
@@ -34,32 +34,32 @@ export default function DashboardStats({ stats, isLoading }: DashboardStatsProps
 
   const statsData = [
     {
-      title: "Events Hosted",
+      title: 'Events Hosted',
       value: stats?.totalEvents || 0,
       icon: Calendar,
-      iconColor: "bg-wine-100 text-wine-700",
-      testId: "stat-events",
+      iconColor: 'bg-wine-100 text-wine-700',
+      testId: 'stat-events',
     },
     {
-      title: "Total Participants",
+      title: 'Total Participants',
       value: stats?.totalParticipants || 0,
       icon: Users,
-      iconColor: "bg-champagne-100 text-champagne-600",
-      testId: "stat-participants",
+      iconColor: 'bg-champagne-100 text-champagne-600',
+      testId: 'stat-participants',
     },
     {
-      title: "AI Questions Generated",
+      title: 'AI Questions Generated',
       value: stats?.totalQuestions || 0,
       icon: Brain,
-      iconColor: "bg-emerald-100 text-emerald-600",
-      testId: "stat-questions",
+      iconColor: 'bg-emerald-100 text-emerald-600',
+      testId: 'stat-questions',
     },
     {
-      title: "Avg. Rating",
+      title: 'Avg. Rating',
       value: stats?.averageRating || 0,
       icon: Star,
-      iconColor: "bg-coral-100 text-coral-500",
-      testId: "stat-rating",
+      iconColor: 'bg-coral-100 text-coral-500',
+      testId: 'stat-rating',
     },
   ];
 
@@ -67,17 +67,22 @@ export default function DashboardStats({ stats, isLoading }: DashboardStatsProps
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
       {statsData.map((stat, index) => {
         const IconComponent = stat.icon;
-        
+
         return (
           <Card key={index} className="trivia-card" data-testid={stat.testId}>
             <CardContent className="p-6">
               <div className="flex items-center">
-                <div className={`w-12 h-12 ${stat.iconColor} rounded-lg flex items-center justify-center mr-4`}>
+                <div
+                  className={`w-12 h-12 ${stat.iconColor} rounded-lg flex items-center justify-center mr-4`}
+                >
                   <IconComponent className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-wine-900" data-testid={`${stat.testId}-value`}>
-                    {stat.title === "Avg. Rating" ? stat.value.toFixed(1) : stat.value}
+                  <p
+                    className="text-2xl font-bold text-wine-900"
+                    data-testid={`${stat.testId}-value`}
+                  >
+                    {stat.title === 'Avg. Rating' ? stat.value.toFixed(1) : stat.value}
                   </p>
                   <p className="text-wine-700 text-sm" data-testid={`${stat.testId}-label`}>
                     {stat.title}

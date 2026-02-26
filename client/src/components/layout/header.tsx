@@ -1,8 +1,8 @@
-import { Link, useLocation } from "wouter";
-import { Bell, Brain } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useApiHealth } from "@/hooks/useHealth";
-import { ThemeSwitcher } from "@/components/ui/theme-switcher";
+import { Link, useLocation } from 'wouter';
+import { Bell, Brain } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useApiHealth } from '@/hooks/useHealth';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 
 export default function Header() {
   const { status } = useApiHealth(30000);
@@ -29,33 +29,45 @@ export default function Header() {
               </div>
             </div>
           </Link>
-          
+
           <div className="flex items-center space-x-4">
             {/* Health badge */}
             <span
               className={`text-xs px-2 py-1 rounded-full border inline-flex items-center gap-1 ${
-                status.ok ? "text-green-700 border-green-300 bg-green-50" : 
-                (status.time === 'Static Build' ? "text-blue-700 border-blue-300 bg-blue-50" : "text-red-700 border-red-300 bg-red-50")
+                status.ok
+                  ? 'text-green-700 border-green-300 bg-green-50'
+                  : status.time === 'Static Build'
+                    ? 'text-blue-700 border-blue-300 bg-blue-50'
+                    : 'text-red-700 border-red-300 bg-red-50'
               }`}
-              title={status.ok ? `API healthy • ${status.time ?? "now"}` : 
-                status.time === 'Static Build' ? "Static preview version" : "API unreachable"
+              title={
+                status.ok
+                  ? `API healthy • ${status.time ?? 'now'}`
+                  : status.time === 'Static Build'
+                    ? 'Static preview version'
+                    : 'API unreachable'
               }
               data-testid="badge-health"
               aria-live="polite"
             >
-              <span className={`h-2 w-2 rounded-full ${
-                status.ok ? "bg-green-500" : 
-                (status.time === 'Static Build' ? "bg-blue-500" : "bg-red-500")
-              }`} />
-              {status.ok ? "Online" : (status.time === 'Static Build' ? "Preview" : "Offline")}
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  status.ok
+                    ? 'bg-green-500'
+                    : status.time === 'Static Build'
+                      ? 'bg-blue-500'
+                      : 'bg-red-500'
+                }`}
+              />
+              {status.ok ? 'Online' : status.time === 'Static Build' ? 'Preview' : 'Offline'}
             </span>
-            
+
             {/* Theme Switcher */}
             <ThemeSwitcher />
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
+
+            <Button
+              variant="ghost"
+              size="sm"
               className="text-muted-foreground hover:text-foreground transition-colors"
               data-testid="button-notifications"
             >

@@ -1740,7 +1740,8 @@ public static class EfCoreApiEndpoints
         {
             try
             {
-                var databasePath = Path.Combine(Directory.GetCurrentDirectory(), "../data/trivia.db");
+                var databasePath = Environment.GetEnvironmentVariable("DATABASE_URL")?.Replace("Data Source=", "").Replace("file:", "") 
+                    ?? @"C:\websites\TriviaSpark\trivia.db";
                 if (!File.Exists(databasePath))
                     return Results.NotFound(new { error = "Database file not found", path = databasePath });
 
@@ -1806,7 +1807,8 @@ public static class EfCoreApiEndpoints
         {
             try
             {
-                var databasePath = Path.Combine(Directory.GetCurrentDirectory(), "../data/trivia.db");
+                var databasePath = Environment.GetEnvironmentVariable("DATABASE_URL")?.Replace("Data Source=", "").Replace("file:", "") 
+                    ?? @"C:\websites\TriviaSpark\trivia.db";
                 if (!File.Exists(databasePath))
                     return Results.NotFound(new { error = "Database file not found", path = databasePath });
 

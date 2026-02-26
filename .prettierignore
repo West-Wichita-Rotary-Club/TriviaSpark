@@ -1,0 +1,10 @@
+node_modules
+dist
+docs
+build
+TriviaSpark.Api
+coverage
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.documentation

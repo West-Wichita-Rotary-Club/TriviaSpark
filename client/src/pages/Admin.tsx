@@ -1,13 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { Users, Shield, UserPlus, Settings, Crown, Key } from "lucide-react";
-import { useState } from "react";
-import { formatDateInCST } from "@/lib/utils";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { Users, Shield, UserPlus, Settings, Crown, Key } from 'lucide-react';
+import { useState } from 'react';
+import { formatDateInCST } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -32,93 +32,97 @@ export default function AdminPage() {
   const queryClient = useQueryClient();
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [newUser, setNewUser] = useState<CreateUserRequest>({
-    username: "",
-    email: "",
-    fullName: "",
-    password: "",
-    roleName: "User"
+    username: '',
+    email: '',
+    fullName: '',
+    password: '',
+    roleName: 'User',
   });
 
   // Fetch all users
-  const { data: users, isLoading, error } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
-    retry: false
+  const {
+    data: users,
+    isLoading,
+    error,
+  } = useQuery<User[]>({
+    queryKey: ['/api/admin/users'],
+    retry: false,
   });
 
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (userData: CreateUserRequest) => {
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(userData),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create user");
+        throw new Error(errorData.error || 'Failed to create user');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "User Created",
-        description: "New user has been successfully created.",
+        title: 'User Created',
+        description: 'New user has been successfully created.',
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
       setShowCreateUser(false);
       setNewUser({
-        username: "",
-        email: "",
-        fullName: "",
-        password: "",
-        roleName: "User"
+        username: '',
+        email: '',
+        fullName: '',
+        password: '',
+        roleName: 'User',
       });
     },
     onError: (error) => {
       toast({
-        title: "Create User Failed",
+        title: 'Create User Failed',
         description: (error as Error).message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
 
   // Change role mutation
   const changeRoleMutation = useMutation({
-    mutationFn: async ({ userId, roleName }: { userId: string, roleName: string }) => {
+    mutationFn: async ({ userId, roleName }: { userId: string; roleName: string }) => {
       const response = await fetch(`/api/admin/users/${userId}/change-role`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ roleName }),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to change user role");
+        throw new Error(errorData.error || 'Failed to change user role');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: "Role Updated",
-        description: "User role has been successfully updated.",
+        title: 'Role Updated',
+        description: 'User role has been successfully updated.',
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error) => {
       toast({
-        title: "Role Update Failed",
+        title: 'Role Update Failed',
         description: (error as Error).message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -127,9 +131,9 @@ export default function AdminPage() {
     e.preventDefault();
     if (!newUser.username || !newUser.email || !newUser.fullName || !newUser.password) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
+        title: 'Validation Error',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
       });
       return;
     }
@@ -137,7 +141,7 @@ export default function AdminPage() {
   };
 
   const handleRoleChange = (userId: string, currentRole: string) => {
-    const newRole = currentRole === "Admin" ? "User" : "Admin";
+    const newRole = currentRole === 'Admin' ? 'User' : 'Admin';
     changeRoleMutation.mutate({ userId, roleName: newRole });
   };
 
@@ -203,7 +207,7 @@ export default function AdminPage() {
             <div className="text-2xl font-bold">{users?.length || 0}</div>
           </CardContent>
         </Card>
-        
+
         <Card className="trivia-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
@@ -211,7 +215,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users?.filter(u => u.roleName === "Admin").length || 0}
+              {users?.filter((u) => u.roleName === 'Admin').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -223,7 +227,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users?.filter(u => u.roleName === "User").length || 0}
+              {users?.filter((u) => u.roleName === 'User').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -303,13 +307,9 @@ export default function AdminPage() {
                   disabled={createUserMutation.isPending}
                   className="trivia-button-primary"
                 >
-                  {createUserMutation.isPending ? "Creating..." : "Create User"}
+                  {createUserMutation.isPending ? 'Creating...' : 'Create User'}
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowCreateUser(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setShowCreateUser(false)}>
                   Cancel
                 </Button>
               </div>
@@ -349,11 +349,11 @@ export default function AdminPage() {
                     </td>
                     <td className="py-3 px-4 text-foreground">{user.email}</td>
                     <td className="py-3 px-4">
-                      <Badge 
-                        variant={user.roleName === "Admin" ? "destructive" : "secondary"}
-                        className={user.roleName === "Admin" ? "bg-primary/10 text-primary" : ""}
+                      <Badge
+                        variant={user.roleName === 'Admin' ? 'destructive' : 'secondary'}
+                        className={user.roleName === 'Admin' ? 'bg-primary/10 text-primary' : ''}
                       >
-                        {user.roleName === "Admin" && <Crown className="w-3 h-3 mr-1" />}
+                        {user.roleName === 'Admin' && <Crown className="w-3 h-3 mr-1" />}
                         {user.roleName}
                       </Badge>
                     </td>
@@ -369,7 +369,7 @@ export default function AdminPage() {
                         className="text-xs"
                       >
                         <Key className="w-3 h-3 mr-1" />
-                        {user.roleName === "Admin" ? "Demote to User" : "Promote to Admin"}
+                        {user.roleName === 'Admin' ? 'Demote to User' : 'Promote to Admin'}
                       </Button>
                     </td>
                   </tr>

@@ -6,7 +6,12 @@ interface WebSocketContextType {
   connectionStatus: 'disconnected' | 'connecting' | 'connected';
   sendMessage: (message: WebSocketMessage) => void;
   messages: WebSocketMessage[];
-  connect: (eventId: string, role: 'host' | 'participant', userId?: string, participantId?: string) => void;
+  connect: (
+    eventId: string,
+    role: 'host' | 'participant',
+    userId?: string,
+    participantId?: string
+  ) => void;
   disconnect: () => void;
 }
 
@@ -32,24 +37,35 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const [messages, setMessages] = useState<WebSocketMessage[]>([]);
 
   const handleMessage = (message: WebSocketMessage) => {
-    setMessages(prev => [...prev.slice(-49), message]); // Keep last 50 messages
+    setMessages((prev) => [...prev.slice(-49), message]); // Keep last 50 messages
   };
 
-  const { isConnected, connectionStatus, sendMessage: wsSendMessage, connect: wsConnect, disconnect: wsDisconnect } = useWebSocket({
+  const {
+    isConnected,
+    connectionStatus,
+    sendMessage: wsSendMessage,
+    connect: wsConnect,
+    disconnect: wsDisconnect,
+  } = useWebSocket({
     eventId,
     role,
     userId,
     participantId,
     onMessage: handleMessage,
     onConnect: () => {
-      console.log('WebSocket connected in context');
+      // Connected
     },
     onDisconnect: () => {
-      console.log('WebSocket disconnected in context');
-    }
+      // Disconnected
+    },
   });
 
-  const connect = (newEventId: string, newRole: 'host' | 'participant', newUserId?: string, newParticipantId?: string) => {
+  const connect = (
+    newEventId: string,
+    newRole: 'host' | 'participant',
+    newUserId?: string,
+    newParticipantId?: string
+  ) => {
     setEventId(newEventId);
     setRole(newRole);
     setUserId(newUserId);
@@ -69,12 +85,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     sendMessage: wsSendMessage,
     messages,
     connect,
-    disconnect
+    disconnect,
   };
 
-  return (
-    <WebSocketContext.Provider value={contextValue}>
-      {children}
-    </WebSocketContext.Provider>
-  );
+  return <WebSocketContext.Provider value={contextValue}>{children}</WebSocketContext.Provider>;
 }

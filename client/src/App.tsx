@@ -1,35 +1,34 @@
-import React, { Suspense } from "react";
-import { Switch, Route, Router } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { WebSocketProvider } from "./contexts/WebSocketContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import React, { Suspense } from 'react';
+import { Switch, Route, Router } from 'wouter';
+import { queryClient } from './lib/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { WebSocketProvider } from './contexts/WebSocketContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Lazy load pages to prevent loading all components on initial load
-const Home = React.lazy(() => import("@/pages/home"));
-const NotFound = React.lazy(() => import("@/pages/not-found"));
-const Events = React.lazy(() => import("@/pages/events"));
+const Home = React.lazy(() => import('@/pages/home'));
+const NotFound = React.lazy(() => import('@/pages/not-found'));
+const Events = React.lazy(() => import('@/pages/events'));
 const EventManage = React.lazy(() => {
-  console.log("Attempting to lazy load EventManage...");
-  return import("@/pages/event-manage");
+  return import('@/pages/event-manage');
 });
-const EventTriviaManage = React.lazy(() => import("@/pages/event-trivia-manage"));
-const QuestionEdit = React.lazy(() => import("@/pages/question-edit"));
-const Dashboard = React.lazy(() => import("@/pages/dashboard"));
-const EventHost = React.lazy(() => import("@/pages/event-host"));
-const EventJoin = React.lazy(() => import("@/pages/event-join"));
-const Admin = React.lazy(() => import("@/pages/Admin"));
-const ApiDocs = React.lazy(() => import("@/pages/api-docs"));
-const PresenterView = React.lazy(() => import("@/pages/presenter"));
-const Insights = React.lazy(() => import("@/pages/insights"));
-const DatabaseAnalyzer = React.lazy(() => import("@/pages/database-analyzer"));
+const EventTriviaManage = React.lazy(() => import('@/pages/event-trivia-manage'));
+const QuestionEdit = React.lazy(() => import('@/pages/question-edit'));
+const Dashboard = React.lazy(() => import('@/pages/dashboard'));
+const EventHost = React.lazy(() => import('@/pages/event-host'));
+const EventJoin = React.lazy(() => import('@/pages/event-join'));
+const Admin = React.lazy(() => import('@/pages/Admin'));
+const ApiDocs = React.lazy(() => import('@/pages/api-docs'));
+const PresenterView = React.lazy(() => import('@/pages/presenter'));
+const Insights = React.lazy(() => import('@/pages/insights'));
+const DatabaseAnalyzer = React.lazy(() => import('@/pages/database-analyzer'));
 
 // Lazy load layout components only when needed
-const Header = React.lazy(() => import("@/components/layout/header"));
-const Footer = React.lazy(() => import("@/components/layout/footer"));
+const Header = React.lazy(() => import('@/components/layout/header'));
+const Footer = React.lazy(() => import('@/components/layout/footer'));
 
 // Loading component
 const Loading = () => (
@@ -53,145 +52,139 @@ function App() {
                 <main className="flex-1">
                   <Suspense fallback={<Loading />}>
                     <Switch>
-                    {/* Home page */}
-                    <Route path="/" component={Home} />
+                      {/* Home page */}
+                      <Route path="/" component={Home} />
 
-                    {/* Some hosts may request /index.html explicitly; treat as home */}
-                    <Route path="/index.html">
-                      {() => (import.meta.env.BASE_URL !== '/' ? <PresenterView /> : <Home />)}
-                    </Route>
-                    
-                    {/* Dashboard and events */}
-                    <Route path="/dashboard">
-                      <>
-                        <Header />
-                        <Dashboard />
-                        <Footer />
-                      </>
-                    </Route>
-                    <Route path="/events" component={() => <Dashboard />} />
-                    
-                    {/* Database Analyzer */}
-                    <Route path="/database-analyzer">
-                      <>
-                        <Header />
-                        <DatabaseAnalyzer />
-                        <Footer />
-                      </>
-                    </Route>
-                    
-                    {/* Event management route */}
-                    <Route path="/events/:id/manage">
-                      {(params) => {
-                        console.log("EventManage route matched with params:", params);
-                        return (
+                      {/* Some hosts may request /index.html explicitly; treat as home */}
+                      <Route path="/index.html">
+                        {() => (import.meta.env.BASE_URL !== '/' ? <PresenterView /> : <Home />)}
+                      </Route>
+
+                      {/* Dashboard and events */}
+                      <Route path="/dashboard">
+                        <>
+                          <Header />
+                          <Dashboard />
+                          <Footer />
+                        </>
+                      </Route>
+                      <Route path="/events" component={() => <Dashboard />} />
+
+                      {/* Database Analyzer */}
+                      <Route path="/database-analyzer">
+                        <>
+                          <Header />
+                          <DatabaseAnalyzer />
+                          <Footer />
+                        </>
+                      </Route>
+
+                      {/* Event management route */}
+                      <Route path="/events/:id/manage">
+                        {(params) => {
+                          return (
+                            <>
+                              <Header />
+                              <EventManage eventId={params?.id} />
+                              <Footer />
+                            </>
+                          );
+                        }}
+                      </Route>
+
+                      {/* Full Trivia Management route */}
+                      <Route path="/events/:id/manage/trivia">
+                        {(params) => (
                           <>
                             <Header />
-                            <EventManage eventId={params?.id} />
+                            <EventTriviaManage eventId={params?.id} />
                             <Footer />
                           </>
-                        );
-                      }}
-                    </Route>
+                        )}
+                      </Route>
 
-                    {/* Full Trivia Management route */}
-                    <Route path="/events/:id/manage/trivia">
-                      {(params) => (
+                      {/* Specific Question Editing route */}
+                      <Route path="/events/:id/manage/trivia/:questionId">
+                        {(params) => (
+                          <>
+                            <Header />
+                            <QuestionEdit eventId={params?.id} questionId={params?.questionId} />
+                            <Footer />
+                          </>
+                        )}
+                      </Route>
+
+                      {/* Alternate trailing slash variant (some servers/users may hit this) */}
+                      <Route path="/events/:id/manage/trivia/">
+                        {(params) => (
+                          <>
+                            <Header />
+                            <EventTriviaManage eventId={params?.id} />
+                            <Footer />
+                          </>
+                        )}
+                      </Route>
+
+                      {/* Event hosting route */}
+                      <Route path="/event/:id">
+                        {(params) => (
+                          <>
+                            <Header />
+                            <EventHost />
+                            <Footer />
+                          </>
+                        )}
+                      </Route>
+
+                      {/* Redirect /events/:id to /event/:id */}
+                      <Route path="/events/:id">
+                        {(params) => {
+                          React.useEffect(() => {
+                            if (params?.id) {
+                              window.location.replace(`/event/${params.id}`);
+                            }
+                          }, [params?.id]);
+
+                          return (
+                            <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+                              <div className="text-primary">Redirecting to event view...</div>
+                            </div>
+                          );
+                        }}
+                      </Route>
+
+                      {/* Presenter route - standalone mode without header/footer */}
+                      <Route path="/presenter/:id" component={PresenterView} />
+
+                      {/* Other routes */}
+                      <Route path="/join/:qrCode">{(params) => <EventJoin />}</Route>
+                      <Route path="/insights">
                         <>
-                          {console.log('[Route Match] /events/:id/manage/trivia matched with', params)}
                           <Header />
-                          <EventTriviaManage eventId={params?.id} />
+                          <Insights />
                           <Footer />
                         </>
-                      )}
-                    </Route>
-                    
-                    {/* Specific Question Editing route */}
-                    <Route path="/events/:id/manage/trivia/:questionId">
-                      {(params) => (
-                        <>
-                          {console.log('[Route Match] /events/:id/manage/trivia/:questionId matched with', params)}
-                          <Header />
-                          <QuestionEdit eventId={params?.id} questionId={params?.questionId} />
-                          <Footer />
-                        </>
-                      )}
-                    </Route>
-                    
-                    {/* Alternate trailing slash variant (some servers/users may hit this) */}
-                    <Route path="/events/:id/manage/trivia/">
-                      {(params) => (
-                        <>
-                          {console.log('[Route Match] /events/:id/manage/trivia/ matched with', params)}
-                          <Header />
-                          <EventTriviaManage eventId={params?.id} />
-                          <Footer />
-                        </>
-                      )}
-                    </Route>
-                    
-                    {/* Event hosting route */}
-                    <Route path="/event/:id">
-                      {(params) => (
+                      </Route>
+                      <Route path="/admin">
                         <>
                           <Header />
-                          <EventHost />
+                          <Admin />
                           <Footer />
                         </>
-                      )}
-                    </Route>
-                    
-                    {/* Redirect /events/:id to /event/:id */}
-                    <Route path="/events/:id">
-                      {(params) => {
-                        React.useEffect(() => {
-                          if (params?.id) {
-                            window.location.replace(`/event/${params.id}`);
-                          }
-                        }, [params?.id]);
-                        
-                        return (
-                          <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
-                            <div className="text-primary">Redirecting to event view...</div>
-                          </div>
-                        );
-                      }}
-                    </Route>
-                    
-                    {/* Presenter route - standalone mode without header/footer */}
-                    <Route path="/presenter/:id" component={PresenterView} />
-                    
-                    {/* Other routes */}
-                    <Route path="/join/:qrCode">
-                      {(params) => <EventJoin />}
-                    </Route>
-                    <Route path="/insights">
-                      <>
-                        <Header />
-                        <Insights />
-                        <Footer />
-                      </>
-                    </Route>
-                    <Route path="/admin">
-                      <>
-                        <Header />
-                        <Admin />
-                        <Footer />
-                      </>
-                    </Route>
-                    <Route path="/api-docs" component={ApiDocs} />
-                    
-                    {/* 404 route */}
-                    <Route path="*" component={NotFound} />
-                  </Switch>
-                </Suspense>
-              </main>
-            </div>
-          </TooltipProvider>
-        </WebSocketProvider>
-      </QueryClientProvider>
-      <Toaster />
-    </Router>
+                      </Route>
+                      <Route path="/api-docs" component={ApiDocs} />
+
+                      {/* 404 route */}
+                      <Route path="*" component={NotFound} />
+                    </Switch>
+                  </Suspense>
+                </main>
+              </div>
+            </TooltipProvider>
+          </WebSocketProvider>
+        </QueryClientProvider>
+        <Toaster />
+      </Router>
     </ThemeProvider>
   );
 }

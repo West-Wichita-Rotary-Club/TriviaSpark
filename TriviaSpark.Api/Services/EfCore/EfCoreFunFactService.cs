@@ -4,15 +4,27 @@ using TriviaSpark.Api.Data.Entities;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// Interface for fun fact management operations using Entity Framework Core.
+/// </summary>
 public interface IEfCoreFunFactService
 {
+    /// <summary>Gets all active fun facts for an event, ordered by order index then creation date.</summary>
     Task<IList<FunFact>> GetFunFactsForEventAsync(string eventId);
+    /// <summary>Gets a fun fact by ID with its parent event included.</summary>
     Task<FunFact?> GetFunFactByIdAsync(string funFactId);
+    /// <summary>Creates a new fun fact, auto-assigning order index if not specified.</summary>
     Task<FunFact> CreateFunFactAsync(FunFact funFact);
+    /// <summary>Updates an existing fun fact entity.</summary>
     Task<FunFact> UpdateFunFactAsync(FunFact funFact);
+    /// <summary>Deletes a fun fact by ID. Returns false if not found.</summary>
     Task<bool> DeleteFunFactAsync(string funFactId);
 }
 
+/// <summary>
+/// EF Core implementation of fun fact management.
+/// Provides CRUD operations for trivia event fun facts.
+/// </summary>
 public class EfCoreFunFactService : IEfCoreFunFactService
 {
     private readonly TriviaSparkDbContext _context;

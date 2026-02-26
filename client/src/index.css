@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Light theme colors with wine theme */
@@ -64,22 +64,27 @@
   --coral-100: hsl(20, 100%, 95%);
   --coral-500: hsl(20, 95%, 60%);
 
-  --font-sans: "Inter", sans-serif;
+  --font-sans: 'Inter', sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
   --radius: 1.3rem;
   /* Shadows use modern color syntax (space-separated) for Tailwind v4 compatibility */
   --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
   --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+  --shadow-sm:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
     0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+  --shadow:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
     0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+  --shadow-md:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
     0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+  --shadow-lg:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
     0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
+  --shadow-xl:
+    0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0),
     0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0);
   --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0);
   --tracking-normal: 0em;
@@ -123,7 +128,9 @@
 
   body {
     font-family: var(--font-sans);
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: var(--background);
@@ -299,7 +306,7 @@
 
   /* Button-specific styling to ensure proper appearance on presenter page */
   body.presenter-page button,
-  body.presenter-page [role="button"] {
+  body.presenter-page [role='button'] {
     border-radius: 0.75rem !important;
     font-weight: 600 !important;
     transition: all 0.2s ease-in-out !important;
@@ -319,13 +326,13 @@
   }
 
   /* Outline button styling (like Practice button) */
-  body.presenter-page [variant="outline"] {
+  body.presenter-page [variant='outline'] {
     border: 2px solid hsl(54, 95%, 55%) !important;
     color: hsl(54, 95%, 88%) !important;
     background: rgba(255, 255, 255, 0.1) !important;
   }
 
-  body.presenter-page [variant="outline"]:hover {
+  body.presenter-page [variant='outline']:hover {
     background: rgba(255, 255, 255, 0.2) !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
@@ -333,7 +340,7 @@
 
   /* Ensure button icons are visible */
   body.presenter-page button svg,
-  body.presenter-page [role="button"] svg {
+  body.presenter-page [role='button'] svg {
     color: inherit !important;
     opacity: 0.9 !important;
   }
@@ -348,17 +355,13 @@
   }
 
   .wine-gradient::before {
-    content: "";
+    content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(120, 41, 17, 0.8),
-      rgba(160, 19, 61, 0.7)
-    );
+    background: linear-gradient(135deg, rgba(120, 41, 17, 0.8), rgba(160, 19, 61, 0.7));
     pointer-events: none;
   }
 

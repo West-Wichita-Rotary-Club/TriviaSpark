@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Save, Search, Eye, X, Download } from 'lucide-react';
 
@@ -70,11 +76,11 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
     setValue,
     watch,
     reset,
-    formState: { errors, isDirty }
+    formState: { errors, isDirty },
   } = useForm<QuestionFormData>({
     defaultValues: {
-      questionType: 'game'
-    }
+      questionType: 'game',
+    },
   });
 
   // Local state
@@ -90,7 +96,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
     unsplashImageId: '',
     sizeVariant: 'regular' as string,
     usageContext: 'question_background' as string,
-    searchContext: ''
+    searchContext: '',
   });
 
   // Fetch all questions for the event and find the specific question
@@ -98,52 +104,33 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
     queryKey: ['/api/events', eventId, 'questions'],
     queryFn: async () => {
       const res = await fetch(`/api/events/${eventId}/questions`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to fetch questions');
       return res.json();
     },
-    enabled: !!eventId
+    enabled: !!eventId,
   });
 
   // Find the specific question from the list
-  const question = questions?.find(q => q.id === questionId);
-
-  console.log('QuestionEdit: Current state', {
-    questionId,
-    questionsCount: questions?.length,
-    question,
-    questionDifficulty: question?.difficulty,
-    formDifficulty: watch('difficulty')
-  });
+  const question = questions?.find((q) => q.id === questionId);
 
   // Fetch event image data
   const { data: eventImageData, refetch: refetchEventImage } = useQuery({
     queryKey: ['/api/questions', questionId, 'eventimage'],
     queryFn: async () => {
       const res = await fetch(`/api/questions/${questionId}/eventimage`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to fetch event image');
       return res.json();
     },
-    enabled: !!questionId
+    enabled: !!questionId,
   });
 
   // Update form when question data loads
   useEffect(() => {
-    console.log('QuestionEdit: question data changed', { 
-      questionId, 
-      question,
-      difficulty: question?.difficulty 
-    });
     if (question) {
-      console.log('Setting form values:', {
-        difficulty: question.difficulty,
-        question: question.question,
-        allValues: question
-      });
-      
       // Use reset instead of individual setValue calls to ensure proper form state update
       reset({
         question: question.question,
@@ -155,19 +142,10 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
         explanation: question.explanation || '',
         orderIndex: question.orderIndex,
         backgroundImageUrl: question.backgroundImageUrl || '',
-        questionType: question.questionType || 'game'
+        questionType: question.questionType || 'game',
       });
-      
+
       setOptions(question.options || ['', '', '', '']);
-      
-      // Log what we just set
-      setTimeout(() => {
-        console.log('Form values after reset:', {
-          difficulty: watch('difficulty'),
-          question: watch('question'),
-          allFormValues: watch()
-        });
-      }, 100);
     }
   }, [question, questionId, reset, watch]);
 
@@ -179,7 +157,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
         unsplashImageId: img.unsplashImageId || '',
         sizeVariant: img.sizeVariant || 'regular',
         usageContext: img.usageContext || 'question_background',
-        searchContext: img.searchContext || ''
+        searchContext: img.searchContext || '',
       });
     }
   }, [eventImageData]);
@@ -190,7 +168,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
       const updateData = {
         Question: formData.question,
         Type: question?.type || 'multiple_choice',
-        Options: options.filter(o => o.trim() !== ''),
+        Options: options.filter((o) => o.trim() !== ''),
         CorrectAnswer: formData.correctAnswer,
         Difficulty: formData.difficulty,
         Category: formData.category,
@@ -199,21 +177,23 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
         OrderIndex: formData.orderIndex,
         AiGenerated: question?.aiGenerated,
         BackgroundImageUrl: formData.backgroundImageUrl || null,
-        SelectedImage: selectedImage ? {
-          Id: selectedImage.id,
-          Author: selectedImage.user.name,
-          AuthorUrl: selectedImage.user.links.html,
-          PhotoUrl: selectedImage.urls.regular,
-          DownloadUrl: selectedImage.links.download_location || ''
-        } : null,
-        QuestionType: formData.questionType || 'game'
+        SelectedImage: selectedImage
+          ? {
+              Id: selectedImage.id,
+              Author: selectedImage.user.name,
+              AuthorUrl: selectedImage.user.links.html,
+              PhotoUrl: selectedImage.urls.regular,
+              DownloadUrl: selectedImage.links.download_location || '',
+            }
+          : null,
+        QuestionType: formData.questionType || 'game',
       };
 
       const res = await fetch(`/api/questions/${questionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
-        credentials: 'include'
+        credentials: 'include',
       });
 
       if (!res.ok) throw new Error('Failed to update question');
@@ -225,12 +205,12 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
       setLocation(`/events/${eventId}/manage/trivia`);
     },
     onError: (error: any) => {
-      toast({ 
-        title: 'Error', 
+      toast({
+        title: 'Error',
         description: error.message || 'Failed to update question',
-        variant: 'destructive'
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   // Save event image mutation
@@ -241,14 +221,14 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
       const payload = {
         NewUnsplashImageId: selectedImage.id,
         SizeVariant: eventImageForm.sizeVariant,
-        SelectedByUserId: "mark-user-id" // Default user ID since no auth
+        SelectedByUserId: 'mark-user-id', // Default user ID since no auth
       };
 
       const res = await fetch(`/api/EventImages/question/${questionId}/replace`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
-        credentials: 'include'
+        credentials: 'include',
       });
 
       if (!res.ok) throw new Error('Failed to save event image');
@@ -259,30 +239,32 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
       toast({ title: 'Success', description: 'Event image saved successfully' });
     },
     onError: (error: any) => {
-      toast({ 
-        title: 'Error', 
+      toast({
+        title: 'Error',
         description: error.message || 'Failed to save event image',
-        variant: 'destructive' 
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   // Unsplash search
   const handleUnsplashSearch = async () => {
     if (!unsplashQuery.trim()) return;
-    
+
     setUnsplashLoading(true);
     try {
-      const res = await fetch(`/api/unsplash/search?query=${encodeURIComponent(unsplashQuery)}&perPage=12`);
+      const res = await fetch(
+        `/api/unsplash/search?query=${encodeURIComponent(unsplashQuery)}&perPage=12`
+      );
       if (!res.ok) throw new Error('Search failed');
-      
+
       const data = await res.json();
       setUnsplashResults(data.results || []);
     } catch (error: any) {
-      toast({ 
-        title: 'Search Error', 
+      toast({
+        title: 'Search Error',
         description: error.message,
-        variant: 'destructive' 
+        variant: 'destructive',
       });
     } finally {
       setUnsplashLoading(false);
@@ -292,17 +274,16 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
   // Track download for attribution
   const trackDownload = async (image: UnsplashImage) => {
     if (!image.links.download_location) return;
-    
+
     try {
       await fetch('/api/unsplash/track-download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ downloadUrl: image.links.download_location }),
-        credentials: 'include'
+        credentials: 'include',
       });
-    } catch (error) {
+    } catch {
       // Silent fail for tracking
-      console.warn('Failed to track download:', error);
     }
   };
 
@@ -326,7 +307,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
     if (selectedImage) {
       await saveEventImageMutation.mutateAsync();
     }
-    
+
     // Update question
     updateQuestionMutation.mutate(formData);
   });
@@ -362,8 +343,8 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               onClick={() => setLocation(`/events/${eventId}/manage/trivia`)}
               className="text-wine-600 hover:text-wine-700 hover:bg-wine-50"
             >
@@ -392,7 +373,11 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
           </div>
         </div>
 
-        <form key={questionId} onSubmit={onSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form
+          key={questionId}
+          onSubmit={onSubmit}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+        >
           {/* Main Question Form */}
           <div className="lg:col-span-2 space-y-6">
             <Card>
@@ -458,16 +443,18 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                 {/* Question Settings */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="points" className="text-sm font-medium">Points</Label>
+                    <Label htmlFor="points" className="text-sm font-medium">
+                      Points
+                    </Label>
                     <Input
                       id="points"
                       type="number"
                       min={1}
                       max={500}
-                      {...register('points', { 
+                      {...register('points', {
                         required: 'Points are required',
                         min: { value: 1, message: 'Points must be at least 1' },
-                        max: { value: 500, message: 'Points cannot exceed 500' }
+                        max: { value: 500, message: 'Points cannot exceed 500' },
                       })}
                       className="mt-1"
                     />
@@ -475,18 +462,20 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                       <p className="text-red-500 text-sm mt-1">{errors.points.message}</p>
                     )}
                   </div>
-                  
+
                   <div>
-                    <Label htmlFor="timeLimit" className="text-sm font-medium">Time Limit (seconds)</Label>
+                    <Label htmlFor="timeLimit" className="text-sm font-medium">
+                      Time Limit (seconds)
+                    </Label>
                     <Input
                       id="timeLimit"
                       type="number"
                       min={5}
                       max={300}
-                      {...register('timeLimit', { 
+                      {...register('timeLimit', {
                         required: 'Time limit is required',
                         min: { value: 5, message: 'Time limit must be at least 5 seconds' },
-                        max: { value: 300, message: 'Time limit cannot exceed 300 seconds' }
+                        max: { value: 300, message: 'Time limit cannot exceed 300 seconds' },
                       })}
                       className="mt-1"
                     />
@@ -496,14 +485,16 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="orderIndex" className="text-sm font-medium">Order #</Label>
+                    <Label htmlFor="orderIndex" className="text-sm font-medium">
+                      Order #
+                    </Label>
                     <Input
                       id="orderIndex"
                       type="number"
                       min={1}
-                      {...register('orderIndex', { 
+                      {...register('orderIndex', {
                         required: 'Order index is required',
-                        min: { value: 1, message: 'Order must be at least 1' }
+                        min: { value: 1, message: 'Order must be at least 1' },
                       })}
                       className="mt-1"
                     />
@@ -516,10 +507,14 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                 {/* Additional Settings */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="difficulty" className="text-sm font-medium">Difficulty</Label>
+                    <Label htmlFor="difficulty" className="text-sm font-medium">
+                      Difficulty
+                    </Label>
                     <Select
                       value={watch('difficulty')}
-                      onValueChange={(value) => setValue('difficulty', value, { shouldDirty: true })}
+                      onValueChange={(value) =>
+                        setValue('difficulty', value, { shouldDirty: true })
+                      }
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select difficulty" />
@@ -530,14 +525,20 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                         <SelectItem value="hard">Hard</SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className="text-xs text-muted-foreground mt-1">Debug: {watch('difficulty')}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Debug: {watch('difficulty')}
+                    </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="questionType" className="text-sm font-medium">Question Type</Label>
+                    <Label htmlFor="questionType" className="text-sm font-medium">
+                      Question Type
+                    </Label>
                     <Select
                       value={watch('questionType') || 'game'}
-                      onValueChange={(value) => setValue('questionType', value, { shouldDirty: true })}
+                      onValueChange={(value) =>
+                        setValue('questionType', value, { shouldDirty: true })
+                      }
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select question type" />
@@ -551,7 +552,9 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="category" className="text-sm font-medium">Category</Label>
+                    <Label htmlFor="category" className="text-sm font-medium">
+                      Category
+                    </Label>
                     <Input
                       id="category"
                       {...register('category')}
@@ -701,15 +704,21 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                   <div className="text-xs space-y-2">
                     <div>
                       <Label className="text-xs font-medium">Image ID:</Label>
-                      <p className="text-gray-600">{eventImageData.eventImage?.unsplashImageId || 'None'}</p>
+                      <p className="text-gray-600">
+                        {eventImageData.eventImage?.unsplashImageId || 'None'}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-xs font-medium">Size Variant:</Label>
-                      <p className="text-gray-600">{eventImageData.eventImage?.sizeVariant || 'regular'}</p>
+                      <p className="text-gray-600">
+                        {eventImageData.eventImage?.sizeVariant || 'regular'}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-xs font-medium">Usage Context:</Label>
-                      <p className="text-gray-600">{eventImageData.eventImage?.usageContext || 'question_background'}</p>
+                      <p className="text-gray-600">
+                        {eventImageData.eventImage?.usageContext || 'question_background'}
+                      </p>
                     </div>
                   </div>
                 </CardContent>

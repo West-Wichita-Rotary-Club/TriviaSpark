@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 interface QRCodeDisplayProps {
   value: string;
@@ -8,23 +8,23 @@ interface QRCodeDisplayProps {
 export default function QRCodeDisplay({ value, size = 200 }: QRCodeDisplayProps) {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Using a QR code API service for simplicity
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}`;
-  
+
   const handleImageLoad = () => {
     setIsLoading(false);
   };
-  
+
   const handleImageError = () => {
     setHasError(true);
     setIsLoading(false);
   };
-  
+
   if (hasError) {
     return (
-      <div 
-        className="flex items-center justify-center border rounded-lg bg-muted w-48 h-48" 
+      <div
+        className="flex items-center justify-center border rounded-lg bg-muted w-48 h-48"
         data-testid="qr-code-fallback"
       >
         <div className="text-center p-4">
@@ -34,11 +34,11 @@ export default function QRCodeDisplay({ value, size = 200 }: QRCodeDisplayProps)
       </div>
     );
   }
-  
+
   return (
     <div className="flex items-center justify-center" data-testid="qr-code-container">
       {isLoading && (
-        <div 
+        <div
           className="flex items-center justify-center border rounded-lg bg-muted animate-pulse w-48 h-48"
           data-testid="qr-code-loading"
         >

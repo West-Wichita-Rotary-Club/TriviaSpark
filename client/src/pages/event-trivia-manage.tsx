@@ -7,9 +7,28 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, ArrowLeft, Plus, Edit, Trash2, Save, Search, Sparkles, Wand2, Image as ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Brain,
+  ArrowLeft,
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  Search,
+  Sparkles,
+  Wand2,
+  Image as ImageIcon,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 import { questionGenerationSchema, type QuestionGenerationRequest } from '@shared/schema';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -54,18 +73,21 @@ interface EventImageResponse {
   searchContext?: string;
 }
 
-interface TriviaManageProps { 
-  eventId?: string; 
-  questionId?: string; 
+interface TriviaManageProps {
+  eventId?: string;
+  questionId?: string;
 }
 
 // Question thumbnail component
-const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: string | null }> = ({ questionId, backgroundImageUrl }) => {
+const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: string | null }> = ({
+  questionId,
+  backgroundImageUrl,
+}) => {
   const { data: eventImageData } = useQuery({
     queryKey: ['/api/eventimages/question', questionId],
     queryFn: async () => {
       const response = await fetch(`/api/eventimages/question/${questionId}`, {
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!response.ok) {
         // Return null for 404 (no image found) instead of throwing error
@@ -78,7 +100,7 @@ const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: str
       return result.eventImage as EventImageResponse | null;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!questionId
+    enabled: !!questionId,
   });
 
   // Priority: EventImage thumbnail > background image URL > placeholder
@@ -94,9 +116,9 @@ const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: str
 
   return (
     <div className="w-16 h-12 rounded border overflow-hidden bg-gray-100 flex-shrink-0">
-      <img 
-        src={imageUrl} 
-        alt="Question thumbnail" 
+      <img
+        src={imageUrl}
+        alt="Question thumbnail"
         className="w-full h-full object-cover"
         onError={(e) => {
           // Fallback to placeholder on image load error
@@ -104,7 +126,8 @@ const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: str
           target.style.display = 'none';
           const parent = target.parentElement;
           if (parent) {
-            parent.innerHTML = '<div class="w-full h-full flex items-center justify-center text-gray-400"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 16 4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2 1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" /></svg></div>';
+            parent.innerHTML =
+              '<div class="w-full h-full flex items-center justify-center text-gray-400"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4 16 4.586-4.586a2 2 0 0 1 2.828 0L16 16m-2-2 1.586-1.586a2 2 0 0 1 2.828 0L20 14m-6-6h.01M6 20h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z" /></svg></div>';
           }
         }}
       />
@@ -114,9 +137,9 @@ const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: str
 
 // AI Generation Form Schema (modified to match the API)
 const aiGenerationSchema = z.object({
-  eventId: z.string().min(1, "Event ID is required"),
-  topic: z.string().min(1, "Topic is required"),
-  type: z.string().optional(), // This will be used as difficulty in the API 
+  eventId: z.string().min(1, 'Event ID is required'),
+  topic: z.string().min(1, 'Topic is required'),
+  type: z.string().optional(), // This will be used as difficulty in the API
   count: z.number().min(1).max(20),
 });
 type AIGenerationFormData = z.infer<typeof aiGenerationSchema>;
@@ -140,7 +163,13 @@ const AIQuestionGeneratorForm: React.FC<{
     },
   });
 
-  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = form;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = form;
   const watchedValues = watch();
 
   const generateQuestionsMutation = useMutation({
@@ -158,12 +187,12 @@ const AIQuestionGeneratorForm: React.FC<{
           count: data.count,
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate questions');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -211,11 +240,9 @@ const AIQuestionGeneratorForm: React.FC<{
                 {...register('topic')}
                 className={errors.topic ? 'border-red-500' : ''}
               />
-              {errors.topic && (
-                <p className="text-red-500 text-sm mt-1">{errors.topic.message}</p>
-              )}
+              {errors.topic && <p className="text-red-500 text-sm mt-1">{errors.topic.message}</p>}
             </div>
-            
+
             <div>
               <Label htmlFor="type">Difficulty</Label>
               <Select value={watchedValues.type} onValueChange={(value) => setValue('type', value)}>
@@ -232,28 +259,27 @@ const AIQuestionGeneratorForm: React.FC<{
 
             <div>
               <Label htmlFor="count">Number of Questions</Label>
-              <Select value={watchedValues.count.toString()} onValueChange={(value) => setValue('count', parseInt(value))}>
+              <Select
+                value={watchedValues.count.toString()}
+                onValueChange={(value) => setValue('count', parseInt(value))}
+              >
                 <SelectTrigger className={errors.count ? 'border-red-500' : ''}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
-                    <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                  {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+                    <SelectItem key={num} value={num.toString()}>
+                      {num}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.count && (
-                <p className="text-red-500 text-sm mt-1">{errors.count.message}</p>
-              )}
+              {errors.count && <p className="text-red-500 text-sm mt-1">{errors.count.message}</p>}
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className=""
-            >
+            <Button type="submit" disabled={isSubmitting} className="">
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -288,7 +314,9 @@ const AIQuestionGeneratorForm: React.FC<{
                       <Badge variant="secondary">#{idx + 1}</Badge>
                       <Badge variant="outline">{q.type?.replace('_', ' ')}</Badge>
                       <Badge variant="outline">{q.difficulty}</Badge>
-                      <Badge variant="outline" className="bg-purple-50 text-purple-600">AI Generated</Badge>
+                      <Badge variant="outline" className="bg-purple-50 text-purple-600">
+                        AI Generated
+                      </Badge>
                     </div>
                     <h4 className="font-medium text-foreground mb-2">{q.question}</h4>
                     {q.options && q.options.length > 0 && (
@@ -332,27 +360,35 @@ const inferQuestionType = (question: Question): 'game' | 'training' | 'tie-break
   if (question.questionType) {
     return question.questionType as 'game' | 'training' | 'tie-breaker';
   }
-  
+
   // Inference based on question ID patterns or order index
   const questionId = question.id.toLowerCase();
-  
+
   // Check for tie-breaker patterns in question ID
-  if (questionId.includes('tie') || questionId.includes('breaker') || 
-      questionId.includes('tiebreaker') || questionId.includes('tie-breaker')) {
+  if (
+    questionId.includes('tie') ||
+    questionId.includes('breaker') ||
+    questionId.includes('tiebreaker') ||
+    questionId.includes('tie-breaker')
+  ) {
     return 'tie-breaker';
   }
-  
+
   // Check for training patterns in question ID
-  if (questionId.includes('training') || questionId.includes('practice') || 
-      questionId.includes('warm') || questionId.includes('sample')) {
+  if (
+    questionId.includes('training') ||
+    questionId.includes('practice') ||
+    questionId.includes('warm') ||
+    questionId.includes('sample')
+  ) {
     return 'training';
   }
-  
+
   // Inference based on order index (tie-breakers typically have higher order indices)
   if (question.orderIndex && question.orderIndex >= 15) {
     return 'tie-breaker';
   }
-  
+
   // Inference based on question ID patterns (e.g., q15+ might be tie-breakers)
   const questionMatch = questionId.match(/q(\d+)/);
   if (questionMatch) {
@@ -361,13 +397,18 @@ const inferQuestionType = (question: Question): 'game' | 'training' | 'tie-break
       return 'tie-breaker';
     }
   }
-  
+
   // Default to game question
   return 'game';
 };
 
 // Full page edit form component
-const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; onSave: (q: Question) => void; saving: boolean; }> = ({ question, onClose, onSave, saving }) => {
+const FullQuestionEditor: React.FC<{
+  question: Question;
+  onClose: () => void;
+  onSave: (q: Question) => void;
+  saving: boolean;
+}> = ({ question, onClose, onSave, saving }) => {
   type UnsplashImage = {
     id: string;
     description?: string;
@@ -388,7 +429,7 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
     orderIndex: question.orderIndex || 1,
     explanation: question.explanation || '',
     backgroundImageUrl: question.backgroundImageUrl || '',
-    questionType: inferQuestionType(question)
+    questionType: inferQuestionType(question),
   });
 
   // Update form state when question prop changes (fixes difficulty dropdown not updating)
@@ -404,7 +445,7 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
       orderIndex: question.orderIndex || 1,
       explanation: question.explanation || '',
       backgroundImageUrl: question.backgroundImageUrl || '',
-      questionType: inferQuestionType(question)
+      questionType: inferQuestionType(question),
     });
   }, [question]);
   const [unsplashQuery, setUnsplashQuery] = useState('');
@@ -415,22 +456,29 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
 
   const searchUnsplash = async () => {
     if (!unsplashQuery.trim()) return;
-    setUnsplashLoading(true); setUnsplashError(null);
+    setUnsplashLoading(true);
+    setUnsplashError(null);
     try {
-      const res = await fetch(`/api/unsplash/search?query=${encodeURIComponent(unsplashQuery)}&perPage=20`);
+      const res = await fetch(
+        `/api/unsplash/search?query=${encodeURIComponent(unsplashQuery)}&perPage=20`
+      );
       if (!res.ok) throw new Error('Search failed');
       const data = await res.json();
       setUnsplashResults(data.results || []);
-    } catch (e: any) { setUnsplashError(e.message); }
-    finally { setUnsplashLoading(false); }
+    } catch (e: any) {
+      setUnsplashError(e.message);
+    } finally {
+      setUnsplashLoading(false);
+    }
   };
 
   const trackDownload = async (img: UnsplashImage) => {
     if (!img.links.download_location) return;
     fetch('/api/unsplash/track-download', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ downloadUrl: img.links.download_location })
-    }).catch(()=>{});
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ downloadUrl: img.links.download_location }),
+    }).catch(() => {});
   };
 
   const save = () => {
@@ -446,39 +494,53 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
       orderIndex: form.orderIndex,
       explanation: form.explanation,
       backgroundImageUrl: form.backgroundImageUrl || null,
-      questionType: form.questionType
+      questionType: form.questionType,
     };
     if (selectedImage) trackDownload(selectedImage);
     onSave(updated);
   };
 
   const updateOption = (i: number, v: string) => {
-    const opts = [...form.options]; opts[i] = v; setForm({ ...form, options: opts });
+    const opts = [...form.options];
+    opts[i] = v;
+    setForm({ ...form, options: opts });
   };
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Brain className="h-6 w-6" /> Edit Question</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Brain className="h-6 w-6" /> Edit Question
+        </h1>
         <div className="flex gap-2">
-          <Button onClick={onClose} variant="outline">Back</Button>
-          <Button onClick={save} disabled={saving}><Save className="mr-2 h-4 w-4" /> {saving ? 'Saving...' : 'Save'}</Button>
+          <Button onClick={onClose} variant="outline">
+            Back
+          </Button>
+          <Button onClick={save} disabled={saving}>
+            <Save className="mr-2 h-4 w-4" /> {saving ? 'Saving...' : 'Save'}
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div>
             <Label>Question</Label>
-            <Textarea value={form.question} rows={4} onChange={e=>setForm({...form, question:e.target.value})} />
+            <Textarea
+              value={form.question}
+              rows={4}
+              onChange={(e) => setForm({ ...form, question: e.target.value })}
+            />
           </div>
           {question.type === 'multiple_choice' && (
             <div>
               <Label>Options</Label>
               <div className="mt-2 space-y-2">
-                {form.options.map((o,i)=>(
+                {form.options.map((o, i) => (
                   <div key={i} className="flex gap-2">
-                    <span className="w-8 h-10 rounded bg-gray-100 flex items-center justify-center text-sm font-semibold">{String.fromCharCode(65+i)}</span>
-                    <Input value={o} onChange={e=>updateOption(i,e.target.value)} />
+                    <span className="w-8 h-10 rounded bg-gray-100 flex items-center justify-center text-sm font-semibold">
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                    <Input value={o} onChange={(e) => updateOption(i, e.target.value)} />
                   </div>
                 ))}
               </div>
@@ -487,20 +549,36 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <Label>Correct Answer</Label>
-              <Input value={form.correctAnswer} onChange={e=>setForm({...form, correctAnswer:e.target.value})} />
+              <Input
+                value={form.correctAnswer}
+                onChange={(e) => setForm({ ...form, correctAnswer: e.target.value })}
+              />
             </div>
             <div>
               <Label>Points</Label>
-              <Input type="number" value={form.points} onChange={e=>setForm({...form, points: parseInt(e.target.value)||0})} />
+              <Input
+                type="number"
+                value={form.points}
+                onChange={(e) => setForm({ ...form, points: parseInt(e.target.value) || 0 })}
+              />
             </div>
             <div>
               <Label>Time Limit (s)</Label>
-              <Input type="number" value={form.timeLimit} onChange={e=>setForm({...form, timeLimit: parseInt(e.target.value)||30})} />
+              <Input
+                type="number"
+                value={form.timeLimit}
+                onChange={(e) => setForm({ ...form, timeLimit: parseInt(e.target.value) || 30 })}
+              />
             </div>
             <div>
               <Label>Difficulty</Label>
-              <Select value={form.difficulty} onValueChange={v=>setForm({...form, difficulty:v})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.difficulty}
+                onValueChange={(v) => setForm({ ...form, difficulty: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="easy">Easy</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -510,8 +588,15 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
             </div>
             <div>
               <Label>Question Type</Label>
-              <Select value={form.questionType} onValueChange={v=>setForm({...form, questionType:v as 'game'|'training'|'tie-breaker'})}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.questionType}
+                onValueChange={(v) =>
+                  setForm({ ...form, questionType: v as 'game' | 'training' | 'tie-breaker' })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="game">Game</SelectItem>
                   <SelectItem value="training">Training</SelectItem>
@@ -521,16 +606,27 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
             </div>
             <div>
               <Label>Category</Label>
-              <Input value={form.category} onChange={e=>setForm({...form, category:e.target.value})} />
+              <Input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              />
             </div>
             <div>
               <Label>Order #</Label>
-              <Input type="number" value={form.orderIndex} onChange={e=>setForm({...form, orderIndex: parseInt(e.target.value)||1})} />
+              <Input
+                type="number"
+                value={form.orderIndex}
+                onChange={(e) => setForm({ ...form, orderIndex: parseInt(e.target.value) || 1 })}
+              />
             </div>
           </div>
           <div>
             <Label>Explanation</Label>
-            <Textarea rows={3} value={form.explanation} onChange={e=>setForm({...form, explanation:e.target.value})} />
+            <Textarea
+              rows={3}
+              value={form.explanation}
+              onChange={(e) => setForm({ ...form, explanation: e.target.value })}
+            />
           </div>
         </div>
         {/* Side panel for Unsplash image and metadata */}
@@ -539,7 +635,11 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
             <Label>Background Image</Label>
             {form.backgroundImageUrl ? (
               <div className="mt-2 space-y-2">
-                <img src={form.backgroundImageUrl} alt="Selected background" className="w-full h-48 object-cover rounded border" />
+                <img
+                  src={form.backgroundImageUrl}
+                  alt="Selected background"
+                  className="w-full h-48 object-cover rounded border"
+                />
                 <Button
                   variant="outline"
                   size="sm"
@@ -547,28 +647,73 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
                     setForm({ ...form, backgroundImageUrl: '' });
                     setSelectedImage(null);
                   }}
-                >Remove</Button>
+                >
+                  Remove
+                </Button>
               </div>
-            ) : <p className="text-sm text-gray-500 mt-1">No image selected.</p>}
+            ) : (
+              <p className="text-sm text-gray-500 mt-1">No image selected.</p>
+            )}
           </div>
           <div className="border rounded p-4 space-y-3 bg-gray-50">
             <div className="flex gap-2">
-              <Input placeholder="Search Unsplash" value={unsplashQuery} onChange={e=>setUnsplashQuery(e.target.value)} />
-              <Button onClick={searchUnsplash} disabled={unsplashLoading}><Search className="h-4 w-4" /></Button>
+              <Input
+                placeholder="Search Unsplash"
+                value={unsplashQuery}
+                onChange={(e) => setUnsplashQuery(e.target.value)}
+              />
+              <Button onClick={searchUnsplash} disabled={unsplashLoading}>
+                <Search className="h-4 w-4" />
+              </Button>
             </div>
             {unsplashError && <p className="text-sm text-red-600">{unsplashError}</p>}
             {unsplashResults.length > 0 && (
               <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
-                {unsplashResults.map(img=> (
-                  <button key={img.id} type="button" onClick={()=>{setSelectedImage(img); setForm({...form, backgroundImageUrl: img.urls.regular});}} className={`relative border rounded overflow-hidden ${selectedImage?.id===img.id ? 'ring-2 ring-wine-500':'hover:ring-2 hover:ring-wine-300'}`}>
-                    <img src={img.urls.thumb} alt={img.alt_description||'img'} className="w-full h-20 object-cover" />
-                    {selectedImage?.id===img.id && <span className="absolute inset-0 bg-wine-600/40 flex items-center justify-center text-white text-xs font-semibold">Selected</span>}
+                {unsplashResults.map((img) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedImage(img);
+                      setForm({ ...form, backgroundImageUrl: img.urls.regular });
+                    }}
+                    className={`relative border rounded overflow-hidden ${selectedImage?.id === img.id ? 'ring-2 ring-wine-500' : 'hover:ring-2 hover:ring-wine-300'}`}
+                  >
+                    <img
+                      src={img.urls.thumb}
+                      alt={img.alt_description || 'img'}
+                      className="w-full h-20 object-cover"
+                    />
+                    {selectedImage?.id === img.id && (
+                      <span className="absolute inset-0 bg-wine-600/40 flex items-center justify-center text-white text-xs font-semibold">
+                        Selected
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
             )}
             {selectedImage && (
-              <p className="text-[11px] text-gray-600">Photo by <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>{selectedImage.user.name}</a> on <a className="underline" target="_blank" rel="noreferrer" href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}>Unsplash</a></p>
+              <p className="text-[11px] text-gray-600">
+                Photo by{' '}
+                <a
+                  className="underline"
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}
+                >
+                  {selectedImage.user.name}
+                </a>{' '}
+                on{' '}
+                <a
+                  className="underline"
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}
+                >
+                  Unsplash
+                </a>
+              </p>
             )}
           </div>
         </div>
@@ -577,7 +722,10 @@ const FullQuestionEditor: React.FC<{ question: Question; onClose: () => void; on
   );
 };
 
-const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, questionId: propQuestionId }) => {
+const EventTriviaManage: React.FC<TriviaManageProps> = ({
+  eventId: propEventId,
+  questionId: propQuestionId,
+}) => {
   const [, params] = useRoute('/events/:id/manage/trivia');
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -586,22 +734,22 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
 
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    'game': true,
-    'training': true,
-    'tie-breaker': true
+    game: true,
+    training: true,
+    'tie-breaker': true,
   });
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
   // Fetch all questions
   const { data: questions = [], isLoading } = useQuery<Question[]>({
     queryKey: ['/api/events', eventId, 'questions'],
-    enabled: !!eventId
+    enabled: !!eventId,
   });
 
   // Helper function to infer question type based on question properties
@@ -610,27 +758,35 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
     if (question.questionType) {
       return question.questionType as 'game' | 'training' | 'tie-breaker';
     }
-    
+
     // Inference based on question ID patterns or order index
     const questionId = question.id.toLowerCase();
-    
+
     // Check for tie-breaker patterns in question ID
-    if (questionId.includes('tie') || questionId.includes('breaker') || 
-        questionId.includes('tiebreaker') || questionId.includes('tie-breaker')) {
+    if (
+      questionId.includes('tie') ||
+      questionId.includes('breaker') ||
+      questionId.includes('tiebreaker') ||
+      questionId.includes('tie-breaker')
+    ) {
       return 'tie-breaker';
     }
-    
+
     // Check for training patterns in question ID
-    if (questionId.includes('training') || questionId.includes('practice') || 
-        questionId.includes('warm') || questionId.includes('sample')) {
+    if (
+      questionId.includes('training') ||
+      questionId.includes('practice') ||
+      questionId.includes('warm') ||
+      questionId.includes('sample')
+    ) {
       return 'training';
     }
-    
+
     // Inference based on order index (tie-breakers typically have higher order indices)
     if (question.orderIndex && question.orderIndex >= 15) {
       return 'tie-breaker';
     }
-    
+
     // Inference based on question ID patterns (e.g., q15+ might be tie-breakers)
     const questionMatch = questionId.match(/q(\d+)/);
     if (questionMatch) {
@@ -639,7 +795,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
         return 'tie-breaker';
       }
     }
-    
+
     // Default to game question
     return 'game';
   };
@@ -647,12 +803,12 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
   // Group questions by type
   const groupedQuestions = React.useMemo(() => {
     const groups: Record<string, Question[]> = {
-      'game': [],
-      'training': [],
-      'tie-breaker': []
+      game: [],
+      training: [],
+      'tie-breaker': [],
     };
-    
-    questions.forEach(question => {
+
+    questions.forEach((question) => {
       const type = inferQuestionType(question);
       if (groups[type]) {
         groups[type].push(question);
@@ -660,7 +816,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
     });
 
     // Sort questions within each group by orderIndex
-    Object.keys(groups).forEach(key => {
+    Object.keys(groups).forEach((key) => {
       groups[key].sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
     });
 
@@ -675,21 +831,21 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
           title: 'Training Questions',
           description: 'Practice questions for participants to get familiar with the format',
           color: 'bg-accent/10 text-accent-foreground',
-          badgeColor: 'bg-accent text-accent-foreground'
+          badgeColor: 'bg-accent text-accent-foreground',
         };
       case 'tie-breaker':
         return {
           title: 'Tie-Breaker Questions',
           description: 'Special questions used to break ties between teams',
           color: 'bg-destructive/10 text-destructive',
-          badgeColor: 'bg-destructive/10 text-destructive'
+          badgeColor: 'bg-destructive/10 text-destructive',
         };
       default:
         return {
           title: 'Game Questions',
           description: 'Main questions used during the trivia event',
           color: 'bg-primary/10 text-primary',
-          badgeColor: 'bg-primary/10 text-primary'
+          badgeColor: 'bg-primary/10 text-primary',
         };
     }
   };
@@ -702,9 +858,9 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...question,
-          questionType: question.questionType || inferQuestionType(question)
+          questionType: question.questionType || inferQuestionType(question),
         }),
-        credentials: 'include'
+        credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to update question');
       return res.json();
@@ -713,7 +869,8 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'questions'] });
       toast({ title: 'Saved', description: 'Question updated.' });
     },
-    onError: (e:any) => toast({ title: 'Update failed', description: e.message, variant: 'destructive' })
+    onError: (e: any) =>
+      toast({ title: 'Update failed', description: e.message, variant: 'destructive' }),
   });
 
   // Delete mutation
@@ -726,7 +883,8 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
       queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'questions'] });
       toast({ title: 'Deleted', description: 'Question removed.' });
     },
-    onError: (e:any) => toast({ title: 'Delete failed', description: e.message, variant: 'destructive' })
+    onError: (e: any) =>
+      toast({ title: 'Delete failed', description: e.message, variant: 'destructive' }),
   });
 
   if (!eventId) return <div className="p-8 text-center">Invalid event.</div>;
@@ -738,17 +896,23 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={()=>setLocation(`/events/${eventId}/manage`)} className="text-primary">
+            <Button
+              variant="ghost"
+              onClick={() => setLocation(`/events/${eventId}/manage`)}
+              className="text-primary"
+            >
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Event
             </Button>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2"><Brain className="h-6 w-6" /> Trivia Questions</h1>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Brain className="h-6 w-6" /> Trivia Questions
+            </h1>
           </div>
           <Badge variant="outline">{questions.length} Questions</Badge>
         </div>
 
         {/* AI Question Generator Form */}
-        <AIQuestionGeneratorForm 
-          eventId={eventId} 
+        <AIQuestionGeneratorForm
+          eventId={eventId}
           onQuestionsGenerated={(newQuestions) => {
             // Refresh questions list after AI generation
             queryClient.invalidateQueries({ queryKey: ['/api/events', eventId, 'questions'] });
@@ -764,18 +928,20 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
               <div className="text-center py-12 text-muted-foreground">
                 <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
                 <p className="text-lg font-medium mb-2">No questions yet</p>
-                <p className="text-sm">Use the AI Question Generator above to get started, or manually add questions.</p>
+                <p className="text-sm">
+                  Use the AI Question Generator above to get started, or manually add questions.
+                </p>
               </div>
             ) : (
               <div className="space-y-6">
                 {/* Render each question type group */}
-                {['game', 'training', 'tie-breaker'].map(questionType => {
+                {['game', 'training', 'tie-breaker'].map((questionType) => {
                   const sectionQuestions = groupedQuestions[questionType] || [];
                   const sectionInfo = getSectionInfo(questionType);
                   const isExpanded = expandedSections[questionType];
-                  
+
                   if (sectionQuestions.length === 0) return null;
-                  
+
                   return (
                     <div key={questionType} className="border rounded-lg overflow-hidden">
                       {/* Section Header */}
@@ -787,7 +953,8 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
                           <div className="flex items-center gap-3 mb-1">
                             <h3 className="text-lg font-semibold">{sectionInfo.title}</h3>
                             <Badge variant="secondary" className={sectionInfo.badgeColor}>
-                              {sectionQuestions.length} question{sectionQuestions.length !== 1 ? 's' : ''}
+                              {sectionQuestions.length} question
+                              {sectionQuestions.length !== 1 ? 's' : ''}
                             </Badge>
                           </div>
                           <p className="text-sm opacity-75">{sectionInfo.description}</p>
@@ -798,43 +965,85 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({ eventId: propEventId, 
                           <ChevronDown className="h-5 w-5" />
                         )}
                       </button>
-                      
+
                       {/* Section Content */}
                       {isExpanded && (
                         <div className="p-4 space-y-4 bg-gray-50/30">
                           {sectionQuestions.map((q, idx) => (
-                            <div key={q.id} className="border rounded-lg p-4 bg-white hover:shadow-sm transition flex items-start gap-4">
+                            <div
+                              key={q.id}
+                              className="border rounded-lg p-4 bg-white hover:shadow-sm transition flex items-start gap-4"
+                            >
                               {/* Question Thumbnail */}
-                              <QuestionThumbnail questionId={q.id} backgroundImageUrl={q.backgroundImageUrl} />
-                              
+                              <QuestionThumbnail
+                                questionId={q.id}
+                                backgroundImageUrl={q.backgroundImageUrl}
+                              />
+
                               <div className="flex-1 pr-4">
                                 <div className="flex flex-wrap gap-2 mb-2 items-center">
-                                  <Badge variant="secondary">#{q.orderIndex || idx+1}</Badge>
-                                  <Badge variant="outline">{q.type.replace('_',' ')}</Badge>
+                                  <Badge variant="secondary">#{q.orderIndex || idx + 1}</Badge>
+                                  <Badge variant="outline">{q.type.replace('_', ' ')}</Badge>
                                   <Badge variant="outline" className={sectionInfo.badgeColor}>
-                                    {questionType === 'tie-breaker' ? 'Tie-Breaker' : questionType.charAt(0).toUpperCase() + questionType.slice(1)}
+                                    {questionType === 'tie-breaker'
+                                      ? 'Tie-Breaker'
+                                      : questionType.charAt(0).toUpperCase() +
+                                        questionType.slice(1)}
                                   </Badge>
                                   <Badge variant="outline">{q.points} pts</Badge>
                                   <Badge variant="outline">{q.timeLimit}s</Badge>
-                                  {q.aiGenerated && <Badge variant="outline" className="bg-blue-50 text-blue-600">AI</Badge>}
+                                  {q.aiGenerated && (
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-600">
+                                      AI
+                                    </Badge>
+                                  )}
                                 </div>
-                                <h3 className="font-medium text-foreground mb-2 line-clamp-2">{q.question}</h3>
-                                {q.options?.length>0 && (
+                                <h3 className="font-medium text-foreground mb-2 line-clamp-2">
+                                  {q.question}
+                                </h3>
+                                {q.options?.length > 0 && (
                                   <div className="grid grid-cols-2 gap-2 mb-2">
-                                    {q.options.map((o,i)=>(
-                                      <div key={i} className={`text-xs p-2 rounded ${o===q.correctAnswer ? 'bg-green-100 text-green-800 font-medium':'bg-gray-100 text-gray-700'}`}>{String.fromCharCode(65+i)}. {o}</div>
+                                    {q.options.map((o, i) => (
+                                      <div
+                                        key={i}
+                                        className={`text-xs p-2 rounded ${o === q.correctAnswer ? 'bg-green-100 text-green-800 font-medium' : 'bg-gray-100 text-gray-700'}`}
+                                      >
+                                        {String.fromCharCode(65 + i)}. {o}
+                                      </div>
                                     ))}
                                   </div>
                                 )}
-                                <p className="text-xs text-green-600 font-medium mb-1">Correct: {q.correctAnswer}</p>
-                                {q.explanation && <p className="text-xs text-gray-500 line-clamp-2">{q.explanation}</p>}
+                                <p className="text-xs text-green-600 font-medium mb-1">
+                                  Correct: {q.correctAnswer}
+                                </p>
+                                {q.explanation && (
+                                  <p className="text-xs text-gray-500 line-clamp-2">
+                                    {q.explanation}
+                                  </p>
+                                )}
                               </div>
-                              
+
                               <div className="flex flex-col gap-2">
-                                <Button size="sm" variant="outline" onClick={() => setLocation(`/events/${eventId}/manage/trivia/${q.id}`)}>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() =>
+                                    setLocation(`/events/${eventId}/manage/trivia/${q.id}`)
+                                  }
+                                >
                                   <Edit className="h-4 w-4 mr-1" /> Edit
                                 </Button>
-                                <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" onClick={()=>{ if(confirm('Delete this question?')) deleteQuestionMutation.mutate(q.id); }}><Trash2 className="h-4 w-4 mr-1" /> Delete</Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={() => {
+                                    if (confirm('Delete this question?'))
+                                      deleteQuestionMutation.mutate(q.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" /> Delete
+                                </Button>
                               </div>
                             </div>
                           ))}

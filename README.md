@@ -48,7 +48,7 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
 
 ### Frontend Architecture
 
-- **React 18** with TypeScript for type safety
+- **React 19** with TypeScript for type safety
 - **Vite** for fast development and optimized builds
 - **Wouter** for lightweight client-side routing
 - **TanStack Query** for efficient server state management
@@ -67,13 +67,12 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
 
 ### Database
 
-- **SQLite** with local file storage (`./data/trivia.db`) for development/production
+- **SQLite** with production file storage at `C:\websites\TriviaSpark\trivia.db`
 - **Entity Framework Core** for type-safe database operations and migrations
 - Optional **Turso/LibSQL** for distributed SQLite deployments
 - **Local Persistence**: Data saved between restarts when running locally
 - **Static Deployment**: No database — read-only content embedded in the application
 - Comprehensive schema covering users, events, questions, participants, teams, and analytics
-- **Drizzle ORM** used in TypeScript scripts and shared type definitions
 
 ---
 
@@ -105,11 +104,8 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
 3. **Environment setup**
 
    ```bash
-   # Copy environment template
-   cp .env.example .env
-   
    # Configure your environment variables (SQLite is used by default)
-   DATABASE_URL=file:./data/trivia.db
+   DATABASE_URL=file:C:\websites\TriviaSpark\trivia.db
    OPENAI_API_KEY=your_openai_api_key_here
    ```
 
@@ -117,8 +113,7 @@ Experience the TriviaSpark platform with a pre-configured wine country trivia ev
 
    ```bash
    # Entity Framework Core will create the database automatically
-   # Optionally seed with sample data using Drizzle scripts
-   npm run db:push
+   # Optionally seed with sample data
    npm run seed
    ```
 
@@ -139,7 +134,7 @@ The application will be available at `http://localhost:5000`.
 
 **Local Development**:
 
-- ✅ All data persists in `./data/trivia.db` SQLite file
+- ✅ All data persists in the production SQLite database at `C:\websites\TriviaSpark\trivia.db`
 - ✅ Changes survive server restarts
 - ✅ Full CRUD operations available
 - ✅ User accounts and sessions maintained
@@ -202,7 +197,7 @@ dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
 # App: http://localhost:5000 (or other port as configured)
 # Swagger: http://localhost:5000/swagger
 # SignalR Hub: ws://localhost:5000/ws (currently disabled)
-# Database: ./data/trivia.db
+# Database: C:\websites\TriviaSpark\trivia.db
 ```
 
 ### Production Build (Full Features)
@@ -212,7 +207,7 @@ dotnet run --project ./TriviaSpark.Api/TriviaSpark.Api.csproj
 dotnet publish ./TriviaSpark.Api/TriviaSpark.Api.csproj -c Release
 
 # Output folder will contain all files needed to deploy the API
-# Database: Uses data/trivia.db (configurable)
+# Database: Uses C:\websites\TriviaSpark\trivia.db (configurable via DATABASE_URL)
 ```
 
 ### Static Demo Build (GitHub Pages)
@@ -253,11 +248,15 @@ TriviaSpark/
 │   ├── SignalR/               # SignalR hubs (currently disabled)
 │   └── wwwroot/               # Built SPA files served by ASP.NET Core
 ├── shared/                     # Shared TypeScript types and schemas
-│   └── schema.ts              # Database schema definitions (Drizzle/Zod)
+│   └── schema.ts              # Database schema definitions (Zod)
 ├── scripts/                    # Database seeding and utility scripts
+├── tools/                      # Development tools and scripts
+├── tests/                      # Testing files organized by type
+│   ├── http/                  # HTTP test files (REST Client)
+│   └── TriviaSpark.Tests/     # MSTest backend tests
 ├── docs/                       # Static build output (GitHub Pages)
 ├── copilot/                    # Generated documentation and project notes
-├── data/                       # SQLite database files
+├── data/                       # Database documentation and schema files
 ├── .github/workflows/          # GitHub Actions CI/CD
 ├── package.json               # Frontend dependencies and scripts
 ├── vite.config.ts             # Vite build configuration
@@ -272,7 +271,7 @@ TriviaSpark/
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `DATABASE_URL` | SQLite database path (default: file:./data/trivia.db) | No |
+| `DATABASE_URL` | SQLite database path (default: `file:C:\websites\TriviaSpark\trivia.db`) | No |
 | `TURSO_AUTH_TOKEN` | Auth token for Turso distributed SQLite (optional) | No |
 | `OPENAI_API_KEY` | OpenAI API key for content generation | No |
 | `NODE_ENV` | Environment mode (development/production) | No |
@@ -283,7 +282,7 @@ The platform uses Entity Framework Core with SQLite. Two deployment options:
 
 **Local SQLite** (Default)
 
-- File-based database stored in `./data/trivia.db`
+- File-based database stored at `C:\websites\TriviaSpark\trivia.db`
 - Perfect for single-server deployments
 - No external dependencies
 
@@ -391,23 +390,47 @@ Key steps:
 
 - **TypeScript** - Full type safety across the frontend and shared scripts
 - **Entity Framework Core** - Database migrations and type-safe queries
-- **ESLint** - Code quality and consistency
-- **Prettier** - Code formatting
-- **Drizzle Kit** - Database schema management for scripts and seeding
+- **ESLint v10** - Code quality and consistency (flat config)
+- **Prettier** - Code formatting (printWidth: 100, singleQuote, semi)
+- **Vitest** - Frontend unit testing with React Testing Library
+- **MSTest** - Backend unit testing with EF Core InMemory
+
+### Code Quality Commands
+
+```bash
+# Lint frontend code (zero console.log enforced)
+npm run lint
+npm run lint:fix
+
+# Format frontend code
+npm run format
+npm run format:check
+
+# Run frontend tests
+npm test              # Watch mode
+npm run test:coverage # With coverage report
+
+# Run backend tests
+dotnet test
+
+# Build and verify
+npm run build
+dotnet build ./TriviaSpark.Api/TriviaSpark.Api.csproj
+```
 
 ### Testing Strategy
 
-- Component testing with React Testing Library
-- API endpoint testing
-- SignalR connection testing
-- Cross-browser compatibility testing
+- **Frontend**: Vitest + React Testing Library for component testing
+- **Backend**: MSTest with EF Core InMemory for service testing
+- API endpoint testing via `/swagger`
+- HTTP test files in `tests/http/`
 
 ### Development Workflow
 
 1. Run `npm run dev` for frontend-only development with hot-reload
-2. Use `/swagger` for API testing and documentation
-3. Access development tools via browser DevTools
-4. Monitor SignalR connections for real-time feature development (when enabled)
+2. Run `npm run lint` and `npm run format` before committing
+3. Use `/swagger` for API testing and documentation
+4. Run `npm test` and `dotnet test` to verify changes
 
 ---
 

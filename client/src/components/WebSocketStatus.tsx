@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge";
-import { useWebSocketContext } from "../contexts/WebSocketContext";
-import { Wifi, WifiOff } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { useWebSocketContext } from '../contexts/WebSocketContext';
+import { Wifi, WifiOff } from 'lucide-react';
 
 interface WebSocketStatusProps {
   className?: string;
@@ -40,15 +40,11 @@ export function WebSocketStatus({ className }: WebSocketStatusProps) {
   }
 
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={`${className} flex items-center gap-1 ${getStatusColor()} text-white border-none`}
     >
-      {isConnected ? (
-        <Wifi className="w-3 h-3" />
-      ) : (
-        <WifiOff className="w-3 h-3" />
-      )}
+      {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
       <span className="text-xs font-medium">{getStatusText()}</span>
     </Badge>
   );

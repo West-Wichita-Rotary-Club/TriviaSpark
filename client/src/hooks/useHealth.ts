@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export type ApiHealth = {
   ok: boolean;
@@ -10,18 +10,18 @@ export function useApiHealth(pollMs = 30000) {
   const [loading, setLoading] = useState(true);
 
   // Check if running in static build mode
-  const isStaticBuild = import.meta.env.VITE_STATIC_BUILD === "true";
+  const isStaticBuild = import.meta.env.VITE_STATIC_BUILD === 'true';
 
   async function check() {
     // Skip API calls in static build mode
     if (isStaticBuild) {
-      setStatus({ ok: false, time: "Static Build" });
+      setStatus({ ok: false, time: 'Static Build' });
       setLoading(false);
       return;
     }
 
     try {
-      const res = await fetch("/api/health", { credentials: "include" });
+      const res = await fetch('/api/health', { credentials: 'include' });
       const ok = res.ok;
       const data = ok ? await res.json() : null;
       setStatus({ ok, time: data?.time });

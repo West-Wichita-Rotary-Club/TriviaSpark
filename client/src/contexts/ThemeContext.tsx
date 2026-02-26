@@ -16,10 +16,7 @@ interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
-export function ThemeProvider({ 
-  children, 
-  defaultTheme = 'system' 
-}: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultTheme = 'system' }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('trivia-spark-theme');
@@ -56,7 +53,7 @@ export function ThemeProvider({
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = () => updateResolvedTheme();
-      
+
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
@@ -65,16 +62,16 @@ export function ThemeProvider({
   // Apply theme to document root
   useEffect(() => {
     const root = document.documentElement;
-    
+
     // Remove existing theme classes
     root.classList.remove('light', 'dark');
-    
+
     // Add the resolved theme class
     root.classList.add(resolvedTheme);
-    
+
     // Update CSS custom property for theme-aware components
     root.style.setProperty('--theme', resolvedTheme);
-    
+
     // Store theme preference
     localStorage.setItem('trivia-spark-theme', theme);
   }, [theme, resolvedTheme]);
@@ -84,11 +81,13 @@ export function ThemeProvider({
   };
 
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      resolvedTheme, 
-      setTheme: handleSetTheme 
-    }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        resolvedTheme,
+        setTheme: handleSetTheme,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
