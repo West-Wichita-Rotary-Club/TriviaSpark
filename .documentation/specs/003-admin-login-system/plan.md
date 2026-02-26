@@ -17,6 +17,7 @@ Enable and fix the admin system and user login capabilities. The backend has an 
 **Project Type**: Web application (ASP.NET Core API + React SPA)  
 **Performance Goals**: Login response <500ms, session validation <50ms per request  
 **Constraints**: Session-based auth with HTTP-only cookies (no JWT), sliding 2-hour inactivity timeout  
+**Role Names**: Three standardized roles — **Admin** (full system access), **Owner** (event management, own events only), **Participant** (public access, no event management)  
 **Scale/Scope**: Small admin team (<50 users), single-server deployment
 
 ## Constitution Check (Pre-Design)

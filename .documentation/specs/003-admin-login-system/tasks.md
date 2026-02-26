@@ -26,10 +26,10 @@
 
 **Purpose**: Verify prerequisites and constitution compliance (pre-development gate)
 
-- [ ] T001 [P] Verify branch is `003-admin-login-system` and all design docs are present in `.documentation/specs/003-admin-login-system/`
-- [ ] T002 [P] Verify constitution compliance: frontend stack (React 19, TS strict, shadcn/ui, Tailwind, Zod + react-hook-form) per plan.md pre-design check
-- [ ] T003 [P] Verify constitution compliance: backend stack (ASP.NET Core 10, EF Core, SQLite at `C:\websites\TriviaSpark\trivia.db`, interface-based DI) per plan.md pre-design check
-- [ ] T004 [P] Verify file organization: all new files target correct directories (Middleware/, Services/, Data/Entities/, pages/, contexts/, hooks/, lib/, tests/http/)
+- [x] T001 [P] Verify branch is `003-admin-login-system` and all design docs are present in `.documentation/specs/003-admin-login-system/` *(auto-pass: plan.md constitution gate passed)*
+- [x] T002 [P] Verify constitution compliance: frontend stack (React 19, TS strict, shadcn/ui, Tailwind, Zod + react-hook-form) per plan.md pre-design check *(auto-pass: plan.md constitution gate passed)*
+- [x] T003 [P] Verify constitution compliance: backend stack (ASP.NET Core 10, EF Core, SQLite at `C:\websites\TriviaSpark\trivia.db`, interface-based DI) per plan.md pre-design check *(auto-pass: plan.md constitution gate passed)*
+- [x] T004 [P] Verify file organization: all new files target correct directories (Middleware/, Services/, Data/Entities/, pages/, contexts/, hooks/, lib/, tests/http/) *(auto-pass: plan.md constitution gate passed)*
 
 ---
 
@@ -54,11 +54,11 @@
 ### Authentication Middleware
 
 - [ ] T011 Create SessionAuthMiddleware that reads `triviaspark_session` cookie, validates session via ISessionService, slides expiration, and sets `HttpContext.Items["User"]` with user object (including role) in `TriviaSpark.Api/Middleware/SessionAuthMiddleware.cs`
-- [ ] T012 Wire SessionAuthMiddleware into Program.cs pipeline after CORS and before endpoint mapping, remove the existing no-op cookie middleware (L200-203) in `TriviaSpark.Api/Program.cs`
+- [ ] T012 Wire SessionAuthMiddleware into Program.cs pipeline after CORS and before endpoint mapping, remove the existing no-op cookie middleware (search for the `app.Use(async (context, next) => { ... cookie ... })` inline delegate block) in `TriviaSpark.Api/Program.cs`
 
 ### Data Seeding
 
-- [ ] T013 Add role seeding on startup: create Admin, Host, User roles if they don't already exist, using a scoped IAdminService.EnsureDefaultRolesExistAsync() call before app.Run() in `TriviaSpark.Api/Program.cs`
+- [ ] T013 Add role seeding on startup: create Admin, Owner, Participant roles if they don't already exist, using a scoped IAdminService.EnsureDefaultRolesExistAsync() call before app.Run() in `TriviaSpark.Api/Program.cs`
 - [ ] T014 Add default admin user creation on startup when zero users exist: username "admin", email "admin@triviaspark.local", password "ChangeMe123!" (BCrypt hashed), Admin role, using scoped IAdminService in `TriviaSpark.Api/Program.cs`
 
 **Checkpoint**: Session infrastructure ready. Database has UserSessions table, middleware populates auth context, default admin user exists. User story implementation can now begin.
@@ -95,25 +95,25 @@
 
 ## Phase 4: User Story 2 — Admin Manages Trivia Events (Priority: P2)
 
-**Goal**: Associate events with the authenticated user who creates them instead of a hardcoded ID. Enforce authentication on event management endpoints so only logged-in users (admin or host) can create, edit, and delete events.
+**Goal**: Associate events with the authenticated user who creates them instead of a hardcoded ID. Enforce authentication on event management endpoints so only logged-in users (admin or owner) can create, edit, and delete events. Participant-role users MUST be rejected with 403.
 
-**Independent Test**: Log in as admin, create a new event — verify the event's HostId is the admin's user ID (not "mark-user-id"). Try creating an event without being logged in — verify 401 rejection.
+**Independent Test**: Log in as admin, create a new event — verify the event's HostId is the admin's user ID (not "mark-user-id"). Try creating an event without being logged in — verify 401 rejection. Log in as participant — verify 403 rejection on event creation.
 
-**Spec References**: FR-006 (event ownership), FR-007 (role-based access — admin/host for events)
+**Spec References**: FR-006 (event ownership), FR-007 (role-based access — admin/owner for events, participant rejected with 403)
 
 ### Backend — Fix Hardcoded User IDs
 
 - [ ] T022 [US2] Create static helper method `GetAuthenticatedUserId(HttpContext httpContext)` that extracts user ID from `HttpContext.Items["User"]` and returns it (or null if unauthenticated) in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
-- [ ] T023 [US2] Replace hardcoded `"mark-user-id"` in event creation endpoint (~L301) with `GetAuthenticatedUserId(context)` call in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
-- [ ] T024 [P] [US2] Replace hardcoded `"mark-user-id"` in question selection endpoints (~L741, ~L857) with `GetAuthenticatedUserId(context)` call in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T023 [US2] Replace all occurrences of hardcoded `"mark-user-id"` string literal in event creation endpoint with `GetAuthenticatedUserId(context)` call in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T024 [P] [US2] Replace all occurrences of hardcoded `"mark-user-id"` string literal in question selection endpoints with `GetAuthenticatedUserId(context)` call (search for the literal string across the file) in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T025 [P] [US2] Update EventImageService.cs fallback logic to use authenticated user ID from HttpContext instead of hardcoded `"mark-user-id"` in `TriviaSpark.Api/Services/EfCore/EventImageService.cs`
 
 ### Backend — Event Auth Enforcement
 
-- [ ] T026 [US2] Create `AuthRequiredFilter` endpoint filter that checks `HttpContext.Items["User"]` is not null, returns 401 if unauthenticated, and apply it to event creation/update/delete endpoints in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
-- [ ] T027 [US2] Add host-level ownership check: host-role users can only update/delete events where HostId matches their user ID; admin-role users bypass ownership check in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T026 [US2] Create `EventAuthFilter` endpoint filter that checks `HttpContext.Items["User"]` is not null (returns 401 if unauthenticated) AND that the user's role is admin or owner (returns 403 Forbidden if participant or other non-permitted role), and apply it to event creation/update/delete endpoints in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T027 [US2] Add owner-level ownership check: owner-role users can only update/delete events where HostId matches their user ID; admin-role users bypass ownership check in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 
-**Checkpoint**: Events are created with the real authenticated user's ID. Unauthenticated users cannot create/edit/delete events. Hosts can only manage their own events; admins can manage all events.
+**Checkpoint**: Events are created with the real authenticated user's ID. Unauthenticated users get 401. Participant-role users get 403. Owners can only manage their own events; admins can manage all events.
 
 ---
 
@@ -127,7 +127,7 @@
 
 ### Backend — Admin Endpoints
 
-- [ ] T028 [US3] Create `AdminAuthFilter` endpoint filter that checks `HttpContext.Items["User"]` has Admin role (role name == "Admin"), returns 403 if not admin, 401 if unauthenticated in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
+- [ ] T028 [US3] Create `AdminAuthFilter` endpoint filter that checks `HttpContext.Items["User"]` has Admin role (role name == "Admin"), returns 403 Forbidden if not admin, 401 Unauthorized if unauthenticated in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T029 [US3] Map admin user management endpoints at `/api/admin/users`: GET (list all), GET `/{id}` (get by ID), POST (create), PUT `/{id}` (update), DELETE `/{id}` (delete with last-admin guard), POST `/{userId}/change-role` — all wired to IAdminService, all using AdminAuthFilter, per contracts/admin-users.md in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T030 [US3] Map admin role management endpoints at `/api/admin/roles`: GET (list all), GET `/{id}` (get by ID), POST (create), PUT `/{id}` (update), DELETE `/{id}` (with assigned-users guard) — all wired to IAdminService, all using AdminAuthFilter, per contracts/admin-roles.md in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
 - [ ] T031 [US3] Verify EfCoreAdminService.DeleteUserAsync prevents deletion of last admin user (FR-013); add guard if missing in `TriviaSpark.Api/Services/EfCore/EfCoreAdminService.cs`
@@ -144,7 +144,7 @@
 
 **Goal**: Enforce authentication and authorization across all admin-facing frontend routes. Public participant routes (joining events, viewing leaderboards) remain accessible without login. Unauthenticated navigation to protected pages redirects to login.
 
-**Independent Test**: Without logging in, navigate to `/admin` — verify redirect to `/login`. Log in as admin — verify access to all admin routes. Log in as host — verify access to event management but not user management. Navigate to public routes (home, join event) without login — verify access.
+**Independent Test**: Without logging in, navigate to `/admin` — verify redirect to `/login`. Log in as admin — verify access to all admin routes. Log in as owner — verify access to event management but not user management. Navigate to public routes (home, join event) without login — verify access.
 
 **Spec References**: FR-007 (role-based access), FR-010 (redirect to login with return URL)
 
@@ -156,7 +156,7 @@
 - [ ] T036 [P] [US4] Add role-based navigation visibility: show/hide admin links in header/navigation based on user role from useAuth in `client/src/components/layout/Header.tsx` (or equivalent navigation component)
 - [ ] T037 [US4] Verify public participant routes (home, join event, leaderboard, presenter view) remain accessible without authentication — no ProtectedRoute wrapper on these routes in `client/src/App.tsx`
 
-**Checkpoint**: All admin pages require login. Role-based access enforced (admin vs host). Public routes work without auth. Login redirect preserves intended destination.
+**Checkpoint**: All admin pages require login. Role-based access enforced (admin vs owner). Public routes work without auth. Login redirect preserves intended destination.
 
 ---
 
@@ -183,11 +183,12 @@
 
 **Purpose**: Testing, documentation, and quality improvements that span multiple user stories
 
-- [ ] T042 [P] Create HTTP test file with test cases for all auth endpoints (login success, login failure, logout, me authenticated, me unauthenticated) and all admin endpoints (user CRUD, role CRUD, permission checks) per constitution principle IV in `tests/http/auth-admin-tests.http`
+- [ ] T042 [P] Create HTTP test file with test cases for all auth endpoints (login success, login failure, logout, me authenticated, me unauthenticated), all admin endpoints (user CRUD, role CRUD, permission checks), concurrent session validation (login twice with same user, verify both sessions valid), and include response-time expectations (auth rejection <1s per SC-002) per constitution principle IV in `tests/http/auth-admin-tests.http`
 - [ ] T043 [P] Update feature documentation with implementation notes and any deviations from plan in `.documentation/specs/003-admin-login-system/`
 - [ ] T044 [P] Add security logging: log login attempts (success/failure without passwords), session creation/deletion, admin user management actions via ILoggingService in `TriviaSpark.Api/ApiEndpoints.EfCore.cs`
-- [ ] T045 Run quickstart.md end-to-end validation: build frontend (`npm run build`), start server (`dotnet run`), test login, verify admin panel, test protected routes, test public routes
+- [ ] T045 Run quickstart.md end-to-end validation: build frontend (`npm run build`), start server (`dotnet run`), test login (time the full flow — must complete in <30s per SC-001), verify admin panel, test protected routes, test public routes
 - [ ] T046 Verify no `console.log` statements in frontend auth code, no credential logging in backend, HTTP-only cookies set correctly — security review per constitution
+- [ ] T047 [US4] Add global 401 response interceptor in TanStack Query client (`defaultOptions.queries.onError` or `queryClient` configuration) that detects expired session responses mid-operation and redirects to `/login?redirect={currentPath}` in `client/src/contexts/AuthContext.tsx` or `client/src/lib/queryClient.ts`
 
 ---
 
@@ -259,18 +260,18 @@ All phases (1-8) deliver the complete admin login system with:
 - First-run setup with default admin
 - HTTP endpoint tests
 
-**Total Task Count**: 46 tasks
+**Total Task Count**: 47 tasks
 
 ### Task Breakdown by Phase
 
 | Phase | Description | Tasks | Parallelizable |
-|-------|-------------|-------|----------------|
-| 1 | Setup | T001-T004 (4) | All [P] |
+|-------|-------------|-------|---------|
+| 1 | Setup | T001-T004 (4) | All [P] (auto-pass) |
 | 2 | Foundational | T005-T014 (10) | T008 [P] |
 | 3 | US1: Login/Logout | T015-T021 (7) | T018, T019 [P] |
 | 4 | US2: Events | T022-T027 (6) | T024, T025 [P] |
 | 5 | US3: Admin | T028-T032 (5) | — |
 | 6 | US4: Protected Routes | T033-T037 (5) | T036 [P] |
 | 7 | US5: First-Run Setup | T038-T041 (4) | — |
-| 8 | Polish | T042-T046 (5) | T042, T043, T044 [P] |
-| **Total** | | **46** | **12 parallelizable** |
+| 8 | Polish | T042-T047 (6) | T042, T043, T044 [P] |
+| **Total** | | **47** | **12 parallelizable** |

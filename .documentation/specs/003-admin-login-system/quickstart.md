@@ -27,7 +27,7 @@
    - Slide expiration (update `ExpiresAt` and `LastAccessAt`)
    - Set `HttpContext.Items["User"]` with user object (including role)
 2. Register middleware in `Program.cs` pipeline (after CORS, before endpoints)
-3. Remove the no-op cookie middleware
+3. Remove the no-op cookie middleware (search for the inline `app.Use(async (context, next) => { ... cookie ... })` delegate block)
 
 ### Step 3: Backend — Auth Endpoints
 
@@ -49,7 +49,7 @@ Add to `ApiEndpoints.EfCore.cs`:
 ### Step 5: Backend — Fix Hardcoded User IDs
 
 1. Create helper `GetAuthenticatedUserId(HttpContext)` 
-2. Replace `"mark-user-id"` at L301, L741, L857 in `ApiEndpoints.EfCore.cs`
+2. Replace all occurrences of `"mark-user-id"` string literal in `ApiEndpoints.EfCore.cs`
 3. Update `EventImageService.cs` fallback logic
 
 ### Step 6: Backend — Role Seeding & Default Admin

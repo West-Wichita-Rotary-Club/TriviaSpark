@@ -61,7 +61,7 @@
 - Follows the exact same pattern as existing endpoint groups in `ApiEndpoints.EfCore.cs`.
 - The `/api/auth` group (login, logout, me) is public — no auth filter needed.
 - The `/api/admin` group (user CRUD, role CRUD) uses an `AdminAuthFilter` that checks `HttpContext.Items["User"]` for admin role.
-- Event management endpoints (`/api/events`) need a lighter `AuthFilter` that checks for any authenticated user (admin or host), then individual endpoints check ownership for host-role users.
+- Event management endpoints (`/api/events`) need a lighter `EventAuthFilter` that checks for any authenticated user with admin or owner role (returns 403 for participant role), then individual endpoints check ownership for owner-role users.
 - This keeps auth logic centralized in filters, not scattered across endpoint bodies.
 
 **Alternatives considered**:
@@ -87,13 +87,13 @@
 
 ## Research Task 6: Hardcoded User ID Replacement Strategy
 
-**Context**: `"mark-user-id"` is hardcoded in 3 places in `ApiEndpoints.EfCore.cs` (L301, L741, L857) and 3+ places in `EventImageService.cs`. These must be replaced with the authenticated user's ID.
+**Context**: `"mark-user-id"` is hardcoded in multiple places in `ApiEndpoints.EfCore.cs` and `EventImageService.cs`. These must be replaced with the authenticated user's ID.
 
 **Decision**: Replace hardcoded IDs with the user from `HttpContext.Items["User"]`. Add a helper method `GetAuthenticatedUserId(HttpContext)` that returns the user ID from session context, falling back to null for unauthenticated requests.
 
 **Rationale**:
-- Event creation (L301) must use the authenticated user's ID as `HostId`.
-- Question selection (L741, L857) must use the authenticated user's ID as `SelectedByUserId`.
+- Event creation must use the authenticated user's ID as `HostId`.
+- Question selection must use the authenticated user's ID as `SelectedByUserId`.
 - `EventImageService.cs` fallback logic already handles null user IDs gracefully — the null-check pattern can be simplified once auth is in place.
 - A shared helper method avoids duplicating the extraction logic.
 
@@ -108,7 +108,7 @@
 **Decision**: Call `IAdminService.EnsureDefaultRolesExistAsync()` from Program.cs startup, then check for zero users and create the default admin if needed. Run as a scoped operation before `app.Run()`.
 
 **Rationale**:
-- `EnsureDefaultRolesExistAsync()` already exists in `IAdminService` — it creates Admin, Host, and User roles if missing.
+- `EnsureDefaultRolesExistAsync()` already exists in `IAdminService` — it creates Admin, Owner, and Participant roles if missing.
 - Default admin creation uses `CreateUserAsync` with username "admin", email "admin@triviaspark.local", password "ChangeMe123!" (hashed by service).
 - Running in a scoped service before `app.Run()` ensures the database is seeded before any requests arrive.
 - Idempotent: checks if users exist before creating, checks if roles exist before creating.

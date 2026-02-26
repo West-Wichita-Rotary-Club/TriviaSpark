@@ -31,7 +31,7 @@ The codebase was audited for authentication, login, session management, and admi
 
 - Q: How long should an admin's authenticated session remain valid before requiring re-authentication? → A: Sliding 2-hour timeout (session extends with each request; expires after 2 hours of inactivity)
 - Q: Should users log in with their username, their email address, or either one? → A: Either username or email in a single input field
-- Q: What level of event access should the host role have? → A: Hosts can create events and edit/delete only events they created (own events only)
+- Q: What level of event access should the owner role have? → A: Owners can create events and edit/delete only events they created (own events only)
 - Q: What should the default admin account credentials be for first-run setup? → A: Username "admin", password "ChangeMe123!"
 - Q: Which capabilities should be explicitly out of scope for this feature? → A: All three out of scope for MVP: no password reset, no OAuth/SSO, no self-registration (admin creates all accounts)
 
@@ -73,7 +73,7 @@ A logged-in administrator creates, edits, and deletes trivia events. Events they
 
 ### User Story 3 - Admin Manages Users and Roles (Priority: P3)
 
-A logged-in administrator with the "admin" role can view all registered users, create new user accounts, assign roles (admin, host, participant), and deactivate or remove user accounts.
+A logged-in administrator with the "admin" role can view all registered users, create new user accounts, assign roles (admin, owner, participant), and deactivate or remove user accounts.
 
 **Why this priority**: User management allows the admin to delegate responsibilities and control access. It builds on top of the login system but is not needed for the admin themselves to function.
 
@@ -83,7 +83,7 @@ A logged-in administrator with the "admin" role can view all registered users, c
 
 1. **Given** a logged-in admin, **When** they navigate to user management, **Then** they see a list of all users with their roles and creation dates.
 2. **Given** a logged-in admin, **When** they create a new user with username, email, password, and role, **Then** the user is created and appears in the user list.
-3. **Given** a logged-in admin, **When** they change a user's role from "host" to "admin", **Then** the role change is saved and the user's permissions are updated accordingly.
+3. **Given** a logged-in admin, **When** they change a user's role from "owner" to "admin", **Then** the role change is saved and the user's permissions are updated accordingly.
 4. **Given** a logged-in admin, **When** they delete a user account, **Then** the user is removed and can no longer log in.
 5. **Given** a user without admin role, **When** they attempt to access user management, **Then** they are denied access and shown an appropriate message.
 
@@ -100,7 +100,7 @@ The system enforces authentication and authorization across all admin-facing rou
 **Acceptance Scenarios**:
 
 1. **Given** an unauthenticated user, **When** they attempt to access any admin page or API endpoint, **Then** they are redirected to the login page (frontend) or receive an unauthorized response (API).
-2. **Given** a user with the "host" role, **When** they attempt to access user management features, **Then** they are denied access.
+2. **Given** a user with the "owner" role, **When** they attempt to access user management features, **Then** they are denied access.
 3. **Given** a user with the "admin" role, **When** they access any admin or event management feature, **Then** they are granted full access.
 4. **Given** any user (authenticated or not), **When** they access public participant routes (joining an event, viewing a leaderboard), **Then** access is allowed without login.
 
@@ -108,7 +108,7 @@ The system enforces authentication and authorization across all admin-facing rou
 
 ### User Story 5 - First-Run Admin Setup (Priority: P5)
 
-When the system starts for the first time with an empty database (no users), a default admin account is automatically created so that the administrator can log in without manual database manipulation. Default roles (admin, host, participant) are also seeded.
+When the system starts for the first time with an empty database (no users), a default admin account is automatically created so that the administrator can log in without manual database manipulation. Default roles (admin, owner, participant) are also seeded.
 
 **Why this priority**: Without automatic setup, the system is unusable after a fresh deployment. However, this only needs to run once.
 
@@ -116,19 +116,19 @@ When the system starts for the first time with an empty database (no users), a d
 
 **Acceptance Scenarios**:
 
-1. **Given** a fresh database with no users or roles, **When** the application starts, **Then** default roles (admin, host, participant) are created.
+1. **Given** a fresh database with no users or roles, **When** the application starts, **Then** default roles (admin, owner, participant) are created.
 2. **Given** a fresh database with no users, **When** the application starts, **Then** a default admin user is created with a well-known initial password.
-3. **Given** the default admin user exists, **When** the admin logs in for the first time, **Then** they are prompted or encouraged to change the default password.
+3. **Given** the default admin user exists, **When** the admin logs in for the first time, **Then** a visible banner is displayed on the dashboard prompting them to change the default password.
 4. **Given** the database already has users and roles, **When** the application starts, **Then** no duplicate roles or users are created.
 
 ---
 
 ### Edge Cases
 
-- What happens when the admin's session expires mid-operation (e.g., while editing an event)? The system should detect the expired session and redirect to login, preserving the URL so the user can return after re-authenticating.
+- What happens when the admin's session expires mid-operation (e.g., while editing an event)? The system should detect the expired session via a global 401 response interceptor in the TanStack Query client, redirect to login preserving the URL so the user can return after re-authenticating.
 - How does the system handle concurrent login sessions from the same user? Allow multiple sessions (different devices/browsers) by default.
 - What happens when the last admin user is deleted? The system must prevent deletion of the last remaining admin account to avoid lockout.
-- How does the system handle login attempts with a correct username but wrong password? Show a generic "invalid credentials" message (no user enumeration) and apply rate limiting after repeated failures.
+- How does the system handle login attempts with a correct username but wrong password? Show a generic "invalid credentials" message (no user enumeration) and apply rate limiting after repeated failures. *(Note: rate limiting is deferred to infrastructure-level implementation or a future enhancement — not a hard requirement for this MVP.)*
 - What happens if the database has users but no roles? The role seeding should run independently and repair missing roles on startup.
 
 ## Requirements *(mandatory)*
@@ -141,11 +141,11 @@ When the system starts for the first time with an empty database (no users), a d
 - **FR-004**: System MUST expose admin API endpoints for user management: list all users, get user by ID, create user, update user, delete user, and change user role — all requiring admin role authorization.
 - **FR-005**: System MUST expose admin API endpoints for role management: list all roles, create role, update role, and delete role — all requiring admin role authorization.
 - **FR-006**: System MUST enforce authentication on all event management endpoints (create, update, delete events), associating events with the authenticated user instead of a hardcoded user ID.
-- **FR-007**: System MUST enforce role-based authorization: admin role for user/role management and full access to all events; host role for creating events and editing/deleting only events they created; participant role has no event management access; no authentication required for public participant routes.
+- **FR-007**: System MUST enforce role-based authorization: admin role for user/role management and full access to all events; owner role for creating events and editing/deleting only events they created; participant role has no event management access (attempts MUST return 403 Forbidden); no authentication required for public participant routes. Unauthenticated requests to protected endpoints MUST return 401 Unauthorized.
 - **FR-008**: System MUST provide a frontend login page with a single identifier field (accepting username or email), a password field, validation feedback, and error messaging.
 - **FR-009**: System MUST provide a frontend authentication context that tracks login state and makes the current user available to all components.
 - **FR-010**: System MUST redirect unauthenticated users to the login page when they attempt to access protected frontend routes, and return them to their intended destination after login.
-- **FR-011**: System MUST seed default roles (admin, host, participant) on application startup if they do not already exist.
+- **FR-011**: System MUST seed default roles (admin, owner, participant) on application startup if they do not already exist.
 - **FR-012**: System MUST seed a default admin user on first startup when no users exist in the database, using the username "admin" and an initial password of "ChangeMe123!" (stored hashed).
 - **FR-013**: System MUST prevent deletion of the last admin user account to avoid system lockout.
 - **FR-014**: System MUST store passwords securely using one-way hashing; plaintext passwords must never be stored or logged.
@@ -155,8 +155,8 @@ When the system starts for the first time with an empty database (no users), a d
 ### Key Entities
 
 - **User**: Represents an authenticated person in the system. Key attributes: unique identifier, username, email, hashed password, full name, associated role, creation timestamp. A user belongs to exactly one role.
-- **Role**: Represents a permission level within the system. Key attributes: unique identifier, name (admin, host, participant), description, creation timestamp. Predefined roles control access to different system features.
-- **Session**: Represents an active authenticated session. Key attributes: session identifier, associated user, creation timestamp, expiration. Uses a sliding 2-hour inactivity timeout — each authenticated request resets the expiration window. Links a browser/client to an authenticated user.
+- **Role**: Represents a permission level within the system. Key attributes: unique identifier, name (admin, owner, participant), description, creation timestamp. Predefined roles control access to different system features.
+- **Session**: Represents an active authenticated session. Key attributes: session identifier, associated user, creation timestamp, expiration, last access timestamp, client IP address, user-agent string. Uses a sliding 2-hour inactivity timeout — each authenticated request resets the expiration window. Links a browser/client to an authenticated user. See [data-model.md](data-model.md) for canonical field definitions.
 - **Event**: Existing entity representing a trivia event. The ownership relationship must change from a hardcoded ID to the authenticated user who created the event.
 
 ## Assumptions
@@ -186,5 +186,5 @@ When the system starts for the first time with an empty database (no users), a d
 - **SC-004**: The admin panel page (user management, role management) loads successfully and displays accurate data from the backend without console errors.
 - **SC-005**: On a fresh database with no users, the system automatically creates default roles and an admin account, allowing login within 60 seconds of first deployment.
 - **SC-006**: 100% of protected routes (both API and frontend) correctly reject unauthenticated access and redirect to the login page or return an appropriate error.
-- **SC-007**: Users with non-admin roles (host, participant) cannot access admin-only features (user management, role management), verifiable by role-based access tests.
+- **SC-007**: Users with non-admin roles (owner, participant) cannot access admin-only features (user management, role management), verifiable by role-based access tests.
 - **SC-008**: An administrator can create a new user account and that user can subsequently log in with the assigned credentials on their first attempt.

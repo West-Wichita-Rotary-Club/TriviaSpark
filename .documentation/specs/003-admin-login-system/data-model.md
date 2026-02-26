@@ -26,7 +26,7 @@ Already defined in `TriviaSpark.Api/Data/Entities/Role.cs`.
 | Field       | Type       | Constraints                 | Notes                      |
 | ----------- | ---------- | --------------------------- | -------------------------- |
 | Id          | string     | PK, auto-generated GUID     |                            |
-| Name        | string     | Required, unique             | "Admin", "Host", "User"    |
+| Name        | string     | Required, unique             | "Admin", "Owner", "Participant" |
 | Description | string?    | Optional                     |                            |
 | CreatedAt   | DateTime   | Default: UTC now             |                            |
 | Users       | ICollection| Navigation property          | One-to-many                |
@@ -73,8 +73,8 @@ Event (N) ──── (1) User [HostId → User.Id]
 | Name        | Description                                      |
 | ----------- | ------------------------------------------------ |
 | Admin       | Full system access: user management, all events  |
-| Host        | Can create events and manage own events           |
-| User        | Basic participant access (future use)             |
+| Owner       | Can create events and manage own events           |
+| Participant | Basic participant access (public routes only)     |
 
 ### Default Admin User (seeded only when zero users exist)
 
