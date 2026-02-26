@@ -17,7 +17,7 @@ Upgrade the TriviaSpark solution from .NET 9.0 to .NET 10.0 LTS, update all NuGe
 **Project Type**: Web application (ASP.NET Core API + React SPA)  
 **Performance Goals**: N/A — version upgrade only, no performance changes expected  
 **Constraints**: Zero compilation warnings, zero errors, all existing tests pass  
-**Scale/Scope**: 3 .csproj files, 1 package.json (~60 npm packages), ~14 NuGet packages
+**Scale/Scope**: 3 .csproj files, 1 package.json (~60 npm packages), 17 NuGet packages (13 to update, 4 already at latest)
 
 ### Current State (Baseline)
 
@@ -72,7 +72,7 @@ Upgrade the TriviaSpark solution from .NET 9.0 to .NET 10.0 LTS, update all NuGe
 **TriviaSpark Constitution v1.0.0 Compliance:**
 
 - [x] **I. Frontend Stack**: No frontend code changes — React 19 + TypeScript strict + shadcn/ui + Tailwind + Zod all remain. Package versions updated.
-- [x] **II. Backend Stack**: Upgrading ASP.NET Core 9 → 10 + EF Core 9 → 10. SQLite remains. Production DB path unchanged.
+- [x] **II. Backend Stack**: ⚠️ Upgrading ASP.NET Core 9 → 10 + EF Core 9 → 10. SQLite remains. Production DB path unchanged. Constitution §II currently says "ASP.NET Core 9" — amendment task (T047) updates this post-upgrade.
 - [x] **III. Validation**: No validation logic changes — Zod schemas and data annotations unaffected.
 - [x] **IV. Testing**: Existing MSTest tests must pass post-upgrade. MSTest 4.0.2 → 4.1.0.
 - [x] **V. Error Handling**: No error handling changes — ILoggingService, Serilog all retained.
@@ -84,7 +84,7 @@ Upgrade the TriviaSpark solution from .NET 9.0 to .NET 10.0 LTS, update all NuGe
 
 *See `.documentation/memory/constitution.md` for full requirements.*
 
-**Constitution Note**: Constitution §II references "ASP.NET Core 9" — this will need a constitution amendment after this upgrade to reflect "ASP.NET Core 10". Filed as a follow-up.
+**Constitution Note**: Constitution §II references "ASP.NET Core 9" — task T047 amends the constitution to say "ASP.NET Core 10 (.NET 10 LTS)" after the upgrade completes. This must be done before merging to main.
 
 ## Project Structure
 

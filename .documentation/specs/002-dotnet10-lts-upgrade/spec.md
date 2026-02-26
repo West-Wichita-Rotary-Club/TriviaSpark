@@ -55,6 +55,7 @@ As a developer, I want all npm dependencies and devDependencies in package.json 
 1. **Given** the updated package.json, **When** a developer runs `npm outdated`, **Then** no outdated packages are listed.
 2. **Given** the updated package.json, **When** a developer runs `npm run build`, **Then** the Vite build completes successfully with no errors.
 3. **Given** the updated package.json, **When** a developer runs `npm run check`, **Then** TypeScript type-checking passes with no errors.
+4. **Given** react-resizable-panels has a major version bump (3→4), **When** the upgrade is applied, **Then** either the v4 API is adopted with no regressions or the package is pinned to the latest v3.x and documented as an exception.
 
 ---
 
@@ -93,7 +94,7 @@ As a developer, I want the application to start and serve requests correctly on 
 - **FR-007**: The frontend MUST build successfully via `npm run build` with no errors.
 - **FR-008**: TypeScript type-checking via `npm run check` MUST pass with no errors.
 - **FR-009**: Any package that cannot be updated to the latest version MUST be documented with the reason and the version used.
-- **FR-010**: The `global.json` file (if present) or SDK version constraints MUST be updated to require .NET 10 SDK.
+- **FR-010**: A `global.json` file MUST be created (or updated if present) to pin the .NET 10 SDK version with `rollForward: latestFeature`.
 
 ### Key Entities
 
@@ -111,7 +112,7 @@ As a developer, I want the application to start and serve requests correctly on 
 - **SC-004**: `npm outdated` returns no outdated packages.
 - **SC-005**: `npm run build` completes successfully with exit code 0.
 - **SC-006**: `npm run check` completes successfully with exit code 0.
-- **SC-007**: Application starts and the health endpoint returns HTTP 200 within 10 seconds of launch.
+- **SC-007**: Application starts and the health endpoint returns HTTP 200.
 
 ## Assumptions
 

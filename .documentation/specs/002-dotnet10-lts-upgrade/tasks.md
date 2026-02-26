@@ -19,10 +19,10 @@
 
 **Purpose**: Pin the .NET SDK version and document the pre-upgrade baseline state
 
-- [ ] T001 Create global.json in repository root to pin .NET SDK to 10.0.x with rollForward latestFeature
-- [ ] T002 Run `dotnet build TriviaSpark.Api.sln` and `dotnet test` to confirm baseline passes (0 warnings, 0 errors, all tests green)
+- [ ] T001 Run `dotnet build TriviaSpark.Api.sln` and `dotnet test` on the current net9.0 codebase to confirm baseline passes (0 warnings, 0 errors, all tests green) before any changes
+- [ ] T002 Create global.json in repository root to pin .NET SDK to 10.0.x with rollForward latestFeature
 
-**Checkpoint**: SDK pinned, baseline validated — ready to begin framework upgrade
+**Checkpoint**: Baseline validated, SDK pinned — ready to begin framework upgrade
 
 ---
 
@@ -35,7 +35,7 @@
 - [ ] T003 [P] [US1] Update TargetFramework from net9.0 to net10.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
 - [ ] T004 [P] [US1] Update TargetFramework from net9.0 to net10.0 in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
 - [ ] T005 [P] [US1] Update TargetFramework from net9.0 to net10.0 in tools/promote-admin/promote-admin.csproj
-- [ ] T006 [US1] Run `dotnet restore TriviaSpark.Api.sln` to verify framework resolution succeeds
+- [ ] T006 [US1] Run `dotnet restore TriviaSpark.Api.sln` and `dotnet restore tools/promote-admin/promote-admin.csproj` to verify framework resolution succeeds for all projects (promote-admin is not in the .sln)
 
 **Checkpoint**: All projects target net10.0 — NuGet version updates can proceed
 
@@ -124,7 +124,7 @@
 
 - [ ] T041 [US4] Run `npm run build` to ensure latest frontend is deployed to TriviaSpark.Api/wwwroot
 - [ ] T042 [US4] Run `dotnet run --project TriviaSpark.Api/TriviaSpark.Api.csproj` and verify application starts without runtime errors
-- [ ] T043 [US4] Verify health endpoint returns HTTP 200 OK
+- [ ] T043 [US4] Verify health endpoint returns HTTP 200 OK (confirm application is responsive after startup)
 - [ ] T044 [US4] Verify React SPA loads and renders at root URL without console errors
 - [ ] T045 [US4] Stop the application after smoke test passes
 
@@ -137,7 +137,7 @@
 **Purpose**: Final cleanup, documentation, and constitution compliance
 
 - [ ] T046 [P] Review NoWarn suppressions in TriviaSpark.Api/TriviaSpark.Api.csproj — ensure only intentional suppressions remain (1591 for XML docs)
-- [ ] T047 [P] Update .documentation/memory/constitution.md §II to reference "ASP.NET Core 10" instead of "ASP.NET Core 9"
+- [ ] T047 [P] Update .documentation/memory/constitution.md §II to explicitly reference ".NET 10 LTS" and "ASP.NET Core 10" instead of ".NET 9" / "ASP.NET Core 9" — MUST complete before merging to main
 - [ ] T048 [P] Document any packages that could not be updated to latest with reason in .documentation/specs/002-dotnet10-lts-upgrade/research.md
 - [ ] T049 Run full verification suite: `dotnet build`, `dotnet test`, `dotnet list package --outdated`, `npm run build`, `npm run check`, `npm outdated`
 
