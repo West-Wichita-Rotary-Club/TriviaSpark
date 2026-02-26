@@ -1,0 +1,39 @@
+#!/bin/sh
+# TriviaSpark Pre-Commit Hook
+# Runs lint and format checks before allowing commits.
+#
+# Installation:
+#   git config core.hooksPath .githooks
+#
+# To bypass (use sparingly):
+#   git commit --no-verify
+
+echo "Running pre-commit checks..."
+
+# Check if npm is available
+if ! command -v npm >/dev/null 2>&1; then
+  echo "Warning: npm not found, skipping frontend checks"
+else
+  # Run ESLint
+  echo "  Checking ESLint..."
+  npm run lint --silent
+  LINT_EXIT=$?
+  if [ $LINT_EXIT -ne 0 ]; then
+    echo "ESLint failed. Fix errors before committing."
+    echo "  Run: npm run lint:fix"
+    exit 1
+  fi
+
+  # Run Prettier check
+  echo "  Checking Prettier formatting..."
+  npm run format:check --silent
+  FORMAT_EXIT=$?
+  if [ $FORMAT_EXIT -ne 0 ]; then
+    echo "Prettier check failed. Format your code before committing."
+    echo "  Run: npm run format"
+    exit 1
+  fi
+fi
+
+echo "Pre-commit checks passed."
+exit 0

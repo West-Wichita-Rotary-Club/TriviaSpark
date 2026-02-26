@@ -1,19 +1,25 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { WandSparkles, Sparkles } from "lucide-react";
-import { eventGenerationSchema, type EventGenerationRequest } from "@shared/schema";
-import { useLocation } from "wouter";
-import { formatDateInCST } from "@/lib/utils";
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { WandSparkles, Sparkles } from 'lucide-react';
+import { eventGenerationSchema, type EventGenerationRequest } from '@shared/schema';
+import { useLocation } from 'wouter';
+import { formatDateInCST } from '@/lib/utils';
 
 export default function EventGenerator() {
   const { toast } = useToast();
@@ -29,41 +35,41 @@ export default function EventGenerator() {
   } = useForm<EventGenerationRequest>({
     resolver: zodResolver(eventGenerationSchema),
     defaultValues: {
-      eventType: "wine_dinner",
+      eventType: 'wine_dinner',
       participants: 30,
-      difficulty: "mixed",
+      difficulty: 'mixed',
     },
   });
 
   const generateEventMutation = useMutation({
     mutationFn: async (data: EventGenerationRequest) => {
-      const response = await fetch("/api/events/generate", {
-        method: "POST",
+      const response = await fetch('/api/events/generate', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate event");
+        throw new Error(errorData.error || 'Failed to generate event');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
       setGeneratedEvent(data);
       toast({
-        title: "Event Generated Successfully!",
+        title: 'Event Generated Successfully!',
         description: `Created "${data.event.title}" with ${data.questions.length} AI-powered questions.`,
       });
     },
     onError: (error) => {
       toast({
-        title: "Generation Failed",
+        title: 'Generation Failed',
         description: (error as Error).message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -88,18 +94,21 @@ export default function EventGenerator() {
             </div>
           </div>
         </div>
-        
+
         <CardContent className="p-6">
           <div className="space-y-4">
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2" data-testid="text-event-title">
+              <h4
+                className="text-lg font-semibold text-gray-900 mb-2"
+                data-testid="text-event-title"
+              >
                 {generatedEvent.event.title}
               </h4>
               <p className="text-gray-600 text-sm" data-testid="text-event-description">
                 {generatedEvent.event.description}
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {generatedEvent.event.eventDate && (
                 <div>
@@ -134,7 +143,7 @@ export default function EventGenerator() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary" data-testid="badge-event-type">
                 {generatedEvent.event.eventType.replace('_', ' ')}
@@ -145,20 +154,24 @@ export default function EventGenerator() {
               <Badge variant="default" data-testid="badge-question-count">
                 {generatedEvent.questions.length} Questions
               </Badge>
-              <Badge variant="default" className="bg-emerald-100 text-emerald-800" data-testid="badge-status">
+              <Badge
+                variant="default"
+                className="bg-emerald-100 text-emerald-800"
+                data-testid="badge-status"
+              >
                 Active
               </Badge>
             </div>
-            
+
             <div className="flex space-x-3">
-              <Button 
+              <Button
                 onClick={() => setLocation(`/event/${generatedEvent.event.id}`)}
                 className="flex-1 trivia-button-primary"
                 data-testid="button-manage-event"
               >
                 Manage Event
               </Button>
-              <Button 
+              <Button
                 onClick={() => setGeneratedEvent(null)}
                 variant="outline"
                 data-testid="button-generate-another"
@@ -187,17 +200,19 @@ export default function EventGenerator() {
           </div>
         </div>
       </div>
-      
+
       <CardContent className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="description" data-testid="label-description">Describe Your Event</Label>
+            <Label htmlFor="description" data-testid="label-description">
+              Describe Your Event
+            </Label>
             <Textarea
               id="description"
-              {...register("description")}
+              {...register('description')}
               rows={3}
               placeholder="Create a sophisticated wine dinner trivia for 30 guests featuring French Bordeaux wines with medium difficulty questions about wine regions, tasting notes, and vineyard history..."
-              className={`resize-none ${errors.description ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}`}
+              className={`resize-none ${errors.description ? 'border-red-500' : 'focus:ring-2 focus:ring-wine-500 focus:border-transparent'}`}
               data-testid="textarea-description"
             />
             {errors.description && (
@@ -206,11 +221,16 @@ export default function EventGenerator() {
               </p>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="eventType" data-testid="label-event-type">Event Type</Label>
-              <Select onValueChange={(value) => setValue("eventType", value as any)} defaultValue="wine_dinner">
+              <Label htmlFor="eventType" data-testid="label-event-type">
+                Event Type
+              </Label>
+              <Select
+                onValueChange={(value) => setValue('eventType', value as any)}
+                defaultValue="wine_dinner"
+              >
                 <SelectTrigger data-testid="select-event-type">
                   <SelectValue />
                 </SelectTrigger>
@@ -223,15 +243,21 @@ export default function EventGenerator() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
-              <Label htmlFor="participants" data-testid="label-participants">Participants</Label>
+              <Label htmlFor="participants" data-testid="label-participants">
+                Participants
+              </Label>
               <Input
                 id="participants"
                 type="number"
-                {...register("participants", { valueAsNumber: true })}
+                {...register('participants', { valueAsNumber: true })}
                 placeholder="30"
-                className={errors.participants ? "border-red-500" : "focus:ring-2 focus:ring-wine-500 focus:border-transparent"}
+                className={
+                  errors.participants
+                    ? 'border-red-500'
+                    : 'focus:ring-2 focus:ring-wine-500 focus:border-transparent'
+                }
                 data-testid="input-participants"
               />
               {errors.participants && (
@@ -240,10 +266,15 @@ export default function EventGenerator() {
                 </p>
               )}
             </div>
-            
+
             <div>
-              <Label htmlFor="difficulty" data-testid="label-difficulty">Difficulty</Label>
-              <Select onValueChange={(value) => setValue("difficulty", value as any)} defaultValue="mixed">
+              <Label htmlFor="difficulty" data-testid="label-difficulty">
+                Difficulty
+              </Label>
+              <Select
+                onValueChange={(value) => setValue('difficulty', value as any)}
+                defaultValue="mixed"
+              >
                 <SelectTrigger data-testid="select-difficulty">
                   <SelectValue />
                 </SelectTrigger>
@@ -256,7 +287,7 @@ export default function EventGenerator() {
               </Select>
             </div>
           </div>
-          
+
           <Button
             type="submit"
             disabled={generateEventMutation.isPending}

@@ -1,5 +1,19 @@
 # Tools Directory
 
+⚠️ **PRODUCTION DATABASE WARNING** ⚠️
+
+This project now uses a production database with real user data. Dangerous database reset scripts have been DISABLED to prevent accidental data loss:
+
+- `refresh-db.ps1.DISABLED` - Would wipe entire database
+- `refresh-db.bat.DISABLED` - Would wipe entire database  
+- `reset-and-seed.mjs.DISABLED` - Would reset and seed database
+- `reset-database.ps1.DISABLED` - Would reset database
+- `reset-database.bat.DISABLED` - Would reset database
+
+**DO NOT RE-ENABLE THESE SCRIPTS** unless you want to lose all production data!
+
+## Safe Development Tools
+
 This directory contains development tools and scripts for the TriviaSpark project.
 
 ## Database Management

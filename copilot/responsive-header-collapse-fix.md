@@ -2,7 +2,7 @@
 
 **Date**: September 11, 2025  
 **Issue**: Header minimize functionality not working + console errors  
-**URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`
+**URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`
 
 ## Issues Identified & Fixed
 

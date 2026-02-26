@@ -3,13 +3,12 @@
 ### Use VS Code REST Client extension to run these tests
 
 ### Variables
-@baseUrl = http://localhost:14166
+@baseUrl = https://localhost:14165/ 
 @eventId = seed-event-coast-to-cascades
 @userId = mark-user-id
 
 ### 1. Health Check (No Auth Required) - Expected: 200 OK
-GET {{baseUrl}}/api/health
-Content-Type: application/json
+GET {{baseUrl}}/health
 
 ###
 
@@ -27,29 +26,26 @@ Content-Type: application/json
 
 ### 3. Dashboard Stats (Requires Auth) - Fixed to use loginUser session
 GET {{baseUrl}}/api/dashboard/stats
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
-### 4. Get User Events (Requires Auth) - Fixed to use loginUser session
+### 4. Get User Events (Requires Auth) - Fixed to use loginUser session  
 GET {{baseUrl}}/api/events
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 5. Get Specific Event (Requires Auth) - This was failing with 500, now fixed to use loginUser session
 GET {{baseUrl}}/api/events/{{eventId}}
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 6. Update Event (Requires Auth) - PUT endpoint we expanded, fixed to use loginUser session
 PUT {{baseUrl}}/api/events/{{eventId}}
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 {
   "title": "Updated Coast to Cascades Wine & Trivia Evening",
@@ -70,7 +66,7 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 ### 7. Create New Event (Requires Auth)
 POST {{baseUrl}}/api/events
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 {
   "title": "Test Event",
@@ -85,15 +81,14 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 
 ### 8. Get Event Teams (Requires Auth)
 GET {{baseUrl}}/api/events/{{eventId}}/teams
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 9. Create Team (Requires Auth)
 POST {{baseUrl}}/api/events/{{eventId}}/teams
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 {
   "name": "Test Team",
@@ -104,29 +99,26 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 
 ### 10. Get Event Questions (Requires Auth)
 GET {{baseUrl}}/api/events/{{eventId}}/questions
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 11. Get Event Participants (Requires Auth)
 GET {{baseUrl}}/api/events/{{eventId}}/participants
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 12. Get Event Fun Facts (Requires Auth)
 GET {{baseUrl}}/api/events/{{eventId}}/fun-facts
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 13. Create Fun Fact (Requires Auth)
 POST {{baseUrl}}/api/events/{{eventId}}/fun-facts
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 {
   "title": "Wine Tasting Fun Fact",
@@ -139,22 +131,20 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 
 ### 14. Get Event Analytics (Requires Auth)
 GET {{baseUrl}}/api/events/{{eventId}}/analytics
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 15. Get Event Leaderboard (Requires Auth)
 GET {{baseUrl}}/api/events/{{eventId}}/leaderboard?type=current
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
 ### 16. Update Event Status (Requires Auth)
 PATCH {{baseUrl}}/api/events/{{eventId}}/status
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 {
   "status": "active"
@@ -165,7 +155,7 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 ### 17. Generate Event Copy (Requires Auth - OpenAI)
 POST {{baseUrl}}/api/events/{{eventId}}/generate-copy
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 {
   "type": "welcome",
@@ -177,7 +167,7 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 ### 18. Generate Questions (Requires Auth - OpenAI)
 POST {{baseUrl}}/api/events/generate-questions
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 {
   "eventId": "{{eventId}}",
@@ -190,7 +180,6 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 
 ### 19. Public Events for Homepage (No Auth Required)
 GET {{baseUrl}}/api/events/home?limit=10
-Content-Type: application/json
 
 ###
 
@@ -209,7 +198,7 @@ Content-Type: application/json
 ### 21. Logout (Requires Auth)
 POST {{baseUrl}}/api/logout
 Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser.response.body.$}}
 
 ###
 
@@ -230,7 +219,7 @@ Content-Type: application/json
 ###
 
 ### Step 2: Login with the seeded user credentials - Fixed with username
-# @name loginUser
+# @name loginUser2
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
@@ -244,15 +233,13 @@ Content-Type: application/json
 ### Step 3: Use the session from login response
 ### Extract sessionId from login response and use it in subsequent requests
 GET {{baseUrl}}/api/events
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser2.response.body.$}}
 
 ###
 
 ### Step 4: Test the problematic endpoint with valid session
 GET {{baseUrl}}/api/events/{{eventId}}
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser2.response.body.$}}
 
 ###
 
@@ -261,13 +248,11 @@ Cookie: sessionId={{loginUser.response.body.sessionId}}
 
 ### No session cookie
 GET {{baseUrl}}/api/events
-Content-Type: application/json
 
 ###
 
 ### Invalid session cookie
 GET {{baseUrl}}/api/events
-Content-Type: application/json
 Cookie: sessionId=invalid-session-id
 
 ###
@@ -276,8 +261,7 @@ Cookie: sessionId=invalid-session-id
 
 ### Check if user exists in database
 GET {{baseUrl}}/api/dashboard/stats
-Content-Type: application/json
-Cookie: sessionId={{loginUser.response.body.sessionId}}
+Cookie: sessionId={{loginUser2.response.body.$}}
 
 ###
 
@@ -306,15 +290,59 @@ Content-Type: application/json
 
 ### Test event access with seeded user
 GET {{baseUrl}}/api/events/{{eventId}}
-Content-Type: application/json
-Cookie: sessionId={{loginSeededUser.response.body.sessionId}}
+Cookie: sessionId={{loginSeededUser.response.body.$}}
 
 ###
 
 ### Debug Event Ownership
 ### Check if the event exists and who owns it
 GET {{baseUrl}}/api/events
+Cookie: sessionId={{loginSeededUser.response.body.$}}
+
+###
+
+### Alternative Session Access Methods
+### Try these if the above doesn't work:
+
+### Method 1: Using JSONPath for sessionId
+# @name loginUserAlt1
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
-Cookie: sessionId={{loginSeededUser.response.body.sessionId}}
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+
+### Test with specific sessionId JSONPath
+GET {{baseUrl}}/api/events/{{eventId}}
+Cookie: sessionId={{loginUserAlt1.response.body.$.sessionId}}
+
+###
+
+### Method 2: Using cookie from response headers
+# @name loginUserAlt2  
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "mark",
+  "password": "mark123"
+}
+
+###
+
+### Test with cookie from headers
+GET {{baseUrl}}/api/events/{{eventId}}
+Cookie: {{loginUserAlt2.response.headers.Set-Cookie}}
+
+###
+
+### Method 3: Manual session for testing
+### First run the login and copy the sessionId manually
+GET {{baseUrl}}/api/events/{{eventId}}
+Cookie: sessionId=REPLACE_WITH_ACTUAL_SESSION_ID
 
 ###

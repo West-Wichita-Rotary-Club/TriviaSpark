@@ -1,11 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Code, Server, Zap, Users, Shield, FileText } from "lucide-react";
-import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Code, Server, Zap, Users, Shield, FileText } from 'lucide-react';
+import Header from '@/components/layout/header';
+import Footer from '@/components/layout/footer';
 
 const ApiDocs = () => {
   return (
@@ -15,10 +15,13 @@ const ApiDocs = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header Section */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4" data-testid="text-api-docs-title">
+            <h1
+              className="text-4xl font-bold text-foreground mb-4"
+              data-testid="text-api-docs-title"
+            >
               TriviaSpark API Documentation
             </h1>
-            <p className="text-xl text-gray-600 mb-6" data-testid="text-api-docs-subtitle">
+            <p className="text-xl text-muted-foreground mb-6" data-testid="text-api-docs-subtitle">
               Complete reference for integrating with the TriviaSpark platform
             </p>
             <div className="flex items-center space-x-4">
@@ -59,22 +62,32 @@ const ApiDocs = () => {
                 <CardContent className="space-y-4">
                   <div>
                     <h3 className="font-semibold mb-2">Base URL</h3>
-                    <code className="bg-gray-100 px-3 py-1 rounded">https://your-domain.com/api</code>
+                    <code className="bg-gray-100 px-3 py-1 rounded">
+                      https://your-domain.com/api
+                    </code>
                   </div>
-                  
+
                   <div>
                     <h3 className="font-semibold mb-2">Authentication</h3>
-                    <p className="text-gray-600">Session-based authentication using HTTP-only cookies. Login required for most endpoints.</p>
+                    <p className="text-muted-foreground">
+                      Session-based authentication using HTTP-only cookies. Login required for most
+                      endpoints.
+                    </p>
                   </div>
 
                   <div>
                     <h3 className="font-semibold mb-2">Response Format</h3>
-                    <p className="text-gray-600">All responses are in JSON format with appropriate HTTP status codes.</p>
+                    <p className="text-gray-600">
+                      All responses are in JSON format with appropriate HTTP status codes.
+                    </p>
                   </div>
 
                   <div>
                     <h3 className="font-semibold mb-2">Error Handling</h3>
-                    <p className="text-gray-600">Errors return JSON with an <code>error</code> field and appropriate HTTP status codes.</p>
+                    <p className="text-gray-600">
+                      Errors return JSON with an <code>error</code> field and appropriate HTTP
+                      status codes.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -89,20 +102,38 @@ const ApiDocs = () => {
                     <div>
                       <h4 className="font-medium text-green-700 mb-2">Success Codes</h4>
                       <ul className="space-y-1 text-sm">
-                        <li><code>200</code> - OK</li>
-                        <li><code>201</code> - Created</li>
-                        <li><code>204</code> - No Content</li>
-                        <li><code>304</code> - Not Modified</li>
+                        <li>
+                          <code>200</code> - OK
+                        </li>
+                        <li>
+                          <code>201</code> - Created
+                        </li>
+                        <li>
+                          <code>204</code> - No Content
+                        </li>
+                        <li>
+                          <code>304</code> - Not Modified
+                        </li>
                       </ul>
                     </div>
                     <div>
                       <h4 className="font-medium text-red-700 mb-2">Error Codes</h4>
                       <ul className="space-y-1 text-sm">
-                        <li><code>400</code> - Bad Request</li>
-                        <li><code>401</code> - Unauthorized</li>
-                        <li><code>403</code> - Forbidden</li>
-                        <li><code>404</code> - Not Found</li>
-                        <li><code>500</code> - Internal Server Error</li>
+                        <li>
+                          <code>400</code> - Bad Request
+                        </li>
+                        <li>
+                          <code>401</code> - Unauthorized
+                        </li>
+                        <li>
+                          <code>403</code> - Forbidden
+                        </li>
+                        <li>
+                          <code>404</code> - Not Found
+                        </li>
+                        <li>
+                          <code>500</code> - Internal Server Error
+                        </li>
                       </ul>
                     </div>
                   </div>
@@ -131,7 +162,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "username": "string",
   "password": "string"
 }`}
@@ -140,7 +171,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "user": {
     "id": "string",
     "username": "string",
@@ -165,7 +196,7 @@ const ApiDocs = () => {
                     <div>
                       <h5 className="font-medium">Response:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                        {`{
   "success": true
 }`}
                       </pre>
@@ -184,7 +215,7 @@ const ApiDocs = () => {
                     <div>
                       <h5 className="font-medium">Response:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                        {`{
   "user": {
     "id": "string",
     "username": "string",
@@ -210,7 +241,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "fullName": "string",
   "email": "string",
   "username": "string"
@@ -220,7 +251,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "user": {
     "id": "string",
     "username": "string",
@@ -257,7 +288,7 @@ const ApiDocs = () => {
                     <div>
                       <h5 className="font-medium">Response:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`[
+                        {`[
   {
     "id": "string",
     "title": "string",
@@ -290,7 +321,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "title": "string",
   "description": "string",
   "eventType": "wine_dinner | corporate | party | education | fundraiser",
@@ -312,14 +343,18 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/events/generate</code>
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">AI</Badge>
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                        AI
+                      </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Generate complete event with AI-powered content</p>
+                    <p className="text-gray-600 mb-3">
+                      Generate complete event with AI-powered content
+                    </p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "eventType": "wine_dinner | corporate | party | education | fundraiser",
   "participants": "number",
   "difficulty": "easy | medium | hard",
@@ -330,7 +365,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "event": { /* Event object */ },
   "questions": [ /* Array of generated questions */ ]
 }`}
@@ -368,7 +403,9 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/events/:id/start</code>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">Enhanced</Badge>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        Enhanced
+                      </Badge>
                     </div>
                     <p className="text-gray-600 mb-3">Start an event and lock team switching</p>
                     <div>
@@ -393,7 +430,7 @@ const ApiDocs = () => {
                     <div>
                       <h5 className="font-medium">Request Body:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                        {`{
   "status": "draft | active | completed | cancelled"
 }`}
                       </pre>
@@ -418,14 +455,18 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/events/join/:qrCode</code>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">Enhanced</Badge>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        Enhanced
+                      </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Join an event using QR code with team management</p>
+                    <p className="text-gray-600 mb-3">
+                      Join an event using QR code with team management
+                    </p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "name": "string",
   "teamAction": "none | join | create",
   "teamIdentifier": "string (team name or table number)"
@@ -435,7 +476,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "participant": {
     "id": "string",
     "name": "string",
@@ -466,7 +507,7 @@ const ApiDocs = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <Separator />
 
                   {/* Get Event Teams */}
@@ -474,13 +515,15 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/events/:id/teams</code>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">New</Badge>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        New
+                      </Badge>
                     </div>
                     <p className="text-gray-600 mb-3">Get all teams for an event (host only)</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`[
+                        {`[
   {
     "id": "string",
     "eventId": "string",
@@ -509,14 +552,16 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/events/:id/teams</code>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">New</Badge>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        New
+                      </Badge>
                     </div>
                     <p className="text-gray-600 mb-3">Create a new team for an event</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "name": "string",
   "tableNumber": "number (optional)"
 }`}
@@ -525,7 +570,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "id": "string",
   "eventId": "string",
   "name": "string",
@@ -545,13 +590,17 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/events/:qrCode/teams-public</code>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">New</Badge>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        New
+                      </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Get available teams for participants (public endpoint)</p>
+                    <p className="text-gray-600 mb-3">
+                      Get available teams for participants (public endpoint)
+                    </p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`[
+                        {`[
   {
     "id": "string",
     "name": "string",
@@ -587,7 +636,7 @@ const ApiDocs = () => {
                     <div>
                       <h5 className="font-medium">Response:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`[
+                        {`[
   {
     "id": "string",
     "eventId": "string",
@@ -611,14 +660,16 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/questions/generate</code>
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">AI</Badge>
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                        AI
+                      </Badge>
                     </div>
                     <p className="text-gray-600 mb-3">Generate questions for an existing event</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "eventId": "string",
   "count": "number",
   "difficulty": "easy | medium | hard",
@@ -641,7 +692,7 @@ const ApiDocs = () => {
                     <div>
                       <h5 className="font-medium">Request Body:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                        {`{
   "question": "string",
   "options": ["string", "string", "string", "string"],
   "correctAnswer": "string",
@@ -688,7 +739,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "participantId": "string",
   "questionId": "string",
   "answer": "string",
@@ -700,7 +751,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "id": "string",
   "participantId": "string",
   "questionId": "string",
@@ -723,14 +774,16 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-yellow-100 text-yellow-800">PUT</Badge>
                       <code className="text-sm">/api/participants/:id/team</code>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">New</Badge>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        New
+                      </Badge>
                     </div>
                     <p className="text-gray-600 mb-3">Switch a participant to a different team</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "teamId": "string (null to leave team)"
 }`}
                         </pre>
@@ -742,7 +795,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response:</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "id": "string",
   "name": "string",
   "teamId": "string",
@@ -767,15 +820,33 @@ const ApiDocs = () => {
 
                   {/* Additional MVP Endpoints Needed */}
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-blue-900 mb-3">Additional MVP Endpoints (To Be Implemented)</h4>
+                    <h4 className="font-semibold text-blue-900 mb-3">
+                      Additional MVP Endpoints (To Be Implemented)
+                    </h4>
                     <div className="space-y-2 text-sm">
-                      <div><code>GET /api/events/:id/leaderboard</code> - Real-time event leaderboard with team scores</div>
-                      <div><code>GET /api/participants/:id/responses</code> - Get participant's responses</div>
-                      <div><code>PUT /api/participants/:id</code> - Update participant information</div>
-                      <div><code>DELETE /api/participants/:id</code> - Remove participant from event</div>
-                      <div><code>GET /api/events/:id/analytics</code> - Event performance analytics</div>
-                      <div><code>PUT /api/teams/:id</code> - Update team information</div>
-                      <div><code>DELETE /api/teams/:id</code> - Delete empty team</div>
+                      <div>
+                        <code>GET /api/events/:id/leaderboard</code> - Real-time event leaderboard
+                        with team scores
+                      </div>
+                      <div>
+                        <code>GET /api/participants/:id/responses</code> - Get participant's
+                        responses
+                      </div>
+                      <div>
+                        <code>PUT /api/participants/:id</code> - Update participant information
+                      </div>
+                      <div>
+                        <code>DELETE /api/participants/:id</code> - Remove participant from event
+                      </div>
+                      <div>
+                        <code>GET /api/events/:id/analytics</code> - Event performance analytics
+                      </div>
+                      <div>
+                        <code>PUT /api/teams/:id</code> - Update team information
+                      </div>
+                      <div>
+                        <code>DELETE /api/teams/:id</code> - Delete empty team
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -795,7 +866,9 @@ const ApiDocs = () => {
                   {/* WebSocket Connection */}
                   <div>
                     <h3 className="font-semibold mb-3">WebSocket Connection</h3>
-                    <p className="text-gray-600 mb-3">Connect to real-time events using WebSocket</p>
+                    <p className="text-gray-600 mb-3">
+                      Connect to real-time events using WebSocket
+                    </p>
                     <div>
                       <h5 className="font-medium">Connection URL:</h5>
                       <code className="bg-gray-100 px-3 py-1 rounded">ws://localhost:5000/ws</code>
@@ -811,7 +884,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Participant Joined</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "type": "participant_joined",
   "eventId": "string",
   "participant": {
@@ -826,7 +899,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Question Started</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "type": "question_started",
   "eventId": "string",
   "question": {
@@ -842,7 +915,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Response Submitted</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "type": "response_submitted",
   "eventId": "string",
   "participantId": "string",
@@ -854,7 +927,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Leaderboard Updated</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "type": "leaderboard_updated",
   "eventId": "string",
   "leaderboard": [
@@ -881,7 +954,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Team Member Joined</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "type": "team_member_joined",
   "eventId": "string",
   "teamId": "string",
@@ -896,7 +969,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Team Switched</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "type": "team_switched",
   "eventId": "string",
   "participantId": "string",
@@ -909,7 +982,7 @@ const ApiDocs = () => {
                       <div>
                         <h5 className="font-medium">Team Scoring Update</h5>
                         <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                          {`{
   "type": "team_score_updated",
   "eventId": "string",
   "teamId": "string",
@@ -920,16 +993,32 @@ const ApiDocs = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-purple-50 p-4 rounded-lg mt-4">
-                    <h4 className="font-semibold text-purple-900 mb-3">Additional Real-time Features (To Be Implemented)</h4>
+                    <h4 className="font-semibold text-purple-900 mb-3">
+                      Additional Real-time Features (To Be Implemented)
+                    </h4>
                     <div className="space-y-2 text-sm">
-                      <div><strong>Live Chat:</strong> In-event participant messaging</div>
-                      <div><strong>Question Timer:</strong> Synchronized countdown for all participants</div>
-                      <div><strong>Host Controls:</strong> Real-time event management from host dashboard</div>
-                      <div><strong>Team Collaboration:</strong> Real-time team discussion during questions</div>
-                      <div><strong>Live Polls:</strong> Interactive polling between questions</div>
-                      <div><strong>Screen Sharing:</strong> Host can share content during event</div>
+                      <div>
+                        <strong>Live Chat:</strong> In-event participant messaging
+                      </div>
+                      <div>
+                        <strong>Question Timer:</strong> Synchronized countdown for all participants
+                      </div>
+                      <div>
+                        <strong>Host Controls:</strong> Real-time event management from host
+                        dashboard
+                      </div>
+                      <div>
+                        <strong>Team Collaboration:</strong> Real-time team discussion during
+                        questions
+                      </div>
+                      <div>
+                        <strong>Live Polls:</strong> Interactive polling between questions
+                      </div>
+                      <div>
+                        <strong>Screen Sharing:</strong> Host can share content during event
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -945,13 +1034,15 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/dashboard/stats</code>
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">AI</Badge>
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                        AI
+                      </Badge>
                     </div>
                     <p className="text-gray-600 mb-3">Get dashboard statistics with AI insights</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                        {`{
   "totalEvents": "number",
   "totalParticipants": "number",
   "avgEventDuration": "number",
@@ -975,13 +1066,17 @@ const ApiDocs = () => {
                     <div className="flex items-center space-x-2 mb-2">
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/events/:id/generate-copy</code>
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">AI</Badge>
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                        AI
+                      </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Generate promotional or thank you copy for events</p>
+                    <p className="text-gray-600 mb-3">
+                      Generate promotional or thank you copy for events
+                    </p>
                     <div>
                       <h5 className="font-medium">Request Body:</h5>
                       <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
-{`{
+                        {`{
   "type": "promotional | thank_you"
 }`}
                       </pre>

@@ -4,19 +4,35 @@ using TriviaSpark.Api.Data.Entities;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// Interface for question management operations using Entity Framework Core.
+/// </summary>
 public interface IEfCoreQuestionService
 {
+    /// <summary>Gets all questions for an event, ordered by order index then creation date.</summary>
     Task<IList<Question>> GetQuestionsForEventAsync(string eventId);
+    /// <summary>Gets a question by ID with its parent event included.</summary>
     Task<Question?> GetQuestionByIdAsync(string questionId);
+    /// <summary>Creates a single question, auto-assigning order index if not specified.</summary>
     Task<Question> CreateQuestionAsync(Question question);
+    /// <summary>Updates an existing question entity.</summary>
     Task<Question> UpdateQuestionAsync(Question question);
+    /// <summary>Deletes a question by ID. Returns false if not found.</summary>
     Task<bool> DeleteQuestionAsync(string questionId);
+    /// <summary>Reorders questions by assigning sequential order indices based on the provided ID list.</summary>
     Task<bool> ReorderQuestionsAsync(IList<string> questionOrder);
+    /// <summary>Creates multiple questions in a single operation with auto-assigned order indices.</summary>
     Task<IList<Question>> CreateQuestionsAsync(IList<Question> questions);
+    /// <summary>Bulk inserts questions (delegates to CreateQuestionsAsync).</summary>
     Task<IList<Question>> BulkInsertQuestionsAsync(IList<Question> questions);
+    /// <summary>Gets the next available order index for a new question in an event.</summary>
     Task<int> GetNextOrderIndexAsync(string eventId);
 }
 
+/// <summary>
+/// EF Core implementation of question management operations.
+/// Provides CRUD, reordering, and bulk operations for trivia questions.
+/// </summary>
 public class EfCoreQuestionService : IEfCoreQuestionService
 {
     private readonly TriviaSparkDbContext _context;

@@ -1,13 +1,32 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Database, Table as TableIcon, Key, Users, Calendar, FileText, Award, MessageSquare, BarChart3, RefreshCw, AlertCircle } from "lucide-react";
-import { useLocation } from "wouter";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import {
+  Database,
+  Table as TableIcon,
+  Key,
+  Users,
+  Calendar,
+  FileText,
+  Award,
+  MessageSquare,
+  BarChart3,
+  RefreshCw,
+  AlertCircle,
+} from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface DatabaseTable {
   name: string;
@@ -81,19 +100,28 @@ export default function DatabaseAnalyzer() {
   const [, setLocation] = useLocation();
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
 
-  const { data: dbInfo, isLoading: dbLoading, error: dbError, refetch: refetchDb } = useQuery<DatabaseInfo>({
-    queryKey: ["/api/db/analyze"],
-    retry: false
+  const {
+    data: dbInfo,
+    isLoading: dbLoading,
+    error: dbError,
+    refetch: refetchDb,
+  } = useQuery<DatabaseInfo>({
+    queryKey: ['/api/db/analyze'],
+    retry: false,
   });
 
-  const { data: tableAnalysis, isLoading: tableLoading, error: tableError } = useQuery<TableAnalysis>({
-    queryKey: ["/api/db/analyze/table", selectedTable],
+  const {
+    data: tableAnalysis,
+    isLoading: tableLoading,
+    error: tableError,
+  } = useQuery<TableAnalysis>({
+    queryKey: ['/api/db/analyze/table', selectedTable],
     enabled: !!selectedTable,
-    retry: false
+    retry: false,
   });
 
   const handleBackToDashboard = () => {
-    setLocation("/dashboard");
+    setLocation('/dashboard');
   };
 
   const handleTableSelect = (tableName: string) => {
@@ -127,7 +155,8 @@ export default function DatabaseAnalyzer() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-600 mb-4">
-              Failed to connect to the database. Please ensure the database file exists and is accessible.
+              Failed to connect to the database. Please ensure the database file exists and is
+              accessible.
             </p>
             <div className="space-y-2">
               <Button onClick={() => refetchDb()} className="w-full">
@@ -178,19 +207,17 @@ export default function DatabaseAnalyzer() {
                   <p className="text-xs text-gray-500 mt-1">{dbInfo.databasePath}</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">Total Tables</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-wine-600">
-                    {dbInfo.tableCount}
-                  </div>
+                  <div className="text-2xl font-bold text-wine-600">{dbInfo.tableCount}</div>
                   <p className="text-xs text-gray-500 mt-1">Database tables</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">Total Records</CardTitle>
@@ -219,8 +246,8 @@ export default function DatabaseAnalyzer() {
                   {dbInfo.tables.map((table) => {
                     const Icon = getTableIcon(table.name);
                     return (
-                      <Card 
-                        key={table.name} 
+                      <Card
+                        key={table.name}
                         className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-wine-200"
                         onClick={() => handleTableSelect(table.name)}
                       >
@@ -304,7 +331,7 @@ export default function DatabaseAnalyzer() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">Columns</CardTitle>
@@ -315,7 +342,7 @@ export default function DatabaseAnalyzer() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-gray-600">Indexes</CardTitle>
@@ -352,7 +379,9 @@ export default function DatabaseAnalyzer() {
                         <TableRow key={column.cid}>
                           <TableCell className="font-medium">
                             <div className="flex items-center">
-                              {column.primaryKey && <Key className="h-3 w-3 text-yellow-500 mr-1" />}
+                              {column.primaryKey && (
+                                <Key className="h-3 w-3 text-yellow-500 mr-1" />
+                              )}
                               {column.name}
                             </div>
                           </TableCell>
@@ -361,8 +390,16 @@ export default function DatabaseAnalyzer() {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-1">
-                              {column.primaryKey && <Badge variant="default" className="text-xs">PK</Badge>}
-                              {column.notNull && <Badge variant="secondary" className="text-xs">NOT NULL</Badge>}
+                              {column.primaryKey && (
+                                <Badge variant="default" className="text-xs">
+                                  PK
+                                </Badge>
+                              )}
+                              {column.notNull && (
+                                <Badge variant="secondary" className="text-xs">
+                                  NOT NULL
+                                </Badge>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className="text-gray-500">
@@ -381,17 +418,28 @@ export default function DatabaseAnalyzer() {
               {/* Indexes */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Indexes ({tableAnalysis.indexes.length})</CardTitle>
+                  <CardTitle className="text-sm">
+                    Indexes ({tableAnalysis.indexes.length})
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {tableAnalysis.indexes.length > 0 ? (
                     <div className="space-y-2">
                       {tableAnalysis.indexes.map((index, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div
+                          key={i}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                        >
                           <span className="font-medium text-sm">{index.name}</span>
                           <div className="flex items-center gap-2">
-                            {index.unique && <Badge variant="outline" className="text-xs">UNIQUE</Badge>}
-                            <span className="text-xs text-gray-500">{index.columns.join(', ')}</span>
+                            {index.unique && (
+                              <Badge variant="outline" className="text-xs">
+                                UNIQUE
+                              </Badge>
+                            )}
+                            <span className="text-xs text-gray-500">
+                              {index.columns.join(', ')}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -405,7 +453,9 @@ export default function DatabaseAnalyzer() {
               {/* Foreign Keys */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Foreign Keys ({tableAnalysis.foreignKeys.length})</CardTitle>
+                  <CardTitle className="text-sm">
+                    Foreign Keys ({tableAnalysis.foreignKeys.length})
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {tableAnalysis.foreignKeys.length > 0 ? (

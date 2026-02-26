@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Brain, Lightbulb, TrendingUp, RefreshCw } from "lucide-react";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Brain, Lightbulb, TrendingUp, RefreshCw } from 'lucide-react';
 
 type User = {
   id: string;
@@ -13,27 +13,31 @@ type User = {
 
 export default function Insights() {
   const [shouldFetchInsights, setShouldFetchInsights] = useState(false);
-  
+
   // Check authentication
   const { data: user } = useQuery<{ user: User }>({
-    queryKey: ["/api/auth/me"],
-    retry: false
+    queryKey: ['/api/auth/me'],
+    retry: false,
   });
-  
+
   const { data: stats } = useQuery<{
     totalEvents: number;
     totalParticipants: number;
     totalQuestions: number;
     averageRating: number;
   }>({
-    queryKey: ["/api/dashboard/stats"],
+    queryKey: ['/api/dashboard/stats'],
     enabled: !!user,
   });
-  
-  const { data: insights, isLoading: insightsLoading, refetch: refetchInsights } = useQuery<{
+
+  const {
+    data: insights,
+    isLoading: insightsLoading,
+    refetch: refetchInsights,
+  } = useQuery<{
     insights: string[];
   }>({
-    queryKey: ["/api/dashboard/insights"],
+    queryKey: ['/api/dashboard/insights'],
     enabled: shouldFetchInsights && !!user,
   });
 
@@ -56,9 +60,7 @@ export default function Insights() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          AI Insights
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Insights</h1>
         <p className="text-gray-600">
           Get personalized recommendations based on your trivia event performance
         </p>
@@ -79,15 +81,21 @@ export default function Insights() {
               <div className="text-sm text-gray-600">Events</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-champagne-600">{stats?.totalParticipants || 0}</div>
+              <div className="text-2xl font-bold text-champagne-600">
+                {stats?.totalParticipants || 0}
+              </div>
               <div className="text-sm text-gray-600">Participants</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-emerald-600">{stats?.totalQuestions || 0}</div>
+              <div className="text-2xl font-bold text-emerald-600">
+                {stats?.totalQuestions || 0}
+              </div>
               <div className="text-sm text-gray-600">Questions</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-coral-500">{stats?.averageRating?.toFixed(1) || "0.0"}</div>
+              <div className="text-2xl font-bold text-coral-500">
+                {stats?.averageRating?.toFixed(1) || '0.0'}
+              </div>
               <div className="text-sm text-gray-600">Avg Rating</div>
             </div>
           </div>
@@ -106,7 +114,7 @@ export default function Insights() {
           <p className="text-gray-600 mb-4">
             Click the button below to generate personalized insights based on your event data.
           </p>
-          <Button 
+          <Button
             onClick={handleGenerateInsights}
             disabled={insightsLoading}
             className="bg-wine-600 hover:bg-wine-700"
@@ -149,11 +157,13 @@ export default function Insights() {
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-900 mb-1">
-                        {index === 0 ? "Engagement Tip" : index === 1 ? "Performance Trend" : "Recommendation"}
+                        {index === 0
+                          ? 'Engagement Tip'
+                          : index === 1
+                            ? 'Performance Trend'
+                            : 'Recommendation'}
                       </h4>
-                      <p className="text-sm text-gray-600">
-                        {insight}
-                      </p>
+                      <p className="text-sm text-gray-600">{insight}</p>
                     </div>
                   </div>
                 </div>

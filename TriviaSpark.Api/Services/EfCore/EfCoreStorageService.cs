@@ -4,6 +4,10 @@ using DapperUser = TriviaSpark.Api.Services.User;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// Unified storage interface bridging EF Core services for backward compatibility.
+/// Aggregates user, event, question, team, participant, response, fun fact, and analytics operations.
+/// </summary>
 public interface IEfCoreStorageService
 {
     // User operations
@@ -50,6 +54,10 @@ public interface IEfCoreStorageService
     Task LockTeamSwitchingAsync(string eventId);
 }
 
+/// <summary>
+/// EF Core implementation of the unified storage service.
+/// Delegates operations to specialized service classes for each entity type.
+/// </summary>
 public class EfCoreStorageService : IEfCoreStorageService
 {
     private readonly IEfCoreUserService _userService;

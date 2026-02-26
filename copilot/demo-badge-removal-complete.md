@@ -213,5 +213,5 @@ The demo environment now provides a clean, professional experience that better r
 **Testing Status**: ✅ Verified clean header  
 **Deployment**: ✅ Ready for demonstration
 
-**Testing URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`  
+**Testing URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`  
 **Result**: Clean header with no duplicate DEMO badges

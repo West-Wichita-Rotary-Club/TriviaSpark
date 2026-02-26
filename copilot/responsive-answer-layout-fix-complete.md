@@ -263,5 +263,5 @@ The question and answer display now provides the optimal viewing experience acro
 **Testing Status**: ✅ No scrollbars on any screen size  
 **Deployment**: ✅ Ready for all device types
 
-**Testing URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`  
+**Testing URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`  
 **Result**: Fully responsive question/answer layout without scrollbars

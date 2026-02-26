@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 export interface WebSocketMessage {
   type: string;
@@ -9,7 +9,7 @@ export interface WebSocketMessage {
 
 export interface UseWebSocketOptions {
   eventId?: string;
-  role?: "host" | "participant";
+  role?: 'host' | 'participant';
   userId?: string;
   participantId?: string;
   onMessage?: (message: WebSocketMessage) => void;
@@ -21,7 +21,7 @@ export interface UseWebSocketOptions {
 export function useWebSocket(options: UseWebSocketOptions) {
   const {
     eventId,
-    role = "participant",
+    role = 'participant',
     userId,
     participantId,
     onMessage,
@@ -33,8 +33,8 @@ export function useWebSocket(options: UseWebSocketOptions) {
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<
-    "disconnected" | "connecting" | "connected"
-  >("disconnected");
+    'disconnected' | 'connecting' | 'connected'
+  >('disconnected');
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
@@ -56,17 +56,17 @@ export function useWebSocket(options: UseWebSocketOptions) {
       return;
     }
 
-    setConnectionStatus("connecting");
+    setConnectionStatus('connecting');
 
     // Build WebSocket URL with query parameters
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
     const params = new URLSearchParams();
 
-    if (eventId) params.set("eventId", eventId);
-    if (role) params.set("role", role);
-    if (userId) params.set("userId", userId);
-    if (participantId) params.set("participantId", participantId);
+    if (eventId) params.set('eventId', eventId);
+    if (role) params.set('role', role);
+    if (userId) params.set('userId', userId);
+    if (participantId) params.set('participantId', participantId);
 
     const wsUrl = `${protocol}//${host}/ws?${params.toString()}`;
 
@@ -74,9 +74,8 @@ export function useWebSocket(options: UseWebSocketOptions) {
       ws.current = new WebSocket(wsUrl);
 
       ws.current.onopen = () => {
-        console.log("WebSocket connected");
         setIsConnected(true);
-        setConnectionStatus("connected");
+        setConnectionStatus('connected');
         reconnectAttempts.current = 0;
         onConnectRef.current?.();
       };
@@ -85,40 +84,32 @@ export function useWebSocket(options: UseWebSocketOptions) {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
           onMessageRef.current?.(message);
-        } catch (error) {
-          console.error("Error parsing WebSocket message:", error);
+        } catch {
+          // Ignore malformed messages
         }
       };
 
       ws.current.onclose = () => {
-        console.log("WebSocket disconnected");
         setIsConnected(false);
-        setConnectionStatus("disconnected");
+        setConnectionStatus('disconnected');
         onDisconnectRef.current?.();
 
         // Auto-reconnect logic
         if (autoReconnect && reconnectAttempts.current < maxReconnectAttempts) {
-          const delay = Math.min(
-            1000 * Math.pow(2, reconnectAttempts.current),
-            30000
-          );
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
           reconnectAttempts.current++;
 
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log(
-              `Attempting to reconnect... (${reconnectAttempts.current}/${maxReconnectAttempts})`
-            );
             connect();
           }, delay);
         }
       };
 
-      ws.current.onerror = (error) => {
-        console.error("WebSocket error:", error);
+      ws.current.onerror = () => {
+        // WebSocket error handled by onclose
       };
-    } catch (error) {
-      console.error("Failed to create WebSocket connection:", error);
-      setConnectionStatus("disconnected");
+    } catch {
+      setConnectionStatus('disconnected');
     }
   }, [eventId, role, userId, participantId, autoReconnect]);
 
@@ -133,7 +124,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
     }
 
     setIsConnected(false);
-    setConnectionStatus("disconnected");
+    setConnectionStatus('disconnected');
   }, []);
 
   const sendMessage = useCallback((message: WebSocketMessage) => {
@@ -145,7 +136,7 @@ export function useWebSocket(options: UseWebSocketOptions) {
         })
       );
     } else {
-      console.warn("WebSocket not connected, cannot send message:", message);
+      // WebSocket not connected
     }
   }, []);
 

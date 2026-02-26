@@ -25,6 +25,56 @@ public class UnsplashController : ControllerBase
     }
 
     /// <summary>
+    /// Test Unsplash API connectivity and configuration
+    /// </summary>
+    /// <returns>Test result with API status</returns>
+    [HttpGet("test")]
+    [ProducesResponseType(typeof(object), 200)]
+    [ProducesResponseType(500)]
+    public async Task<ActionResult> TestUnsplashApi()
+    {
+        try
+        {
+            _logger.LogInformation("Testing Unsplash API connectivity");
+
+            // Try a simple search to test the API
+            var searchParams = new UnsplashSearchParams
+            {
+                Query = "test",
+                Page = 1,
+                PerPage = 1,
+                OrderBy = "relevant",
+                ContentFilter = "high"
+            };
+
+            var result = await _unsplashService.SearchImagesAsync(searchParams);
+
+            if (result == null)
+            {
+                return StatusCode(500, new { 
+                    error = "Unsplash API test failed - no response",
+                    suggestion = "Check API key configuration and network connectivity"
+                });
+            }
+
+            return Ok(new { 
+                status = "success",
+                message = "Unsplash API is working",
+                totalResults = result.Total,
+                resultCount = result.Results?.Count ?? 0
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unsplash API test failed: {Message}", ex.Message);
+            return StatusCode(500, new { 
+                error = "Unsplash API test failed",
+                message = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
     /// Search for images on Unsplash
     /// </summary>
     /// <param name="query">Search query (required)</param>
@@ -261,12 +311,12 @@ public class UnsplashController : ControllerBase
     }
 
     /// <summary>
-    /// Track image download for Unsplash API compliance
-    /// This should be called when an image is actually used in the application
+    /// Track image download for Unsplash API compliance.
+    /// This should be called when an image is actually used in the application.
     /// </summary>
-    /// <param name="downloadUrl">Download tracking URL from Unsplash image</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Success status</returns>
+    /// <param name="request">Request containing the download tracking URL.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Success status.</returns>
     [HttpPost("track-download")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]

@@ -39,10 +39,15 @@ public class Question
     
     public int OrderIndex { get; set; } = 0;
     
+    [Required]
+    public string QuestionType { get; set; } = "game"; // game, training, tie-breaker
+    
     public DateTime CreatedAt { get; set; }
     
     // Navigation properties
     public virtual Event Event { get; set; } = null!;
     
     public virtual ICollection<Response> Responses { get; set; } = new List<Response>();
+    
+    public virtual ICollection<EventImage> EventImages { get; set; } = new List<EventImage>();
 }

@@ -1,0 +1,18 @@
+﻿@TriviaSpark.Api_HostAddress = https://localhost:14165
+
+@id=string
+
+### Get Fully Hydrated Event
+# This endpoint now returns a complete event with all related entities:
+# - Event details and host information
+# - Questions with their associated EventImages
+# - Teams with their participants
+# - All active participants
+# - Fun facts
+# All data is included in a single API call for optimal performance
+
+GET {{TriviaSpark.Api_HostAddress}}/api/events/{{id}}
+
+###
+
+# Response

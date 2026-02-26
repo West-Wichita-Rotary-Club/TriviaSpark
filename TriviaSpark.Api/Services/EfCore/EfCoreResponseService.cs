@@ -4,16 +4,29 @@ using TriviaSpark.Api.Data.Entities;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// Interface for trivia response management operations using Entity Framework Core.
+/// </summary>
 public interface IEfCoreResponseService
 {
+    /// <summary>Gets all responses for a specific question, ordered by submission time.</summary>
     Task<IList<Response>> GetResponsesForQuestionAsync(string questionId);
+    /// <summary>Gets all responses from a specific participant, ordered by question order.</summary>
     Task<IList<Response>> GetResponsesForParticipantAsync(string participantId);
+    /// <summary>Gets a response by ID with participant and question included.</summary>
     Task<Response?> GetResponseByIdAsync(string responseId);
+    /// <summary>Creates a new response and sets its submission timestamp.</summary>
     Task<Response> CreateResponseAsync(Response response);
+    /// <summary>Updates an existing response entity.</summary>
     Task<Response> UpdateResponseAsync(Response response);
+    /// <summary>Deletes a response by ID. Returns false if not found.</summary>
     Task<bool> DeleteResponseAsync(string responseId);
 }
 
+/// <summary>
+/// EF Core implementation of trivia response management.
+/// Provides CRUD operations for participant answers to trivia questions.
+/// </summary>
 public class EfCoreResponseService : IEfCoreResponseService
 {
     private readonly TriviaSparkDbContext _context;

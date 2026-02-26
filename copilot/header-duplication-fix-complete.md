@@ -213,6 +213,8 @@ The fix maintains all original functionality while eliminating the visual confus
 
 ---
 
-**Testing URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`  
+## Testing Results ✅
+
+**Testing URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`  
 **Key Files Modified**: `client/src/pages/presenter.tsx`  
 **Functionality**: Fully operational header collapse without duplication

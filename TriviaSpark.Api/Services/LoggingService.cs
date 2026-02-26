@@ -3,17 +3,32 @@ using System.Diagnostics;
 
 namespace TriviaSpark.Api.Services
 {
+    /// <summary>
+    /// Interface for structured application logging with support for API calls, errors,
+    /// business events, performance metrics, and database operations.
+    /// </summary>
     public interface ILoggingService
     {
+        /// <summary>Logs an incoming API request with endpoint, method, and optional request data.</summary>
         void LogApiCall(string endpoint, string method, object? requestData = null, string? userId = null);
+        /// <summary>Logs an API response including status code and elapsed time.</summary>
         void LogApiResponse(string endpoint, string method, int statusCode, long elapsedMs, object? responseData = null, string? userId = null);
+        /// <summary>Logs an exception with contextual information.</summary>
         void LogError(Exception exception, string context, object? additionalData = null);
+        /// <summary>Logs a domain-level business event for auditing and analytics.</summary>
         void LogBusinessEvent(string eventName, object? eventData = null, string? userId = null);
+        /// <summary>Logs operation performance metrics with adaptive log levels based on duration.</summary>
         void LogPerformance(string operationName, long elapsedMs, object? additionalData = null);
+        /// <summary>Logs a database operation at debug level for diagnostic purposes.</summary>
         void LogDatabaseOperation(string operation, string table, object? additionalData = null);
+        /// <summary>Creates a logging scope for correlating related log entries within an operation.</summary>
         IDisposable BeginScope(string operationName);
     }
 
+    /// <summary>
+    /// Structured logging service implementation using Microsoft.Extensions.Logging.
+    /// Provides centralized, consistent logging across API calls, business events, and performance tracking.
+    /// </summary>
     public class LoggingService : ILoggingService
     {
         private readonly ILogger<LoggingService> _logger;
@@ -83,9 +98,20 @@ namespace TriviaSpark.Api.Services
         public void Dispose() { }
     }
 
-    // Extension for convenient performance logging
+    /// <summary>
+    /// Extension methods for convenient performance-tracked async and sync operations.
+    /// </summary>
     public static class LoggingExtensions
     {
+        /// <summary>
+        /// Executes an async operation while measuring and logging its performance.
+        /// </summary>
+        /// <typeparam name="T">The return type of the operation.</typeparam>
+        /// <param name="loggingService">The logging service instance.</param>
+        /// <param name="operationName">Name of the operation for logging.</param>
+        /// <param name="operation">The async operation to execute.</param>
+        /// <param name="additionalData">Optional additional data to include in the log.</param>
+        /// <returns>The result of the operation.</returns>
         public static async Task<T> LogPerformanceAsync<T>(this ILoggingService loggingService, string operationName, Func<Task<T>> operation, object? additionalData = null)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -107,6 +133,15 @@ namespace TriviaSpark.Api.Services
             }
         }
 
+        /// <summary>
+        /// Executes a synchronous operation while measuring and logging its performance.
+        /// </summary>
+        /// <typeparam name="T">The return type of the operation.</typeparam>
+        /// <param name="loggingService">The logging service instance.</param>
+        /// <param name="operationName">Name of the operation for logging.</param>
+        /// <param name="operation">The synchronous operation to execute.</param>
+        /// <param name="additionalData">Optional additional data to include in the log.</param>
+        /// <returns>The result of the operation.</returns>
         public static T LogPerformance<T>(this ILoggingService loggingService, string operationName, Func<T> operation, object? additionalData = null)
         {
             var stopwatch = Stopwatch.StartNew();

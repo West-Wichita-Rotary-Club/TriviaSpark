@@ -90,6 +90,11 @@ export const questions = sqliteTable("questions", {
     .notNull()
     .references(() => events.id),
   type: text("type").notNull(), // multiple_choice, true_false, fill_blank, image
+  // Classification of how the question is used in the flow (distinct from format "type")
+  // game: core gameplay question
+  // tie-breaker: only used if tie occurs
+  // training: practice / warm-up question
+  questionType: text("question_type").default("game"),
   question: text("question").notNull(),
   options: text("options").default("[]"), // JSON string of answer options
   correctAnswer: text("correct_answer").notNull(),
@@ -236,6 +241,10 @@ export const questionGenerationSchema = z.object({
   eventId: z.string().min(1, "Event ID is required"),
   topic: z.string().min(1, "Topic is required"),
   type: z.enum(["multiple_choice", "true_false", "fill_blank", "image"]),
+  questionType: z
+    .enum(["game", "tie-breaker", "training"])
+    .optional()
+    .default("game"),
   difficulty: z.enum(["easy", "medium", "hard"]).optional(),
   category: z.string().optional(),
   count: z.number().min(1).max(20).default(1),
@@ -252,6 +261,7 @@ export const updateQuestionSchema = z.object({
     .min(1, "Question text is required")
     .max(500, "Question text too long"),
   type: z.enum(["multiple_choice", "true_false", "fill_blank", "image"]),
+  questionType: z.enum(["game", "tie-breaker", "training"]).optional(),
   options: z.array(z.string()).optional(),
   correctAnswer: z.string().min(1, "Correct answer is required"),
   difficulty: z.enum(["easy", "medium", "hard"]),
@@ -275,6 +285,7 @@ export const bulkQuestionSchema = z.object({
           .min(1, "Question text is required")
           .max(500, "Question text too long"),
         type: z.enum(["multiple_choice", "true_false", "fill_blank", "image"]),
+        questionType: z.enum(["game", "tie-breaker", "training"]).optional(),
         options: z.array(z.string()).optional(),
         correctAnswer: z.string().min(1, "Correct answer is required"),
         difficulty: z.enum(["easy", "medium", "hard"]),

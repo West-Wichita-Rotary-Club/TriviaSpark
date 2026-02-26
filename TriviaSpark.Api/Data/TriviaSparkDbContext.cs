@@ -178,6 +178,7 @@ public class TriviaSparkDbContext : DbContext
         questionEntity.Property(e => e.BackgroundImageUrl).HasColumnName("background_image_url");
         questionEntity.Property(e => e.AiGenerated).HasColumnName("ai_generated");
         questionEntity.Property(e => e.OrderIndex).HasColumnName("order_index");
+        questionEntity.Property(e => e.QuestionType).HasColumnName("QuestionType").HasDefaultValue("game");
         
         questionEntity.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
@@ -376,10 +377,10 @@ public class TriviaSparkDbContext : DbContext
             .HasForeignKey(f => f.EventId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Question -> EventImages (one-to-one)
+        // Question -> EventImages (one-to-many)
         modelBuilder.Entity<EventImage>()
             .HasOne(ei => ei.Question)
-            .WithMany()
+            .WithMany(q => q.EventImages)
             .HasForeignKey(ei => ei.QuestionId)
             .OnDelete(DeleteBehavior.Cascade);
 

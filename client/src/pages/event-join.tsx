@@ -1,22 +1,28 @@
-import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Users, Trophy, Brain, ArrowRight, UserPlus, UserCheck, Hash, Clock } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState, useEffect } from 'react';
+import { useRoute } from 'wouter';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { Users, Trophy, Brain, ArrowRight, UserPlus, UserCheck, Hash, Clock } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 const joinSchema = z.object({
-  name: z.string().min(1, "Name is required").max(50, "Name too long"),
-  teamAction: z.enum(["none", "join", "create"]),
-  teamIdentifier: z.string().max(50, "Team name/number too long").optional(),
+  name: z.string().min(1, 'Name is required').max(50, 'Name too long'),
+  teamAction: z.enum(['none', 'join', 'create']),
+  teamIdentifier: z.string().max(50, 'Team name/number too long').optional(),
 });
 
 type JoinForm = z.infer<typeof joinSchema>;
@@ -30,7 +36,7 @@ interface Team {
 }
 
 export default function EventJoin() {
-  const [, params] = useRoute("/join/:qrCode");
+  const [, params] = useRoute('/join/:qrCode');
   const qrCode = params?.qrCode;
   const { toast } = useToast();
   const [joinedEvent, setJoinedEvent] = useState<any>(null);
@@ -45,13 +51,13 @@ export default function EventJoin() {
   } = useForm<JoinForm>({
     resolver: zodResolver(joinSchema),
     defaultValues: {
-      teamAction: "none",
-      name: "",
-      teamIdentifier: "",
+      teamAction: 'none',
+      name: '',
+      teamIdentifier: '',
     },
   });
 
-  const teamAction = watch("teamAction");
+  const teamAction = watch('teamAction');
 
   // Check if user is returning participant
   useEffect(() => {
@@ -60,7 +66,7 @@ export default function EventJoin() {
         const response = await fetch(`/api/events/join/${qrCode}/check`, {
           credentials: 'include',
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           if (data.returning) {
@@ -72,7 +78,7 @@ export default function EventJoin() {
         // Not a returning participant, continue with normal flow
       }
     };
-    
+
     if (qrCode) {
       checkParticipant();
     }
@@ -81,25 +87,25 @@ export default function EventJoin() {
   // Fetch available teams
   const { data: teams, isLoading: teamsLoading } = useQuery<Team[]>({
     queryKey: [`/api/events/${qrCode}/teams-public`],
-    enabled: !!qrCode && teamAction === "join" && !joinedEvent,
+    enabled: !!qrCode && teamAction === 'join' && !joinedEvent,
   });
 
   const joinEventMutation = useMutation({
     mutationFn: async (data: JoinForm) => {
       const response = await fetch(`/api/events/join/${qrCode}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to join event");
+        throw new Error(errorData.error || 'Failed to join event');
       }
-      
+
       return response.json();
     },
     onSuccess: (data) => {
@@ -107,21 +113,21 @@ export default function EventJoin() {
       setCurrentParticipant(data.participant);
       if (data.returning) {
         toast({
-          title: "Welcome back!",
+          title: 'Welcome back!',
           description: `You're already joined as ${data.participant.name}`,
         });
       } else {
         toast({
-          title: "Welcome to the event!",
+          title: 'Welcome to the event!',
           description: `You've successfully joined ${data.event.title}`,
         });
       }
     },
     onError: (error) => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: (error as Error).message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -129,31 +135,31 @@ export default function EventJoin() {
   const switchTeamMutation = useMutation({
     mutationFn: async (teamId: string | null) => {
       const response = await fetch(`/api/participants/${currentParticipant.id}/team`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamId }),
         credentials: 'include',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to switch teams");
+        throw new Error(errorData.error || 'Failed to switch teams');
       }
-      
+
       return response.json();
     },
     onSuccess: (updatedParticipant) => {
       setCurrentParticipant(updatedParticipant);
       toast({
-        title: "Team updated!",
+        title: 'Team updated!',
         description: "You've successfully switched teams",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
+        title: 'Error',
         description: (error as Error).message,
-        variant: "destructive",
+        variant: 'destructive',
       });
     },
   });
@@ -170,7 +176,7 @@ export default function EventJoin() {
   if (currentParticipant && joinedEvent) {
     const currentTeam = joinedEvent.team; // Use team from the joined event data
     const canSwitchTeam = currentParticipant.canSwitchTeam;
-    
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md trivia-card" data-testid="card-participant-status">
@@ -191,7 +197,7 @@ export default function EventJoin() {
                 {joinedEvent.event.description}
               </p>
             </div>
-            
+
             {/* Team Status */}
             <div className="space-y-3">
               <h4 className="font-medium text-gray-800">Team Status</h4>
@@ -203,9 +209,7 @@ export default function EventJoin() {
                         {currentTeam.name}
                       </p>
                       {currentTeam.tableNumber && (
-                        <p className="text-sm text-gray-600">
-                          Table {currentTeam.tableNumber}
-                        </p>
+                        <p className="text-sm text-gray-600">Table {currentTeam.tableNumber}</p>
                       )}
                       <p className="text-xs text-gray-500">
                         {currentTeam.participantCount}/{currentTeam.maxMembers} members
@@ -233,11 +237,11 @@ export default function EventJoin() {
                       </SelectTrigger>
                       <SelectContent>
                         {teams
-                          .filter(team => team.participantCount < team.maxMembers)
+                          .filter((team) => team.participantCount < team.maxMembers)
                           .map((team) => (
                             <SelectItem key={team.id} value={team.id}>
-                              {team.name} {team.tableNumber ? `(Table ${team.tableNumber})` : ''} 
-                              ({team.participantCount}/{team.maxMembers})
+                              {team.name} {team.tableNumber ? `(Table ${team.tableNumber})` : ''}(
+                              {team.participantCount}/{team.maxMembers})
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -245,7 +249,7 @@ export default function EventJoin() {
                   )}
                 </div>
               )}
-              
+
               {!canSwitchTeam && (
                 <div className="flex items-center justify-center text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
                   <Clock className="mr-2 h-4 w-4" />
@@ -258,10 +262,12 @@ export default function EventJoin() {
               <div className="flex items-center justify-center text-sm text-gray-600">
                 <Users className="mr-2 h-4 w-4" />
                 <span data-testid="text-waiting-message">
-                  {joinedEvent.event.status === "active" ? "Event in progress..." : "Waiting for the host to start..."}
+                  {joinedEvent.event.status === 'active'
+                    ? 'Event in progress...'
+                    : 'Waiting for the host to start...'}
                 </span>
               </div>
-              
+
               <div className="text-xs text-gray-500 text-center" data-testid="text-instructions">
                 Keep this page open. The trivia will continue shortly!
               </div>
@@ -299,10 +305,12 @@ export default function EventJoin() {
               <div className="flex items-center justify-center text-sm text-gray-600">
                 <Users className="mr-2 h-4 w-4" />
                 <span data-testid="text-waiting-message">
-                  {joinedEvent.event.status === "active" ? "Event in progress..." : "Waiting for the host to start..."}
+                  {joinedEvent.event.status === 'active'
+                    ? 'Event in progress...'
+                    : 'Waiting for the host to start...'}
                 </span>
               </div>
-              
+
               <div className="text-xs text-gray-500" data-testid="text-instructions">
                 Keep this page open. The trivia will begin shortly!
               </div>
@@ -324,11 +332,17 @@ export default function EventJoin() {
               <Brain className="text-champagne-400 h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold wine-text" data-testid="text-brand-title">TriviaSpark</h1>
-              <p className="text-sm text-gray-500" data-testid="text-brand-tagline">A WebSpark Solution</p>
+              <h1 className="text-2xl font-bold wine-text" data-testid="text-brand-title">
+                TriviaSpark
+              </h1>
+              <p className="text-sm text-gray-500" data-testid="text-brand-tagline">
+                A WebSpark Solution
+              </p>
             </div>
           </div>
-          <p className="text-gray-600" data-testid="text-join-subtitle">Join the trivia event</p>
+          <p className="text-gray-600" data-testid="text-join-subtitle">
+            Join the trivia event
+          </p>
         </div>
 
         <Card className="trivia-card" data-testid="card-join-form">
@@ -341,12 +355,14 @@ export default function EventJoin() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Name Input */}
               <div>
-                <Label htmlFor="name" data-testid="label-name">Your Name *</Label>
+                <Label htmlFor="name" data-testid="label-name">
+                  Your Name *
+                </Label>
                 <Input
                   id="name"
-                  {...register("name")}
+                  {...register('name')}
                   placeholder="Enter your name"
-                  className={errors.name ? "border-red-500" : ""}
+                  className={errors.name ? 'border-red-500' : ''}
                   data-testid="input-name"
                 />
                 {errors.name && (
@@ -361,37 +377,43 @@ export default function EventJoin() {
                 <Label data-testid="label-team-options">Team Options</Label>
                 <RadioGroup
                   value={teamAction}
-                  onValueChange={(value: any) => setValue("teamAction", value)}
+                  onValueChange={(value: any) => setValue('teamAction', value)}
                   className="space-y-3"
                   data-testid="radio-team-options"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="none" id="none" />
-                    <Label htmlFor="none" className="font-normal">Play individually (no team)</Label>
+                    <Label htmlFor="none" className="font-normal">
+                      Play individually (no team)
+                    </Label>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="join" id="join" />
-                    <Label htmlFor="join" className="font-normal">Join existing team</Label>
+                    <Label htmlFor="join" className="font-normal">
+                      Join existing team
+                    </Label>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="create" id="create" />
-                    <Label htmlFor="create" className="font-normal">Create new team</Label>
+                    <Label htmlFor="create" className="font-normal">
+                      Create new team
+                    </Label>
                   </div>
                 </RadioGroup>
 
                 {/* Team Selection Input */}
-                {teamAction === "join" && (
+                {teamAction === 'join' && (
                   <div className="mt-3">
                     <Label htmlFor="teamIdentifier" data-testid="label-team-join">
                       Team Name or Table Number
                     </Label>
                     <Input
                       id="teamIdentifier"
-                      {...register("teamIdentifier")}
+                      {...register('teamIdentifier')}
                       placeholder="Enter team name or table number"
-                      className={errors.teamIdentifier ? "border-red-500" : ""}
+                      className={errors.teamIdentifier ? 'border-red-500' : ''}
                       data-testid="input-team-join"
                     />
                     {errors.teamIdentifier && (
@@ -405,16 +427,16 @@ export default function EventJoin() {
                   </div>
                 )}
 
-                {teamAction === "create" && (
+                {teamAction === 'create' && (
                   <div className="mt-3">
                     <Label htmlFor="teamIdentifier" data-testid="label-team-create">
                       New Team Name or Table Number
                     </Label>
                     <Input
                       id="teamIdentifier"
-                      {...register("teamIdentifier")}
+                      {...register('teamIdentifier')}
                       placeholder="Enter team name or table number"
-                      className={errors.teamIdentifier ? "border-red-500" : ""}
+                      className={errors.teamIdentifier ? 'border-red-500' : ''}
                       data-testid="input-team-create"
                     />
                     {errors.teamIdentifier && (
@@ -436,7 +458,7 @@ export default function EventJoin() {
                 data-testid="button-join-event"
               >
                 {joinEventMutation.isPending ? (
-                  "Joining..."
+                  'Joining...'
                 ) : (
                   <>
                     Join Event

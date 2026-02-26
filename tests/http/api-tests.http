@@ -3,10 +3,7 @@
 # Usage: Install VS Code "REST Client" extension. Execute each request (Ctrl/Cmd+Alt+R).
 # Note: Enable cookie jar in settings for session auth (rest-client.enableCookieJarSupport = true).
 
-@scheme = http
-@host = localhost
-@port = 14166
-@baseUrl = {{scheme}}://{{host}}:{{port}}
+@baseUrl = https://localhost:14165
 
 # Seed/demo defaults
 @username = mark

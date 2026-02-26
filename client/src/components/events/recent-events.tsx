@@ -1,17 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { WineIcon as Wine, Building, Cake, ChevronRight, Settings, Tv, Presentation, Monitor } from "lucide-react";
-import { Link } from "wouter";
-import { formatDateInCST } from "@/lib/utils";
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  WineIcon as Wine,
+  Building,
+  Cake,
+  ChevronRight,
+  Settings,
+  Tv,
+  Presentation,
+  Monitor,
+} from 'lucide-react';
+import { Link } from 'wouter';
+import { formatDateInCST } from '@/lib/utils';
 
 const getEventIcon = (eventType: string) => {
   switch (eventType) {
-    case "wine_dinner":
+    case 'wine_dinner':
       return Wine;
-    case "corporate":
+    case 'corporate':
       return Building;
-    case "party":
+    case 'party':
       return Cake;
     default:
       return Wine;
@@ -20,46 +29,51 @@ const getEventIcon = (eventType: string) => {
 
 const getEventColor = (eventType: string) => {
   switch (eventType) {
-    case "wine_dinner":
-      return "bg-wine-100 text-wine-600";
-    case "corporate":
-      return "bg-champagne-100 text-champagne-600";
-    case "party":
-      return "bg-coral-100 text-coral-500";
+    case 'wine_dinner':
+      return 'bg-wine-100 text-wine-600';
+    case 'corporate':
+      return 'bg-champagne-100 text-champagne-600';
+    case 'party':
+      return 'bg-coral-100 text-coral-500';
     default:
-      return "bg-wine-100 text-wine-600";
+      return 'bg-wine-100 text-wine-600';
   }
 };
 
 const formatDate = (date: string | null) => {
-  if (!date) return "No date set";
+  if (!date) return 'No date set';
   const eventDate = new Date(date);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - eventDate.getTime());
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 1) return "Yesterday";
+
+  if (diffDays === 1) return 'Yesterday';
   if (diffDays <= 7) return `${diffDays} days ago`;
-  if (diffDays <= 30) return `${Math.ceil(diffDays / 7)} week${Math.ceil(diffDays / 7) > 1 ? 's' : ''} ago`;
+  if (diffDays <= 30)
+    return `${Math.ceil(diffDays / 7)} week${Math.ceil(diffDays / 7) > 1 ? 's' : ''} ago`;
   return formatDateInCST(eventDate);
 };
 
 export default function RecentEvents() {
   const { data: events, isLoading } = useQuery<any[]>({
-    queryKey: ["/api/events"],
+    queryKey: ['/api/events'],
   });
 
   // Filter events that have passed (recent events)
   const now = new Date();
-  const recentEvents = events?.filter(event => {
-    if (!event.eventDate) return false;
-    const eventDate = new Date(event.eventDate);
-    return eventDate < now;
-  }).sort((a, b) => {
-    const dateA = new Date(a.eventDate);
-    const dateB = new Date(b.eventDate);
-    return dateB.getTime() - dateA.getTime(); // Most recent first
-  }).slice(0, 3) || [];
+  const recentEvents =
+    events
+      ?.filter((event) => {
+        if (!event.eventDate) return false;
+        const eventDate = new Date(event.eventDate);
+        return eventDate < now;
+      })
+      .sort((a, b) => {
+        const dateA = new Date(a.eventDate);
+        const dateB = new Date(b.eventDate);
+        return dateB.getTime() - dateA.getTime(); // Most recent first
+      })
+      .slice(0, 3) || [];
 
   if (isLoading) {
     return (
@@ -95,18 +109,30 @@ export default function RecentEvents() {
             recentEvents.map((event: any, index: number) => {
               const IconComponent = getEventIcon(event.eventType);
               const iconColorClass = getEventColor(event.eventType);
-              
+
               return (
-                <div key={event.id} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors" data-testid={`recent-event-${index}`}>
+                <div
+                  key={event.id}
+                  className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                  data-testid={`recent-event-${index}`}
+                >
                   <div className="flex items-center space-x-4 mb-3">
-                    <div className={`w-10 h-10 ${iconColorClass} rounded-lg flex items-center justify-center`}>
+                    <div
+                      className={`w-10 h-10 ${iconColorClass} rounded-lg flex items-center justify-center`}
+                    >
                       <IconComponent className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900" data-testid={`text-recent-event-title-${index}`}>
+                      <h4
+                        className="font-medium text-gray-900"
+                        data-testid={`text-recent-event-title-${index}`}
+                      >
                         {event.title}
                       </h4>
-                      <p className="text-sm text-gray-600" data-testid={`text-recent-event-info-${index}`}>
+                      <p
+                        className="text-sm text-gray-600"
+                        data-testid={`text-recent-event-info-${index}`}
+                      >
                         {event.maxParticipants} max participants • {formatDate(event.eventDate)}
                       </p>
                     </div>

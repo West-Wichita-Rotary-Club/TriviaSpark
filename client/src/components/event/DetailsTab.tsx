@@ -1,9 +1,18 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, FileText, Clock, Users, Accessibility, Utensils, Shirt, Monitor } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Trophy,
+  FileText,
+  Clock,
+  Users,
+  Accessibility,
+  Utensils,
+  Shirt,
+  Monitor,
+} from 'lucide-react';
 
 interface DetailsTabProps {
   event: any;
@@ -33,9 +42,7 @@ export function DetailsTab({ event, onUpdate, isLoading }: DetailsTabProps) {
               rows={4}
               data-testid="textarea-prize-information"
             />
-            <p className="text-sm text-gray-500 mt-1">
-              Detail what winners can expect to receive
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Detail what winners can expect to receive</p>
           </div>
         </CardContent>
       </Card>
@@ -88,8 +95,18 @@ export function DetailsTab({ event, onUpdate, isLoading }: DetailsTabProps) {
             <Input
               id="registrationDeadline"
               type="datetime-local"
-              value={event.registrationDeadline ? new Date(event.registrationDeadline).toISOString().slice(0, 16) : ''}
-              onChange={(e) => onUpdate({ registrationDeadline: e.target.value ? new Date(e.target.value).toISOString() : null })}
+              value={
+                event.registrationDeadline
+                  ? new Date(event.registrationDeadline).toISOString().slice(0, 16)
+                  : ''
+              }
+              onChange={(e) =>
+                onUpdate({
+                  registrationDeadline: e.target.value
+                    ? new Date(e.target.value).toISOString()
+                    : null,
+                })
+              }
               data-testid="input-registration-deadline"
             />
           </div>
@@ -186,8 +203,8 @@ export function DetailsTab({ event, onUpdate, isLoading }: DetailsTabProps) {
             <Label htmlFor="allowParticipants">Allow Participants</Label>
           </div>
           <p id="allowParticipants-description" className="text-sm text-gray-500 mt-1">
-            When enabled, participants can join teams and compete in the trivia. When disabled, 
-            this becomes a content-focused presentation without participant interaction.
+            When enabled, participants can join teams and compete in the trivia. When disabled, this
+            becomes a content-focused presentation without participant interaction.
           </p>
         </CardContent>
       </Card>

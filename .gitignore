@@ -111,6 +111,10 @@ ScaffoldingReadMe.txt
 TestResults/
 Coverage*/
 coverage/
+html/
+
+# ESLint cache
+.eslintcache
 
 # Tools
 _ReSharper*/

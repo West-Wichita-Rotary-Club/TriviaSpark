@@ -4,18 +4,33 @@ using TriviaSpark.Api.Data.Entities;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// Interface for participant management operations using Entity Framework Core.
+/// </summary>
 public interface IEfCoreParticipantService
 {
+    /// <summary>Gets all participants for an event, ordered by team name then participant name.</summary>
     Task<IList<Participant>> GetParticipantsForEventAsync(string eventId);
+    /// <summary>Gets all participants for an event (alias for GetParticipantsForEventAsync).</summary>
     Task<IList<Participant>> GetParticipantsByEventAsync(string eventId);
+    /// <summary>Gets a participant by ID with team and event included.</summary>
     Task<Participant?> GetParticipantByIdAsync(string participantId);
+    /// <summary>Gets a participant by their unique join token with team and event included.</summary>
     Task<Participant?> GetParticipantByTokenAsync(string token);
+    /// <summary>Creates a new participant and sets join and last active timestamps.</summary>
     Task<Participant> CreateParticipantAsync(Participant participant);
+    /// <summary>Updates an existing participant and refreshes last active timestamp.</summary>
     Task<Participant> UpdateParticipantAsync(Participant participant);
+    /// <summary>Deletes a participant by ID. Returns false if not found.</summary>
     Task<bool> DeleteParticipantAsync(string participantId);
+    /// <summary>Switches a participant to a different team if they are allowed to switch.</summary>
     Task<bool> SwitchParticipantTeamAsync(string participantId, string? newTeamId);
 }
 
+/// <summary>
+/// EF Core implementation of participant management operations.
+/// Provides CRUD and team-switching operations for trivia event participants.
+/// </summary>
 public class EfCoreParticipantService : IEfCoreParticipantService
 {
     private readonly TriviaSparkDbContext _context;

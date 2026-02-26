@@ -1,4 +1,4 @@
-import { Brain } from "lucide-react";
+import { Brain } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -20,60 +20,96 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-600 mb-4" data-testid="text-footer-description">
-              Where Every Event Becomes Unforgettable. Create intelligent, immersive trivia experiences 
-              that transform any gathering into lasting memories.
+              Where Every Event Becomes Unforgettable. Create intelligent, immersive trivia
+              experiences that transform any gathering into lasting memories.
             </p>
             <p className="text-sm text-gray-500" data-testid="text-footer-credit">
               Created by Mark Hazleton • © 2025 Mark Hazleton
             </p>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4" data-testid="text-platform-title">Platform</h4>
+            <h4 className="font-semibold text-gray-900 mb-4" data-testid="text-platform-title">
+              Platform
+            </h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
-                <a href="#" className="hover:text-wine-700 transition-colors" data-testid="link-features">
+                <a
+                  href="#"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-features"
+                >
                   Features
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-wine-700 transition-colors" data-testid="link-pricing">
+                <a
+                  href="#"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-pricing"
+                >
                   Pricing
                 </a>
               </li>
               <li>
-                <a href="/api-docs" className="hover:text-wine-700 transition-colors" data-testid="link-api-docs">
+                <a
+                  href="/api-docs"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-api-docs"
+                >
                   API Documentation
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-wine-700 transition-colors" data-testid="link-templates">
+                <a
+                  href="#"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-templates"
+                >
                   Templates
                 </a>
               </li>
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold text-gray-900 mb-4" data-testid="text-support-title">Support</h4>
+            <h4 className="font-semibold text-gray-900 mb-4" data-testid="text-support-title">
+              Support
+            </h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li>
-                <a href="#" className="hover:text-wine-700 transition-colors" data-testid="link-help">
+                <a
+                  href="#"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-help"
+                >
                   Help Center
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-wine-700 transition-colors" data-testid="link-contact">
+                <a
+                  href="#"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-contact"
+                >
                   Contact Us
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-wine-700 transition-colors" data-testid="link-community">
+                <a
+                  href="#"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-community"
+                >
                   Community
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-wine-700 transition-colors" data-testid="link-status">
+                <a
+                  href="#"
+                  className="hover:text-wine-700 transition-colors"
+                  data-testid="link-status"
+                >
                   Status
                 </a>
               </li>

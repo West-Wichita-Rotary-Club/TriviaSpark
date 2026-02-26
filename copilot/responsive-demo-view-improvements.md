@@ -2,7 +2,7 @@
 
 **Date**: September 11, 2025  
 **Task**: Make the demo view fully responsive with collapsible header for smaller screens  
-**URL**: `https://localhost:14165/demo/seed-event-coast-to-cascades`
+**URL**: `https://localhost:14165/presenter/seed-event-coast-to-cascades`
 
 ## Overview
 

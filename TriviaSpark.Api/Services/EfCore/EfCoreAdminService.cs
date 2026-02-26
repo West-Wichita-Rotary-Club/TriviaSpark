@@ -5,6 +5,10 @@ using EntityRole = TriviaSpark.Api.Data.Entities.Role;
 
 namespace TriviaSpark.Api.Services.EfCore;
 
+/// <summary>
+/// EF Core implementation of admin service for user and role management.
+/// Provides CRUD operations for users, roles, and role assignments.
+/// </summary>
 public class EfCoreAdminService : IAdminService
 {
     private readonly TriviaSparkDbContext _context;

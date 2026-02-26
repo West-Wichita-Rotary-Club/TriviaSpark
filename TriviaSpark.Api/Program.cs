@@ -4,11 +4,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Serilog;
 using TriviaSpark.Api.Middleware;
-// using TriviaSpark.Api.SignalR; // Disabled - SignalR integration pending
 using TriviaSpark.Api;
 using TriviaSpark.Api.Data;
 using TriviaSpark.Api.Services;
 using TriviaSpark.Api.Services.EfCore;
+
 
 // Configure minimal bootstrap logger - only errors and critical messages
 Log.Logger = new LoggerConfiguration()
@@ -91,16 +91,28 @@ try
         configuration.RootPath = "wwwroot";
     });
 
-    // App services
-    builder.Services.AddSingleton<ISessionService, SessionService>();
+    // App services (removed session service)
     builder.Services.AddScoped<ILoggingService, LoggingService>();
-    // Legacy Dapper services (deprecated for rollback only)
-    // builder.Services.AddSingleton<IDb, SqliteDb>();
-    // builder.Services.AddSingleton<IStorage, Storage>();
 
     // EF Core configuration
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? Environment.GetEnvironmentVariable("DATABASE_URL") 
+        ?? "Data Source=C:\\websites\\TriviaSpark\\trivia.db";
+    
+    // Ensure the database directory exists
+    var dbPath = connectionString.Replace("Data Source=", "").Replace("file:", "");
+    var dbDirectory = Path.GetDirectoryName(Path.GetFullPath(dbPath));
+    if (!string.IsNullOrEmpty(dbDirectory) && !Directory.Exists(dbDirectory))
+    {
+        Directory.CreateDirectory(dbDirectory);
+        Log.Information("Created database directory: {DatabaseDirectory}", dbDirectory);
+    }
+    
     builder.Services.AddDbContext<TriviaSparkDbContext>(options =>
-        options.UseSqlite("Data Source=C:\\websites\\TriviaSpark\\trivia.db"));
+        options.UseSqlite(connectionString));
+        
+    Log.Information("Database path: {DatabasePath}", dbPath);
+    Log.Information("Database configured with connection string: {ConnectionString}", connectionString);
 
     // EF Core services
     builder.Services.AddScoped<IEfCoreUserService, EfCoreUserService>();
@@ -166,11 +178,7 @@ try
                 diagnosticContext.Set("UserAgent", userAgent);
             }
 
-            if (httpContext.User.Identity?.IsAuthenticated == true &&
-                !string.IsNullOrEmpty(httpContext.User.Identity.Name))
-            {
-                diagnosticContext.Set("UserName", httpContext.User.Identity.Name);
-            }
+            // Removed authentication context
         };
     });
 
@@ -196,16 +204,16 @@ try
         await next();
     });
 
-    app.UseCors();
+    app.UseCors("ApiCors"); // Apply CORS policy by name
 
-    // Admin authorization middleware (for /admin routes)
-    app.UseAdminAuthorization();
+    // Removed admin authorization middleware
 
     // Map SignalR hub (disabled - pending EF Core integration)
     // app.MapHub<TriviaHub>("/ws");
     app.MapControllers(); // Map controller routes
 
     // EF Core API endpoints (main implementation) - MIGRATION COMPLETE!
+    // This includes the health endpoint with database connectivity checks
     app.MapEfCoreApiEndpoints();
 
     // Legacy Dapper endpoints (deprecated) - keeping for rollback capability
@@ -214,25 +222,12 @@ try
     // Quiet browsers/extensions requesting /favicon.ico
     app.MapGet("/favicon.ico", () => Results.NoContent());
 
-    // Add health check endpoint with logging
-    app.MapGet("/health", (ILoggingService loggingService) =>
-    {
-        loggingService.LogBusinessEvent("HealthCheck", new { Status = "Healthy", Timestamp = DateTime.UtcNow });
-        return Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
-    });
-
     // SPA fallback to index.html for client routes
     app.MapFallbackToFile("index.html");
 
     Log.Information("TriviaSpark API startup completed successfully");
     
-    // Initialize default roles
-    using (var scope = app.Services.CreateScope())
-    {
-        var adminService = scope.ServiceProvider.GetRequiredService<IAdminService>();
-        await adminService.EnsureDefaultRolesExistAsync();
-        Log.Information("Default roles initialized");
-    }
+    // Removed role initialization
     
     app.Run();
 }
