@@ -67,11 +67,11 @@ The repository follows a strict organizational structure. ALL new files must be 
 
 ```
 TriviaSpark/
+├── .documentation/      # ALL markdown documentation (specs, guides, copilot, templates)
 ├── client/src/          # Frontend React application (detailed below)
 ├── TriviaSpark.Api/     # ASP.NET Core Web API + SignalR
 ├── tools/               # Development tools and scripts
 ├── tests/               # Testing files organized by type
-├── copilot/             # Generated documentation
 ├── scripts/             # Database seeding and utility scripts
 ├── data/                # Documentation and schema files ONLY (NOT database files)
 ├── docs/                # Static build output (GitHub Pages)
@@ -112,12 +112,14 @@ client/src/
 - Integration tests → `tests/integration/`
 - E2E tests → `tests/e2e/`
 
-**Documentation** → `copilot/`
+**Documentation** → `.documentation/{domain}/`
 
-- All generated documentation (.md files)
-- Technical specifications
-- Architecture documents
-- Code review reports
+- All markdown documentation (.md files) MUST live under `.documentation/`
+- Generated docs (reports, reviews, summaries) → `.documentation/copilot/`
+- Feature specs and plans → `.documentation/specs/{feature}/`
+- Project guides and references → `.documentation/guides/`
+- Templates → `.documentation/templates/`
+- **NO .md files are allowed outside `.documentation/` except the root `README.md` and dot-directories (e.g. `.github/`)**
 
 **Temporary Files** → `temp/`
 
@@ -217,7 +219,7 @@ Note: ASP.NET Core uses `appsettings.json` and `appsettings.Development.json` fo
 ### Development Workflow Guidelines
 
 1. **CRITICAL DATABASE RULE**: ALWAYS use the production database at `C:\websites\TriviaSpark\trivia.db`. NEVER create or use local database files in the repository (such as `./data/trivia.db`)
-2. **Documentation Location**: All generated documentation (.md files) MUST be placed in `/copilot` folder at the project root
+2. **Documentation Location**: ALL markdown files (.md) MUST be placed under `/.documentation/{domain}/` — the ONLY exceptions are the root `README.md` and dot-directories (e.g. `.github/`) which are governed by their own tooling requirements
 3. **Terminal Usage**: Reuse existing terminals whenever possible - do not create new terminals without asking the user first
 4. **Testing Protocol**: When making changes that affect functionality, ASK the user to run the site and test the changes before proceeding with additional modifications
 5. **File Organization**: ALWAYS place new files in the correct directory according to the repository structure
@@ -249,18 +251,22 @@ node tools/test-api-endpoints.mjs
 
 ### Documentation Standards
 
-- All generated documentation (.md files) MUST be placed in `/copilot` folder
-- Use clear, descriptive filenames for documentation
+- **ALL markdown files (.md) MUST be placed under `/.documentation/{domain}/`** — exceptions: root `README.md` and dot-directories (e.g. `.github/`) which are governed by their own tooling requirements
+- Generated documentation (reports, reviews, summaries) → `.documentation/copilot/`
+- Feature specifications → `.documentation/specs/{feature}/`
+- Guides and references → `.documentation/guides/`
+- Use clear, descriptive filenames with hyphens
 - Include proper markdown formatting and structure
 - Reference existing project documentation when appropriate
 
 ### Repository Organization Enforcement
 
-- **NO files in root except**: Configuration files (package.json, tsconfig.json, etc.), Documentation (README.md, LICENSE), and Solution files (TriviaSpark.Api.sln)
+- **NO files in root except**: Configuration files (package.json, tsconfig.json, etc.), README.md, LICENSE, and Solution files (TriviaSpark.Api.sln)
+- **NO .md files outside `.documentation/`** except the root `README.md` and dot-directories (e.g. `.github/` for Copilot agents/prompts)
 - **Development tools**: MUST go in `tools/` directory
 - **Test files**: MUST go in appropriate `tests/` subdirectories
 - **Temporary files**: MUST go in `temp/` directory (gitignored)
-- **Generated docs**: MUST go in `copilot/` directory
+- **All documentation**: MUST go in `.documentation/{domain}/` directory
 
 ### File Creation Best Practices
 
@@ -269,7 +275,7 @@ Before creating any new file, determine the correct location based on its purpos
 1. **Is it a development/testing script?** → `tools/`
 2. **Is it a test file?** → `tests/http/`, `tests/unit/`, etc.
 3. **Is it an HTTP test file (.http)?** → `tests/http/` (ALWAYS)
-4. **Is it documentation?** → `copilot/`
+4. **Is it a markdown/documentation file?** → `.documentation/{domain}/` (exceptions: root `README.md` and dot-directories like `.github/`)
 5. **Is it temporary/cache?** → `temp/`
 6. **Is it source code?** → `client/src/`, `TriviaSpark.Api/`, `shared/`
 7. **Is it configuration?** → Root directory (only if tool expects it there)
@@ -538,8 +544,9 @@ This instruction file should guide GitHub Copilot to generate code that aligns w
 2. **NEVER place test files in root** - All tests go in `tests/` subdirectories
 3. **NEVER place .http files outside tests/http/** - ALL .http files go in `tests/http/`
 4. **NEVER place temporary files in root** - All temp files go in `temp/` (gitignored)
-5. **ALWAYS document in copilot/** - All generated documentation goes in `copilot/`
-6. **ROOT is for essentials only** - Configuration, documentation, and solution files only
+5. **NEVER place .md files outside `.documentation/`** - Exceptions: root `README.md` and dot-directories (e.g. `.github/`)
+6. **ALL documentation goes in `.documentation/{domain}/`** - Generated docs in `copilot/`, specs in `specs/`, guides in `guides/`
+7. **ROOT is for essentials only** - Configuration files, README.md, LICENSE, and solution files only
 
 ### Quality Assurance Checklist
 
@@ -548,23 +555,22 @@ Before completing any task, verify:
 - [ ] All new files are in correct directories
 - [ ] No development scripts or tests in root
 - [ ] ALL .http files are in `tests/http/` folder
-- [ ] Documentation is in `copilot/` folder
+- [ ] ALL .md files are in `.documentation/` (except root `README.md`)
 - [ ] Temporary files are in `temp/` folder
 - [ ] Scripts are executable from project root with proper paths
-- [ ] README files exist in new directories
 - [ ] Updated references to moved files in documentation
 
 ### Directory Purpose Enforcement
 
 | Directory          | Purpose                      | Examples                              |
 | ------------------ | ---------------------------- | ------------------------------------- |
-| Root               | Config, docs, solution files | package.json, README.md, \*.sln       |
-| `tools/`           | Development and test scripts | test-_.mjs, debug-_.js, refresh-db.\* |
-| `tests/`           | Testing files by type        | http/, unit/, integration/, e2e/      |
-| `copilot/`         | Generated documentation      | \*.md files, specs, reviews           |
-| `temp/`            | Temporary/cache files        | cookies.txt, platform files           |
-| `client/`          | React frontend source        | src/, components/, pages/             |
-| `TriviaSpark.Api/` | ASP.NET Core backend         | Controllers/, Services/, Data/        |
+| Root                  | Config + README.md only        | package.json, README.md, \*.sln               |
+| `.documentation/`     | ALL markdown documentation     | copilot/, specs/, guides/, templates/          |
+| `tools/`              | Development and test scripts   | test-_.mjs, debug-_.js, refresh-db.\*          |
+| `tests/`              | Testing files by type          | http/, unit/, integration/, e2e/               |
+| `temp/`               | Temporary/cache files          | cookies.txt, platform files                    |
+| `client/`             | React frontend source          | src/, components/, pages/                      |
+| `TriviaSpark.Api/`    | ASP.NET Core backend           | Controllers/, Services/, Data/                 |
 
 ### Script Path Standards
 
@@ -582,10 +588,13 @@ node test-api-endpoints.mjs
 
 ### Documentation Standards for Generated Files
 
-When creating documentation in `copilot/`:
+When creating documentation in `.documentation/`:
 
+- Place generated reports/reviews/summaries in `.documentation/copilot/`
+- Place feature specs in `.documentation/specs/{feature-name}/`
+- Place guides and references in `.documentation/guides/`
 - Use descriptive filenames with hyphens
 - Include date context if time-sensitive
 - Reference the organized file structure
-- Update existing docs when moving files
 - Maintain cross-references between related docs
+- **NEVER create .md files outside `.documentation/`** (except root `README.md`)

@@ -173,19 +173,24 @@ All files MUST be placed in designated directories to maintain clean, navigable 
 **Directory Structure:**
 - `client/src/` - Frontend React application with subfolders for components, pages, hooks, contexts, lib
 - `TriviaSpark.Api/` - ASP.NET Core backend with subfolders for Controllers, Services, Data, Middleware
+- `.documentation/` - ALL markdown documentation (specs, guides, copilot, templates)
 - `shared/` - Shared TypeScript schemas
 - `tests/http/` - ALL .http test files
 - `tools/` - Development and test scripts
-- `copilot/` - Generated documentation
 - `temp/` - Temporary files (gitignored)
-- Root directory - ONLY configuration, README, LICENSE, solution files
+- Root directory - ONLY configuration, README.md, LICENSE, solution files
 
 **Placement Rules:**
 - Development/test scripts → `tools/`
 - **ALL** .http files → `tests/http/`
-- Generated documentation → `copilot/`
+- **ALL** markdown documentation → `.documentation/{domain}/`
+- Generated docs (reports, reviews, summaries) → `.documentation/copilot/`
+- Feature specs and plans → `.documentation/specs/{feature}/`
+- Guides and references → `.documentation/guides/`
+- Templates → `.documentation/templates/`
 - Temporary/cache files → `temp/`
 - Source code → `client/src/` or `TriviaSpark.Api/`
+- **NO .md files are allowed outside `.documentation/` except the root `README.md` and dot-directories (e.g. `.github/`) which are governed by their own tooling requirements**
 
 **Rationale:** Clean organization makes codebase navigable, prevents clutter, and enforces separation of concerns.
 
