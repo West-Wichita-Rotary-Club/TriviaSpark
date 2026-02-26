@@ -17,7 +17,7 @@
 
 ## Phase 0: Constitution Compliance (Pre-Development)
 
-**Purpose**: Ensure feature design complies with TriviaSpark constitution before implementation
+**Purpose**: Verify feature design complies with TriviaSpark constitution before implementation begins
 
 - [ ] T000 [P] Verify frontend stack compliance (React 19, TypeScript strict, shadcn/ui, Tailwind, Zod)
 - [ ] T001 [P] Verify backend stack compliance (ASP.NET Core 9, EF Core, Serilog, interface-based DI)
@@ -48,7 +48,7 @@
 **Note**: This feature has minimal foundational blockers since it's configuration work. User stories can mostly proceed independently.
 
 - [ ] T020 Verify production database exists at C:\websites\TriviaSpark\trivia.db
-- [ ] T021 Backup current database file to C:\websites\TriviaSpark\trivia.backup.db before configuration changes
+- [ ] T021 Backup current database file to C:\websites\TriviaSpark\trivia.backup.{date}.db (format: YYYYMMDD) before configuration changes
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -76,20 +76,20 @@
 
 ### Console.log Removal for User Story 1
 
-- [ ] T040 [P] [US1] Remove console.log statements from client/src/components/ai/*.{ts,tsx} files
-- [ ] T041 [P] [US1] Remove console.log statements from client/src/components/event/*.{ts,tsx} files
-- [ ] T042 [P] [US1] Remove console.log statements from client/src/components/layout/*.{ts,tsx} files
-- [ ] T043 [P] [US1] Remove console.log statements from client/src/pages/*.{ts,tsx} files
-- [ ] T044 [P] [US1] Remove console.log statements from client/src/hooks/*.{ts,tsx} files
-- [ ] T045 [P] [US1] Remove console.log statements from client/src/contexts/*.{ts,tsx} files
-- [ ] T046 [P] [US1] Remove console.log statements from client/src/lib/*.{ts,tsx} files
+- [ ] T040 [P] [US1] Remove console.log statements from client/src/components/ai/*.{ts,tsx} files (remove debug logs entirely; replace user-feedback logs with toast notifications)
+- [ ] T041 [P] [US1] Remove console.log statements from client/src/components/event/*.{ts,tsx} files (remove debug logs entirely; replace user-feedback logs with toast notifications)
+- [ ] T042 [P] [US1] Remove console.log statements from client/src/components/layout/*.{ts,tsx} files (remove debug logs entirely; replace user-feedback logs with toast notifications)
+- [ ] T043 [P] [US1] Remove console.log statements from client/src/pages/*.{ts,tsx} files (remove debug logs entirely; replace user-feedback logs with toast notifications)
+- [ ] T044 [P] [US1] Remove console.log statements from client/src/hooks/*.{ts,tsx} files (remove debug logs entirely; replace user-feedback logs with toast notifications)
+- [ ] T045 [P] [US1] Remove console.log statements from client/src/contexts/*.{ts,tsx} files (remove debug logs entirely; replace user-feedback logs with toast notifications)
+- [ ] T046 [P] [US1] Remove console.log statements from client/src/lib/*.{ts,tsx} files (remove debug logs entirely; replace user-feedback logs with toast notifications)
 
 ### Validation for User Story 1
 
-- [ ] T050 [US1] Run `npm run lint` and verify zero errors on clean codebase
-- [ ] T051 [US1] Run `npm run format` and verify all files formatted successfully
-- [ ] T052 [US1] Build application with `npm run build` and verify no console.log warnings
-- [ ] T053 [US1] Start application and verify no console output during normal user operations
+- [ ] T050 [US1] Run `npm run lint` and verify zero errors on clean codebase (if errors found: fix violations and re-run until passing)
+- [ ] T051 [US1] Run `npm run format` and verify all files formatted successfully (if errors found: review and fix format issues, then re-run)
+- [ ] T052 [US1] Build application with `npm run build` and verify no console.log warnings (if warnings found: locate and remove remaining console.log statements)
+- [ ] T053 [US1] Start application and verify no console output during normal user operations (if console output appears: identify source and remove)
 
 **Checkpoint**: User Story 1 complete - ESLint and Prettier configured, all console.log removed, linting passes
 
@@ -148,8 +148,8 @@
 
 ### Sample Test Creation for User Story 3
 
-- [ ] T090 [P] [US3] Create sample Vitest test in client/src/components/ui/button.test.tsx
-- [ ] T091 [P] [US3] Create sample MSTest in tests/TriviaSpark.Tests/SampleTest.cs
+- [ ] T090 [P] [US3] Create sample Vitest test in client/src/components/ui/button.test.tsx (must render component and assert on behavior, not trivial arithmetic)
+- [ ] T091 [P] [US3] Create sample MSTest in tests/TriviaSpark.Tests/SampleTest.cs (must test realistic scenario, not trivial arithmetic)
 - [ ] T092 [P] [US3] Create global usings file in tests/TriviaSpark.Tests/Usings.cs
 
 ### Validation for User Story 3
@@ -188,7 +188,7 @@
 ### XML Documentation Generation for User Story 4
 
 - [ ] T115 [US4] Enable GenerateDocumentationFile in TriviaSpark.Api/TriviaSpark.Api.csproj PropertyGroup
-- [ ] T116 [US4] Add NoWarn 1591 to suppress missing doc warnings during transition in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [ ] T116 [US4] Add NoWarn 1591 to suppress missing doc warnings during transition in TriviaSpark.Api/TriviaSpark.Api.csproj (TEMPORARY: will be removed at T122 after all docs complete)
 - [ ] T117 [US4] Configure XML documentation file output path in TriviaSpark.Api/TriviaSpark.Api.csproj
 
 ### Validation for User Story 4
@@ -210,15 +210,15 @@
 
 ### File Relocation for User Story 5
 
-- [ ] T130 [P] [US5] Move TriviaSpark.Api/TriviaSpark.Api.http to tests/http/triviaspark-api.http
-- [ ] T131 [P] [US5] Update any documentation references to old .http file path in README.md or other docs
+- [ ] T130 [P] [US5] Move TriviaSpark.Api/TriviaSpark.Api.http to tests/http/triviaspark-api.http (if file exists; skip if already moved or doesn't exist)
+- [ ] T131 [P] [US5] Update any documentation references to old .http file path in README.md or other docs (if applicable)
 - [ ] T132 [P] [US5] Search for any other .http files outside tests/http/ and move them
 
 ### Server Directory Evaluation for User Story 5
 
 - [ ] T135 [US5] Audit server/ directory contents and document purpose in copilot/server-directory-audit.md
-- [ ] T136 [US5] Determine if server/ code is archived or active based on git history and references
-- [ ] T137 [US5] Document decision on server/ directory (archive, delete, or keep) in copilot/server-directory-decision.md
+- [ ] T136 [US5] Determine if server/ code is archived or active based on git history and references (check last commit date, search for imports/references)
+- [ ] T137 [US5] Document decision on server/ directory in copilot/server-directory-decision.md (tech lead decides: if no commits in 6+ months and no active references, recommend deletion)
 
 ### Validation for User Story 5
 
@@ -259,14 +259,14 @@
 
 ---
 
-## Phase 9: Polish & Cross-Cutting Concerns
+## Phase 9: Integration & Final Validation
 
-**Purpose**: Final improvements that affect multiple user stories
+**Purpose**: Final improvements, integration verification, and compliance validation
 
 - [ ] T170 [P] Update .documentation/specs/001-constitution-compliance/README.md with implementation summary
 - [ ] T171 [P] Update main README.md with new developer workflow (linting, formatting, testing)
 - [ ] T172 [P] Update CONTRIBUTING.md with code quality standards and pre-commit checklist
-- [ ] T173 [P] Create pre-commit hook template for running lint + format checks in .githooks/pre-commit
+- [ ] T173 [P] Create pre-commit hook template for running lint + format checks in .githooks/pre-commit (note: hook installation/activation is post-feature work, document in quickstart.md)
 - [ ] T174 Run quickstart.md validation to verify all developer workflow steps work
 - [ ] T175 Run constitution compliance audit and verify score improves from 42% to 80%+
 - [ ] T176 Generate final compliance report in copilot/constitution-compliance-final-report.md

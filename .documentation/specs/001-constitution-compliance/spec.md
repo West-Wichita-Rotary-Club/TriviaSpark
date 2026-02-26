@@ -127,7 +127,7 @@ As a developer working on the codebase, I need excessively large files broken in
 
 #### Code Quality & Tooling (CRITICAL)
 
-- **FR-001**: Codebase MUST have zero console.log statements in client/src/**/*.{ts,tsx} files
+- **FR-001**: Codebase MUST have zero console.log statements in client/src/**/*.{ts,tsx} files (remove debug statements entirely; replace user-feedback console.log with toast notifications)
 - **FR-002**: Repository MUST have .eslintrc.json configured with TypeScript and React recommended rules
 - **FR-003**: Repository MUST have .prettierrc configured with project formatting standards
 - **FR-004**: Running `npm run lint` MUST execute ESLint and report zero errors on clean code
@@ -136,7 +136,7 @@ As a developer working on the codebase, I need excessively large files broken in
 
 #### Database Configuration (HIGH)
 
-- **FR-007**: Program.cs default connection string MUST use "Data Source=C:\\websites\\TriviaSpark\\trivia.db"
+- **FR-007**: Program.cs default connection string MUST use "Data Source=C:\\websites\\TriviaSpark\\trivia.db" (note: backslashes are escaped for C# string literal format)
 - **FR-008**: ApiEndpoints.EfCore.cs MUST NOT contain hardcoded relative paths to database files
 - **FR-009**: All database path references MUST use environment variable DATABASE_URL with fallback to production path
 - **FR-010**: Application startup logs MUST confirm actual database path being used
@@ -148,7 +148,7 @@ As a developer working on the codebase, I need excessively large files broken in
 - **FR-013**: Running `npm test` MUST execute Vitest test runner
 - **FR-014**: Running `dotnet test` MUST execute MSTest test runner
 - **FR-015**: Test scripts MUST be documented in package.json and README.md
-- **FR-016**: Sample test files MUST be created to validate test infrastructure works
+- **FR-016**: Sample test files MUST be created to validate test infrastructure works (minimum complexity: render a component and assert on behavior, not just trivial arithmetic)
 
 #### Documentation (MEDIUM)
 
@@ -162,7 +162,7 @@ As a developer working on the codebase, I need excessively large files broken in
 
 - **FR-022**: TriviaSpark.Api/TriviaSpark.Api.http MUST be moved to tests/http/triviaspark-api.http
 - **FR-023**: ALL .http files MUST reside in tests/http/ directory
-- **FR-024**: Decision on server/ directory (archive or delete) MUST be documented
+- **FR-024**: Decision on server/ directory (archive or delete) MUST be documented by tech lead based on git history analysis (if no commits in 6+ months and no active references, recommend deletion)
 - **FR-025**: Repository structure MUST achieve 100% compliance with constitution file organization rules
 
 #### Code Structure (LOW)
@@ -184,8 +184,8 @@ This feature primarily involves configuration and code cleanup, not data entitie
 
 ### Measurable Outcomes
 
-- **SC-001**: Constitution compliance audit score improves from 42% to minimum 80%
-- **SC-002**: Code quality score improves from 35% to minimum 75%
+- **SC-001**: Constitution compliance audit score improves from 42% to minimum 80% (calculated by dividing compliant principles by total principles in constitution.md)
+- **SC-002**: Code quality score improves from 35% to minimum 75% (weighted average: 40% ESLint pass rate, 30% documentation coverage, 20% test coverage, 10% file organization)
 - **SC-003**: File organization compliance improves from 95% to 100%
 - **SC-004**: Database path violations decrease from 10 to 0
 - **SC-005**: Console.log statements decrease from 38 to 0
@@ -193,7 +193,7 @@ This feature primarily involves configuration and code cleanup, not data entitie
 - **SC-007**: High priority issues decrease from 12 to maximum 2 (large file refactoring can be deferred)
 - **SC-008**: Test infrastructure passes health check (frameworks configured and runnable)
 - **SC-009**: Running `npm run lint` completes in under 10 seconds with zero errors
-- **SC-010**: Running `npm run format` formats all files without errors
+- **SC-010**: Running `npm run format` formats all files without errors and completes in under 15 seconds
 - **SC-011**: All C# public classes, interfaces, and methods in Services/ have XML documentation
 - **SC-012**: Build process generates XML documentation file without warnings for documented assemblies
 - **SC-013**: Application successfully connects to C:\websites\TriviaSpark\trivia.db on startup
