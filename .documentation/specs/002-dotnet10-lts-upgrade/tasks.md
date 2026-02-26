@@ -19,8 +19,8 @@
 
 **Purpose**: Pin the .NET SDK version and document the pre-upgrade baseline state
 
-- [ ] T001 Run `dotnet build TriviaSpark.Api.sln` and `dotnet test` on the current net9.0 codebase to confirm baseline passes (0 warnings, 0 errors, all tests green) before any changes
-- [ ] T002 Create global.json in repository root to pin .NET SDK to 10.0.x with rollForward latestFeature
+- [x] T001 Run `dotnet build TriviaSpark.Api.sln` and `dotnet test` on the current net9.0 codebase to confirm baseline passes (0 warnings, 0 errors, all tests green) before any changes
+- [x] T002 Create global.json in repository root to pin .NET SDK to 10.0.x with rollForward latestFeature
 
 **Checkpoint**: Baseline validated, SDK pinned — ready to begin framework upgrade
 
@@ -32,10 +32,10 @@
 
 **⚠️ CRITICAL**: NuGet packages targeting 10.x require net10.0 TargetFramework to restore properly
 
-- [ ] T003 [P] [US1] Update TargetFramework from net9.0 to net10.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T004 [P] [US1] Update TargetFramework from net9.0 to net10.0 in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
-- [ ] T005 [P] [US1] Update TargetFramework from net9.0 to net10.0 in tools/promote-admin/promote-admin.csproj
-- [ ] T006 [US1] Run `dotnet restore TriviaSpark.Api.sln` and `dotnet restore tools/promote-admin/promote-admin.csproj` to verify framework resolution succeeds for all projects (promote-admin is not in the .sln)
+- [x] T003 [P] [US1] Update TargetFramework from net9.0 to net10.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T004 [P] [US1] Update TargetFramework from net9.0 to net10.0 in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
+- [x] T005 [P] [US1] Update TargetFramework from net9.0 to net10.0 in tools/promote-admin/promote-admin.csproj
+- [x] T006 [US1] Run `dotnet restore TriviaSpark.Api.sln` and `dotnet restore tools/promote-admin/promote-admin.csproj` to verify framework resolution succeeds for all projects (promote-admin is not in the .sln)
 
 **Checkpoint**: All projects target net10.0 — NuGet version updates can proceed
 
@@ -49,38 +49,38 @@
 
 ### TriviaSpark.Api NuGet Updates
 
-- [ ] T007 [P] [US2] Update Microsoft.AspNetCore.OpenApi from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T008 [P] [US2] Update Microsoft.AspNetCore.SpaServices.Extensions from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T009 [P] [US2] Update Microsoft.Data.Sqlite.Core from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T010 [P] [US2] Update Microsoft.EntityFrameworkCore.Design from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T011 [P] [US2] Update Microsoft.EntityFrameworkCore.Sqlite from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T012 [P] [US2] Update BCrypt.Net-Next from 4.0.3 to 4.1.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T013 [P] [US2] Update OpenAI from 2.4.0 to 2.8.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T014 [P] [US2] Update Serilog.AspNetCore from 9.0.0 to 10.0.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T015 [P] [US2] Update Serilog.Sinks.Console from 6.0.0 to 6.1.1 in TriviaSpark.Api/TriviaSpark.Api.csproj
-- [ ] T016 [P] [US2] Update Swashbuckle.AspNetCore from 9.0.4 to 10.1.4 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T007 [P] [US2] Update Microsoft.AspNetCore.OpenApi from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T008 [P] [US2] Update Microsoft.AspNetCore.SpaServices.Extensions from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T009 [P] [US2] Update Microsoft.Data.Sqlite.Core from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T010 [P] [US2] Update Microsoft.EntityFrameworkCore.Design from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T011 [P] [US2] Update Microsoft.EntityFrameworkCore.Sqlite from 9.0.9 to 10.0.3 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T012 [P] [US2] Update BCrypt.Net-Next from 4.0.3 to 4.1.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T013 [P] [US2] Update OpenAI from 2.4.0 to 2.8.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T014 [P] [US2] Update Serilog.AspNetCore from 9.0.0 to 10.0.0 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T015 [P] [US2] Update Serilog.Sinks.Console from 6.0.0 to 6.1.1 in TriviaSpark.Api/TriviaSpark.Api.csproj
+- [x] T016 [P] [US2] Update Swashbuckle.AspNetCore from 9.0.4 to 10.1.4 in TriviaSpark.Api/TriviaSpark.Api.csproj
 
 ### TriviaSpark.Tests NuGet Updates
 
-- [ ] T017 [P] [US2] Update MSTest from 4.0.2 to 4.1.0 in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
-- [ ] T018 [P] [US2] Update Microsoft.EntityFrameworkCore.InMemory from 9.* to 10.* in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
-- [ ] T019 [P] [US2] Update Microsoft.AspNetCore.Mvc.Testing from 9.* to 10.* in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
+- [x] T017 [P] [US2] Update MSTest from 4.0.2 to 4.1.0 in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
+- [x] T018 [P] [US2] Update Microsoft.EntityFrameworkCore.InMemory from 9.* to 10.* in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
+- [x] T019 [P] [US2] Update Microsoft.AspNetCore.Mvc.Testing from 9.* to 10.* in tests/TriviaSpark.Tests/TriviaSpark.Tests.csproj
 
 ### promote-admin NuGet Updates
 
-- [ ] T020 [P] [US2] Update Microsoft.EntityFrameworkCore.Sqlite from 9.0.9 to 10.0.3 in tools/promote-admin/promote-admin.csproj
+- [x] T020 [P] [US2] Update Microsoft.EntityFrameworkCore.Sqlite from 9.0.9 to 10.0.3 in tools/promote-admin/promote-admin.csproj
 
 ### Build & Test Verification
 
-- [ ] T021 [US1] Run `dotnet restore TriviaSpark.Api.sln` to restore updated packages
-- [ ] T022 [US1] Run `dotnet build TriviaSpark.Api.sln` and verify 0 warnings, 0 errors
-- [ ] T023 [US1] Fix any compilation errors or warnings introduced by package upgrades in TriviaSpark.Api/**/*.cs
-- [ ] T024 [US1] Run `dotnet build tools/promote-admin/promote-admin.csproj` and verify 0 warnings, 0 errors
-- [ ] T025 [US1] Fix any compilation errors in tools/promote-admin/**/*.cs if needed
-- [ ] T026 [US1] Run `dotnet test TriviaSpark.Api.sln` and verify all existing tests pass
-- [ ] T027 [US1] Run `dotnet publish TriviaSpark.Api/TriviaSpark.Api.csproj -c Release` and verify 0 warnings, 0 errors
-- [ ] T028 [US2] Run `dotnet list TriviaSpark.Api.sln package --outdated` and verify no outdated packages
-- [ ] T029 [US2] Run `dotnet list tools/promote-admin/promote-admin.csproj package --outdated` and verify no outdated packages
+- [x] T021 [US1] Run `dotnet restore TriviaSpark.Api.sln` to restore updated packages
+- [x] T022 [US1] Run `dotnet build TriviaSpark.Api.sln` and verify 0 warnings, 0 errors
+- [x] T023 [US1] Fix any compilation errors or warnings introduced by package upgrades in TriviaSpark.Api/**/*.cs
+- [x] T024 [US1] Run `dotnet build tools/promote-admin/promote-admin.csproj` and verify 0 warnings, 0 errors
+- [x] T025 [US1] Fix any compilation errors in tools/promote-admin/**/*.cs if needed
+- [x] T026 [US1] Run `dotnet test TriviaSpark.Api.sln` and verify all existing tests pass
+- [x] T027 [US1] Run `dotnet publish TriviaSpark.Api/TriviaSpark.Api.csproj -c Release` and verify 0 warnings, 0 errors
+- [x] T028 [US2] Run `dotnet list TriviaSpark.Api.sln package --outdated` and verify no outdated packages
+- [x] T029 [US2] Run `dotnet list tools/promote-admin/promote-admin.csproj package --outdated` and verify no outdated packages
 
 **Checkpoint**: .NET 10 backend compiles cleanly, all tests pass, all NuGet packages at latest — US1 and US2 complete
 
@@ -94,23 +94,23 @@
 
 ### npm Updates
 
-- [ ] T030 [US3] Run `npm update` to update all semver-compatible packages in package.json
-- [ ] T031 [US3] Run `npm install react-resizable-panels@latest` to update major version (3→4) in package.json
-- [ ] T032 [US3] Run `npm install @types/node@latest` to update major version (24→25) in package.json
-- [ ] T033 [US3] Run `npm install @libsql/client@latest lucide-react@latest drizzle-orm@latest` for packages outside semver range in package.json
+- [x] T030 [US3] Run `npm update` to update all semver-compatible packages in package.json
+- [x] T031 [US3] Run `npm install react-resizable-panels@latest` to update major version (3→4) in package.json
+- [x] T032 [US3] Run `npm install @types/node@latest` to update major version (24→25) in package.json
+- [x] T033 [US3] Run `npm install @libsql/client@latest lucide-react@latest drizzle-orm@latest` for packages outside semver range in package.json
 
 ### Breaking Change Review
 
-- [ ] T034 [US3] Search for react-resizable-panels usage in client/src/**/*.tsx and review against v4 migration guide — adapt imports/props or pin to v3 if breaking
-- [ ] T035 [US3] If react-resizable-panels v4 breaks, run `npm install react-resizable-panels@3` to pin to latest v3.x in package.json
+- [x] T034 [US3] Search for react-resizable-panels usage in client/src/**/*.tsx and review against v4 migration guide — adapt imports/props or pin to v3 if breaking
+- [x] T035 [US3] If react-resizable-panels v4 breaks, run `npm install react-resizable-panels@3` to pin to latest v3.x in package.json
 
 ### Frontend Build Verification
 
-- [ ] T036 [US3] Run `npm run build` and verify Vite build completes with no errors
-- [ ] T037 [US3] Fix any TypeScript or build errors in client/src/**/*.ts{x} introduced by package upgrades
-- [ ] T038 [US3] Run `npm run check` and verify TypeScript type-checking passes with no errors
-- [ ] T039 [US3] Fix any type errors in client/src/**/*.ts{x} introduced by updated @types packages
-- [ ] T040 [US3] Run `npm outdated` and verify no outdated packages remain
+- [x] T036 [US3] Run `npm run build` and verify Vite build completes with no errors
+- [x] T037 [US3] Fix any TypeScript or build errors in client/src/**/*.ts{x} introduced by package upgrades
+- [x] T038 [US3] Run `npm run check` and verify TypeScript type-checking passes with no errors
+- [x] T039 [US3] Fix any type errors in client/src/**/*.ts{x} introduced by updated @types packages
+- [x] T040 [US3] Run `npm outdated` and verify no outdated packages remain
 
 **Checkpoint**: Frontend builds cleanly, type-checks pass, all npm packages at latest — US3 complete
 
@@ -122,11 +122,11 @@
 
 **Independent Test**: Application starts, health endpoint returns 200, SPA loads in browser
 
-- [ ] T041 [US4] Run `npm run build` to ensure latest frontend is deployed to TriviaSpark.Api/wwwroot
-- [ ] T042 [US4] Run `dotnet run --project TriviaSpark.Api/TriviaSpark.Api.csproj` and verify application starts without runtime errors
-- [ ] T043 [US4] Verify health endpoint returns HTTP 200 OK (confirm application is responsive after startup)
-- [ ] T044 [US4] Verify React SPA loads and renders at root URL without console errors
-- [ ] T045 [US4] Stop the application after smoke test passes
+- [x] T041 [US4] Run `npm run build` to ensure latest frontend is deployed to TriviaSpark.Api/wwwroot
+- [x] T042 [US4] Run `dotnet run --project TriviaSpark.Api/TriviaSpark.Api.csproj` and verify application starts without runtime errors
+- [x] T043 [US4] Verify health endpoint returns HTTP 200 OK (confirm application is responsive after startup)
+- [x] T044 [US4] Verify React SPA loads and renders at root URL without console errors
+- [x] T045 [US4] Stop the application after smoke test passes
 
 **Checkpoint**: Application runs correctly on .NET 10 — US4 complete
 

@@ -13,7 +13,7 @@ Constitution Discovery Summary:
 
 Modified Principles:
 ✅ NEW: I. Frontend Technology Stack (React 19 + TypeScript + shadcn/ui)
-✅ NEW: II. Backend Technology Stack (ASP.NET Core 9 + EF Core + SQLite)
+✅ NEW: II. Backend Technology Stack (ASP.NET Core 10 + EF Core + SQLite)
 ✅ NEW: III. Validation & Type Safety (Zod + Data Annotations)
 ✅ NEW: IV. Testing Standards (Vitest + MSTest - NOT YET IMPLEMENTED)
 ✅ NEW: V. Error Handling & Observability (Serilog + ILoggingService)
@@ -77,7 +77,7 @@ All frontend code MUST use the standardized React 18+ stack for consistency, typ
 All backend code MUST use the standardized ASP.NET Core + Entity Framework Core stack.
 
 **Required Technologies:**
-- **ASP.NET Core 9** (.NET 9) as the web framework (MUST)
+- **ASP.NET Core 10** (.NET 10 LTS) as the web framework (MUST)
 - **Entity Framework Core** with SQLite for all data access (MUST)
 - **C# nullable reference types** enabled in all projects (MUST)
 - **Interface-based dependency injection** for all services (MUST)
