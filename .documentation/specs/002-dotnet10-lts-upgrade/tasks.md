@@ -136,10 +136,10 @@
 
 **Purpose**: Final cleanup, documentation, and constitution compliance
 
-- [ ] T046 [P] Review NoWarn suppressions in TriviaSpark.Api/TriviaSpark.Api.csproj — ensure only intentional suppressions remain (1591 for XML docs)
-- [ ] T047 [P] Update .documentation/memory/constitution.md §II to explicitly reference ".NET 10 LTS" and "ASP.NET Core 10" instead of ".NET 9" / "ASP.NET Core 9" — MUST complete before merging to main
-- [ ] T048 [P] Document any packages that could not be updated to latest with reason in .documentation/specs/002-dotnet10-lts-upgrade/research.md
-- [ ] T049 Run full verification suite: `dotnet build`, `dotnet test`, `dotnet list package --outdated`, `npm run build`, `npm run check`, `npm outdated`
+- [x] T046 [P] Review NoWarn suppressions in TriviaSpark.Api/TriviaSpark.Api.csproj — ensure only intentional suppressions remain (1591 for XML docs)
+- [x] T047 [P] Update .documentation/memory/constitution.md §II to explicitly reference ".NET 10 LTS" and "ASP.NET Core 10" instead of ".NET 9" / "ASP.NET Core 9" — MUST complete before merging to main
+- [x] T048 [P] Document any packages that could not be updated to latest with reason in .documentation/specs/002-dotnet10-lts-upgrade/research.md
+- [x] T049 Run full verification suite: `dotnet build`, `dotnet test`, `dotnet list package --outdated`, `npm run build`, `npm run check`, `npm outdated`
 
 **Checkpoint**: All verification commands pass — feature complete
 

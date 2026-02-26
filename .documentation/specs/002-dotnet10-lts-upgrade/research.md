@@ -123,3 +123,11 @@ All NEEDS CLARIFICATION items are resolved:
 4. ✅ npm upgrades are mostly minor; `react-resizable-panels` v4 needs breaking change review
 5. ✅ Swashbuckle migration is out of scope
 6. ✅ Baseline build is clean (0 warnings, 0 errors)
+
+## Implementation Notes (Post-Upgrade)
+
+**Packages that could not be updated**: None — all NuGet and npm packages were successfully updated to their latest versions.
+
+**react-resizable-panels v4 migration**: The v4 release renamed exports (`PanelGroup` → `Group`, `PanelResizeHandle` → `Separator`) and removed `data-panel-group-direction` data attributes. The shadcn/ui `resizable.tsx` wrapper was updated to use the new named imports and simplified CSS classes. No other files in the codebase consumed this component directly.
+
+**TypeScript**: Updated from pinned 5.9.2 to 5.9.3 (patch release, not in original task list but discovered via `npm outdated`).
