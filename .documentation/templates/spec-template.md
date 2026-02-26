@@ -5,6 +5,8 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
+**Constitution Compliance**: This feature must comply with TriviaSpark Constitution v1.0.0 (see `.documentation/memory/constitution.md`)
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--

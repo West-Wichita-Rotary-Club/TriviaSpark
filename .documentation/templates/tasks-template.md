@@ -44,13 +44,28 @@ description: "Task list template for feature implementation"
   ============================================================================
 -->
 
+## Phase 0: Constitution Compliance (Pre-Development)
+
+**Purpose**: Ensure feature design complies with TriviaSpark constitution before implementation
+
+- [ ] T000 [P] Verify frontend stack compliance (React 19, TypeScript strict, shadcn/ui, Tailwind, Zod)
+- [ ] T001 [P] Verify backend stack compliance (ASP.NET Core 9, EF Core, Serilog, interface-based DI)
+- [ ] T002 [P] Verify file organization (correct directories: tools/, tests/http/, copilot/, temp/)
+- [ ] T003 [P] Verify testing plan (Vitest for frontend, MSTest for backend)
+- [ ] T004 [P] Verify API architecture (Minimal API preferred, or justify Controller use)
+- [ ] T005 [P] Verify error handling approach (ILoggingService, error boundaries, no console.log)
+
+*See `.documentation/memory/constitution.md` for full requirements.*
+
+---
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project structure per implementation plan
-- [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T010 Create project structure per implementation plan
+- [ ] T011 Initialize [language] project with [framework] dependencies
+- [ ] T012 [P] Configure linting and formatting tools (ESLint + Prettier)
 
 ---
 

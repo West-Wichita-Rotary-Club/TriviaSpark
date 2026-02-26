@@ -31,7 +31,20 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**TriviaSpark Constitution v1.0.0 Compliance:**
+
+- [ ] **I. Frontend Stack**: Uses React 19 + TypeScript strict + shadcn/ui + Tailwind + Zod validation
+- [ ] **II. Backend Stack**: Uses ASP.NET Core 9 + EF Core + SQLite (production DB: `C:\websites\TriviaSpark\trivia.db`)
+- [ ] **III. Validation**: Zod schemas on frontend, data annotations on backend, API request validation
+- [ ] **IV. Testing**: Unit tests (Vitest for frontend, MSTest for backend) included and passing
+- [ ] **V. Error Handling**: Uses ILoggingService, no console.log, proper error boundaries
+- [ ] **VI. File Organization**: Files in correct directories (tests/http/, tools/, copilot/, etc.)
+- [ ] **VII. API Architecture**: New endpoints use Minimal API pattern (or justified Controller use)
+- [ ] **VIII. Code Quality**: C# XML docs, ESLint/Prettier configured, code formatted
+- [ ] **Security**: No hardcoded secrets, proper CORS, input sanitization
+- [ ] **Performance**: Database indexes, .AsNoTracking() for reads, React.memo() where needed
+
+*See `.documentation/memory/constitution.md` for full requirements.*
 
 ## Project Structure
 
