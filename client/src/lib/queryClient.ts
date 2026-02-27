@@ -1,4 +1,13 @@
-import { QueryClient, QueryFunction } from '@tanstack/react-query';
+import { QueryClient, QueryFunction, QueryCache, MutationCache } from '@tanstack/react-query';
+
+function handleGlobal401(error: unknown) {
+  if (error instanceof Error && error.message.startsWith('401:')) {
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/login') {
+      window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
+    }
+  }
+}
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -40,6 +49,12 @@ export const getQueryFn: <T>(options: { on401: UnauthorizedBehavior }) => QueryF
   };
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => handleGlobal401(error),
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => handleGlobal401(error),
+  }),
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: 'throw' }),

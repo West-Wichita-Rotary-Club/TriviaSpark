@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Save, Search, Eye, X, Download } from 'lucide-react';
 
 // Types
@@ -67,6 +68,7 @@ interface QuestionFormData {
 const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   // Form state management
@@ -221,7 +223,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
       const payload = {
         NewUnsplashImageId: selectedImage.id,
         SizeVariant: eventImageForm.sizeVariant,
-        SelectedByUserId: 'mark-user-id', // Default user ID since no auth
+        SelectedByUserId: user?.id ?? 'anonymous',
       };
 
       const res = await fetch(`/api/EventImages/question/${questionId}/replace`, {
@@ -314,9 +316,9 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
 
   if (questionsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-b-2 border-wine-600 rounded-full mx-auto mb-4"></div>
+          <div className="animate-spin h-8 w-8 border-b-2 border-primary rounded-full mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading question...</p>
         </div>
       </div>
@@ -325,7 +327,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
 
   if (!question) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Question not found</p>
           <Button onClick={() => setLocation(`/events/${eventId}/manage/trivia`)}>
@@ -338,7 +340,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -346,12 +348,12 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
             <Button
               variant="ghost"
               onClick={() => setLocation(`/events/${eventId}/manage/trivia`)}
-              className="text-wine-600 hover:text-wine-700 hover:bg-wine-50"
+              className="text-primary hover:text-primary/90 hover:bg-primary/5"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Trivia Management
             </Button>
-            <h1 className="text-3xl font-bold text-wine-900">Edit Question</h1>
+            <h1 className="text-3xl font-bold text-foreground">Edit Question</h1>
           </div>
           <div className="flex gap-2">
             <Button
@@ -365,7 +367,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
             <Button
               onClick={onSubmit}
               disabled={updateQuestionMutation.isPending || !isDirty}
-              className="bg-wine-600 hover:bg-wine-700"
+              className="bg-primary hover:bg-primary/90"
             >
               <Save className="mr-2 h-4 w-4" />
               {updateQuestionMutation.isPending ? 'Saving...' : 'Save Question'}
@@ -409,7 +411,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                     <div className="mt-2 space-y-3">
                       {options.map((option, index) => (
                         <div key={index} className="flex gap-3 items-center">
-                          <span className="w-8 h-8 rounded bg-wine-100 flex items-center justify-center text-sm font-semibold text-wine-700">
+                          <span className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
                             {String.fromCharCode(65 + index)}
                           </span>
                           <Input
@@ -607,7 +609,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="w-full h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-500">
+                  <div className="w-full h-40 bg-muted rounded-lg flex items-center justify-center text-muted-foreground">
                     No image selected
                   </div>
                 )}
@@ -643,8 +645,8 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                           key={image.id}
                           className={`relative cursor-pointer border-2 rounded-lg overflow-hidden transition-all ${
                             selectedImage?.id === image.id
-                              ? 'border-wine-500 ring-2 ring-wine-200'
-                              : 'border-gray-200 hover:border-gray-300'
+                              ? 'border-primary ring-2 ring-primary/20'
+                              : 'border-border hover:border-border/60'
                           }`}
                           onClick={() => handleImageSelect(image)}
                         >
@@ -654,9 +656,9 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                             className="w-full h-24 object-cover"
                           />
                           {selectedImage?.id === image.id && (
-                            <div className="absolute inset-0 bg-wine-500 bg-opacity-20 flex items-center justify-center">
-                              <div className="bg-white rounded-full p-1">
-                                <Download className="h-4 w-4 text-wine-600" />
+                            <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                              <div className="bg-background rounded-full p-1">
+                                <Download className="h-4 w-4 text-primary" />
                               </div>
                             </div>
                           )}
@@ -668,14 +670,14 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
 
                 {/* Selected Image Attribution */}
                 {selectedImage && (
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-600">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground">
                       Photo by{' '}
                       <a
                         href={`${selectedImage.user.links.html}?utm_source=TriviaSpark&utm_medium=referral`}
                         target="_blank"
                         rel="noreferrer"
-                        className="underline text-wine-600 hover:text-wine-700"
+                        className="underline text-primary hover:text-primary/80"
                       >
                         {selectedImage.user.name}
                       </a>{' '}
@@ -684,7 +686,7 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                         href={`${selectedImage.links.html}?utm_source=TriviaSpark&utm_medium=referral`}
                         target="_blank"
                         rel="noreferrer"
-                        className="underline text-wine-600 hover:text-wine-700"
+                        className="underline text-primary hover:text-primary/80"
                       >
                         Unsplash
                       </a>
@@ -704,19 +706,19 @@ const QuestionEdit: React.FC<QuestionEditProps> = ({ eventId, questionId }) => {
                   <div className="text-xs space-y-2">
                     <div>
                       <Label className="text-xs font-medium">Image ID:</Label>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         {eventImageData.eventImage?.unsplashImageId || 'None'}
                       </p>
                     </div>
                     <div>
                       <Label className="text-xs font-medium">Size Variant:</Label>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         {eventImageData.eventImage?.sizeVariant || 'regular'}
                       </p>
                     </div>
                     <div>
                       <Label className="text-xs font-medium">Usage Context:</Label>
-                      <p className="text-gray-600">
+                      <p className="text-muted-foreground">
                         {eventImageData.eventImage?.usageContext || 'question_background'}
                       </p>
                     </div>

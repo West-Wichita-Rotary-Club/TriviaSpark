@@ -7,6 +7,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { WebSocketProvider } from './contexts/WebSocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './lib/auth';
 
 // Lazy load pages to prevent loading all components on initial load
 const Home = React.lazy(() => import('@/pages/home'));
@@ -21,6 +23,7 @@ const Dashboard = React.lazy(() => import('@/pages/dashboard'));
 const EventHost = React.lazy(() => import('@/pages/event-host'));
 const EventJoin = React.lazy(() => import('@/pages/event-join'));
 const Admin = React.lazy(() => import('@/pages/Admin'));
+const Login = React.lazy(() => import('@/pages/login'));
 const ApiDocs = React.lazy(() => import('@/pages/api-docs'));
 const PresenterView = React.lazy(() => import('@/pages/presenter'));
 const Insights = React.lazy(() => import('@/pages/insights'));
@@ -46,12 +49,16 @@ function App() {
     <ThemeProvider defaultTheme="system">
       <Router base={basePath}>
         <QueryClientProvider client={queryClient}>
-          <WebSocketProvider>
-            <TooltipProvider>
+          <AuthProvider>
+            <WebSocketProvider>
+              <TooltipProvider>
               <div className="min-h-screen flex flex-col bg-background text-foreground">
                 <main className="flex-1">
                   <Suspense fallback={<Loading />}>
                     <Switch>
+                      {/* Login page - public */}
+                      <Route path="/login" component={Login} />
+
                       {/* Home page */}
                       <Route path="/" component={Home} />
 
@@ -62,32 +69,36 @@ function App() {
 
                       {/* Dashboard and events */}
                       <Route path="/dashboard">
-                        <>
+                        <ProtectedRoute>
                           <Header />
                           <Dashboard />
                           <Footer />
-                        </>
+                        </ProtectedRoute>
                       </Route>
-                      <Route path="/events" component={() => <Dashboard />} />
+                      <Route path="/events">
+                        <ProtectedRoute>
+                          <Dashboard />
+                        </ProtectedRoute>
+                      </Route>
 
                       {/* Database Analyzer */}
                       <Route path="/database-analyzer">
-                        <>
+                        <ProtectedRoute requiredRole="Admin">
                           <Header />
                           <DatabaseAnalyzer />
                           <Footer />
-                        </>
+                        </ProtectedRoute>
                       </Route>
 
                       {/* Event management route */}
                       <Route path="/events/:id/manage">
                         {(params) => {
                           return (
-                            <>
+                            <ProtectedRoute>
                               <Header />
                               <EventManage eventId={params?.id} />
                               <Footer />
-                            </>
+                            </ProtectedRoute>
                           );
                         }}
                       </Route>
@@ -95,33 +106,33 @@ function App() {
                       {/* Full Trivia Management route */}
                       <Route path="/events/:id/manage/trivia">
                         {(params) => (
-                          <>
+                          <ProtectedRoute>
                             <Header />
                             <EventTriviaManage eventId={params?.id} />
                             <Footer />
-                          </>
+                          </ProtectedRoute>
                         )}
                       </Route>
 
                       {/* Specific Question Editing route */}
                       <Route path="/events/:id/manage/trivia/:questionId">
                         {(params) => (
-                          <>
+                          <ProtectedRoute>
                             <Header />
                             <QuestionEdit eventId={params?.id} questionId={params?.questionId} />
                             <Footer />
-                          </>
+                          </ProtectedRoute>
                         )}
                       </Route>
 
                       {/* Alternate trailing slash variant (some servers/users may hit this) */}
                       <Route path="/events/:id/manage/trivia/">
                         {(params) => (
-                          <>
+                          <ProtectedRoute>
                             <Header />
                             <EventTriviaManage eventId={params?.id} />
                             <Footer />
-                          </>
+                          </ProtectedRoute>
                         )}
                       </Route>
 
@@ -159,18 +170,18 @@ function App() {
                       {/* Other routes */}
                       <Route path="/join/:qrCode">{(params) => <EventJoin />}</Route>
                       <Route path="/insights">
-                        <>
+                        <ProtectedRoute>
                           <Header />
                           <Insights />
                           <Footer />
-                        </>
+                        </ProtectedRoute>
                       </Route>
                       <Route path="/admin">
-                        <>
+                        <ProtectedRoute requiredRole="Admin">
                           <Header />
                           <Admin />
                           <Footer />
-                        </>
+                        </ProtectedRoute>
                       </Route>
                       <Route path="/api-docs" component={ApiDocs} />
 
@@ -182,6 +193,7 @@ function App() {
               </div>
             </TooltipProvider>
           </WebSocketProvider>
+        </AuthProvider>
         </QueryClientProvider>
         <Toaster />
       </Router>

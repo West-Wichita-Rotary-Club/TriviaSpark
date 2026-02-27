@@ -122,11 +122,11 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
 
   if (!isJoined) {
     return (
-      <div className="min-h-screen bg-champagne-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-accent/20 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-wine-800">Join Trivia Event</CardTitle>
-            {eventTitle && <p className="text-wine-600 mt-2">{eventTitle}</p>}
+            <CardTitle className="text-2xl font-bold text-foreground">Join Trivia Event</CardTitle>
+            {eventTitle && <p className="text-muted-foreground mt-2">{eventTitle}</p>}
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -142,7 +142,7 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
             <Button
               onClick={handleJoinEvent}
               disabled={!participantName.trim()}
-              className="w-full bg-wine-600 hover:bg-wine-700"
+              className="w-full bg-primary hover:bg-primary/90"
               data-testid="button-join-event"
             >
               <Users className="w-4 h-4 mr-2" />
@@ -155,17 +155,17 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
   }
 
   return (
-    <div className="min-h-screen bg-champagne-50 p-4">
+    <div className="min-h-screen bg-accent/20 p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border-2 border-wine-200">
+        <div className="bg-background p-6 rounded-lg shadow-sm border-2 border-primary/20">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-wine-800">Welcome, {participantName}!</h1>
-              {eventTitle && <p className="text-wine-600">{eventTitle}</p>}
+              <h1 className="text-2xl font-bold text-foreground">Welcome, {participantName}!</h1>
+              {eventTitle && <p className="text-muted-foreground">{eventTitle}</p>}
             </div>
             <div className="flex items-center gap-4">
-              <Badge variant="outline" className="bg-wine-100 text-wine-800 border-wine-300">
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
                 <Trophy className="w-3 h-3 mr-1" />
                 Score: {score}
               </Badge>
@@ -178,10 +178,10 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
         {gameStatus === 'waiting' && (
           <Card className="text-center p-8">
             <CardContent>
-              <h2 className="text-xl font-semibold text-gray-700 mb-4">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
                 Waiting for trivia to start...
               </h2>
-              <p className="text-gray-600">The host will begin the questions shortly.</p>
+              <p className="text-muted-foreground">The host will begin the questions shortly.</p>
             </CardContent>
           </Card>
         )}
@@ -189,11 +189,11 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
         {gameStatus === 'active' && currentQuestion && (
           <div className="space-y-6">
             {/* Timer */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border-2 border-wine-200 text-center">
+            <div className="bg-background p-4 rounded-lg shadow-sm border-2 border-primary/20 text-center">
               <div className="flex items-center justify-center gap-4">
-                <Clock className="w-5 h-5 text-wine-600" />
+                <Clock className="w-5 h-5 text-primary" />
                 <div
-                  className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-600' : 'text-wine-800'}`}
+                  className={`text-2xl font-bold ${timeLeft <= 10 ? 'text-red-600' : 'text-foreground'}`}
                 >
                   {timeLeft}s
                 </div>
@@ -208,7 +208,7 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
             {/* Question */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl text-wine-800">{currentQuestion.question}</CardTitle>
+                <CardTitle className="text-xl text-foreground">{currentQuestion.question}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {currentQuestion.options?.map((option: string, index: number) => (
@@ -219,8 +219,8 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
                     disabled={answerLocked}
                     className={`w-full justify-start text-left p-4 h-auto ${
                       selectedAnswer === option
-                        ? 'bg-wine-600 hover:bg-wine-700 text-white'
-                        : 'border-wine-200 hover:bg-wine-50'
+                        ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                        : 'border-primary/20 hover:bg-primary/5'
                     }`}
                     data-testid={`option-${index}`}
                   >
@@ -255,11 +255,11 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
         {gameStatus === 'ended' && (
           <Card className="text-center p-8">
             <CardContent>
-              <h2 className="text-2xl font-bold text-wine-800 mb-6">🎉 Trivia Complete! 🎉</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-6">🎉 Trivia Complete! 🎉</h2>
 
               {leaderboard.length > 0 && (
                 <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-wine-700">Final Results</h3>
+                  <h3 className="text-xl font-semibold text-primary">Final Results</h3>
                   <div className="space-y-2">
                     {leaderboard.map((participant, index) => (
                       <div
@@ -267,7 +267,7 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
                         className={`flex items-center justify-between p-3 rounded-lg ${
                           participant.name === participantName
                             ? 'bg-yellow-100 border-2 border-yellow-300'
-                            : 'bg-gray-50'
+                            : 'bg-muted/50'
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -276,14 +276,14 @@ export function ParticipantJoinPage({ eventId, eventTitle }: ParticipantJoinPage
                           </span>
                           <span className="font-semibold">{participant.name}</span>
                         </div>
-                        <span className="font-bold text-wine-800">{participant.score}</span>
+                        <span className="font-bold text-foreground">{participant.score}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              <p className="text-gray-600 mt-6">
+              <p className="text-muted-foreground mt-6">
                 Thanks for playing! Your final score: <strong>{score}</strong>
               </p>
             </CardContent>

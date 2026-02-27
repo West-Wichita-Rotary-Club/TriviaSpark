@@ -164,6 +164,19 @@ public static class EfCoreApiEndpoints
             }
         }).WithTags("Health").AllowAnonymous().RequireCors("ApiCors");
 
+        // ===== Authentication Endpoints =====
+        MapAuthEndpoints(api);
+
+        // ===== Admin Management Endpoints =====
+        MapAdminEndpoints(api);
+
+        // ===== Image & Unsplash Endpoints (migrated from MVC controllers) =====
+        MapEventImagesEndpoints(api);
+        MapUnsplashEndpoints(api);
+
+        // ===== Dev-only Test Endpoints (migrated from MVC controllers) =====
+        MapDevTestEndpoints(api);
+
         // Dashboard endpoints - no auth required
         api.MapGet("/dashboard/stats", async (IEfCoreEventService eventService, IEfCoreParticipantService participantService, IEfCoreUserService userService, ILogger<Program> logger) =>
         {
@@ -290,15 +303,183 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapPost("/events", async ([FromBody] CreateEventRequest body, IEfCoreEventService eventService, ILogger<Program> logger) =>
+        // Past events — all completed/cancelled or events with past dates
+        api.MapGet("/events/past", async (HttpContext context, TriviaSparkDbContext db, ILogger<Program> logger) =>
         {
+            var user = context.Items["User"] as Data.Entities.User;
+            if (user == null)
+                return Results.Json(new { message = "Not authenticated" }, statusCode: StatusCodes.Status401Unauthorized);
+
+            try
+            {
+                var now = DateTime.UtcNow;
+                var events = await db.Events
+                    .Where(e => e.Status == "completed" || e.Status == "cancelled" ||
+                                (e.EventDate != null && e.EventDate < now))
+                    .OrderByDescending(e => e.EventDate ?? e.CreatedAt)
+                    .AsNoTracking()
+                    .Select(e => new
+                    {
+                        e.Id, e.Title, e.Description, e.EventType, e.Status,
+                        e.EventDate, e.EventTime, e.Location, e.SponsoringOrganization,
+                        e.MaxParticipants, e.Difficulty, e.QrCode, e.CreatedAt,
+                        QuestionCount = e.Questions.Count(),
+                        FunFactCount = e.FunFacts.Count()
+                    })
+                    .ToListAsync();
+                return Results.Ok(events);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to retrieve past events");
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        // Clone an event — copies event, questions, and fun facts with a new date
+        api.MapPost("/events/{id}/clone", async (HttpContext context, string id, [FromBody] CloneEventRequest body,
+            IEfCoreEventService eventService, TriviaSparkDbContext db, ILogger<Program> logger) =>
+        {
+            var user = context.Items["User"] as Data.Entities.User;
+            if (user == null)
+                return Results.Json(new { message = "Not authenticated" }, statusCode: StatusCodes.Status401Unauthorized);
+            var roleName = user.Role?.Name;
+            if (roleName != "Admin" && roleName != "Owner")
+                return Results.Json(new { message = "Forbidden" }, statusCode: StatusCodes.Status403Forbidden);
+
+            try
+            {
+                var source = await eventService.GetEventByIdAsync(id);
+                if (source == null)
+                    return Results.NotFound(new { error = "Event not found" });
+
+                // Ownership check for Owner role
+                if (roleName == "Owner" && source.HostId != user.Id)
+                    return Results.Json(new { message = "Forbidden" }, statusCode: StatusCodes.Status403Forbidden);
+
+                // Generate unique slug
+                var newTitle = body.Title ?? $"{source.Title} (Copy)";
+                var baseSlug = SlugGenerator.GenerateSlug(newTitle);
+                var existingEvents = await eventService.GetEventsForHostAsync(user.Id);
+                var existingSlugs = existingEvents.Select(e => e.Id).ToList();
+                var uniqueSlug = SlugGenerator.MakeUniqueSlug(baseSlug, existingSlugs);
+
+                // Ensure global uniqueness
+                if (await eventService.GetEventByIdAsync(uniqueSlug) != null)
+                    uniqueSlug = $"{uniqueSlug}-{Guid.NewGuid().ToString()[..6]}";
+
+                var newEvent = new Event
+                {
+                    Id = uniqueSlug,
+                    Title = newTitle,
+                    Description = source.Description,
+                    HostId = user.Id,
+                    EventType = source.EventType,
+                    MaxParticipants = source.MaxParticipants,
+                    Difficulty = source.Difficulty,
+                    Status = "draft",
+                    QrCode = SlugGenerator.GenerateSlug(newTitle, 12),
+                    EventDate = body.EventDate,
+                    EventTime = body.EventTime ?? source.EventTime,
+                    Location = body.Location ?? source.Location,
+                    SponsoringOrganization = source.SponsoringOrganization,
+                    LogoUrl = source.LogoUrl,
+                    BackgroundImageUrl = source.BackgroundImageUrl,
+                    EventCopy = source.EventCopy,
+                    WelcomeMessage = source.WelcomeMessage,
+                    ThankYouMessage = source.ThankYouMessage,
+                    PrimaryColor = source.PrimaryColor,
+                    SecondaryColor = source.SecondaryColor,
+                    FontFamily = source.FontFamily,
+                    ContactEmail = source.ContactEmail,
+                    ContactPhone = source.ContactPhone,
+                    WebsiteUrl = source.WebsiteUrl,
+                    SocialLinks = source.SocialLinks,
+                    PrizeInformation = source.PrizeInformation,
+                    EventRules = source.EventRules,
+                    SpecialInstructions = source.SpecialInstructions,
+                    AccessibilityInfo = source.AccessibilityInfo,
+                    DietaryAccommodations = source.DietaryAccommodations,
+                    DressCode = source.DressCode,
+                    AgeRestrictions = source.AgeRestrictions,
+                    TechnicalRequirements = source.TechnicalRequirements,
+                    Settings = source.Settings,
+                    AllowParticipants = source.AllowParticipants,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                db.Events.Add(newEvent);
+
+                // Clone questions
+                foreach (var q in source.Questions)
+                {
+                    db.Questions.Add(new Question
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        EventId = newEvent.Id,
+                        Type = q.Type,
+                        QuestionText = q.QuestionText,
+                        Options = q.Options,
+                        CorrectAnswer = q.CorrectAnswer,
+                        Explanation = q.Explanation,
+                        Points = q.Points,
+                        TimeLimit = q.TimeLimit,
+                        Difficulty = q.Difficulty,
+                        Category = q.Category,
+                        BackgroundImageUrl = q.BackgroundImageUrl,
+                        AiGenerated = q.AiGenerated,
+                        OrderIndex = q.OrderIndex,
+                        QuestionType = q.QuestionType,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                // Clone fun facts
+                foreach (var f in source.FunFacts)
+                {
+                    db.FunFacts.Add(new FunFact
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        EventId = newEvent.Id,
+                        Title = f.Title,
+                        Content = f.Content,
+                        OrderIndex = f.OrderIndex,
+                        IsActive = f.IsActive,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                await db.SaveChangesAsync();
+
+                logger.LogInformation("Event cloned: {SourceId} -> {NewId} ({Title}) by {User}",
+                    id, newEvent.Id, newEvent.Title, user.Username);
+
+                return Results.Created($"/api/events/{newEvent.Id}", new
+                {
+                    newEvent.Id, newEvent.Title, newEvent.Description, newEvent.EventType,
+                    newEvent.Status, newEvent.EventDate, newEvent.EventTime, newEvent.Location,
+                    newEvent.MaxParticipants, newEvent.Difficulty, newEvent.QrCode,
+                    questionsCloned = source.Questions.Count,
+                    funFactsCloned = source.FunFacts.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to clone event {EventId}", id);
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        api.MapPost("/events", async (HttpContext context, [FromBody] CreateEventRequest body, IEfCoreEventService eventService, ILogger<Program> logger) =>
+        {
+            var userId = GetAuthenticatedUserId(context)!;
+
             if (string.IsNullOrWhiteSpace(body.Title))
                 return Results.BadRequest(new { error = "Event title is required" });
 
             try
             {
-                // Use a default host ID since no authentication is required
-                var defaultHostId = "mark-user-id";
+                var defaultHostId = userId;
 
                 // Check for duplicate event title for this host
                 var existingEvents = await eventService.GetEventsForHostAsync(defaultHostId);
@@ -415,8 +596,15 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapPut("/events/{id}", async (string id, [FromBody] System.Text.Json.JsonElement body, IEfCoreEventService eventService, ILogger<Program> logger) =>
+        api.MapPut("/events/{id}", async (HttpContext context, string id, [FromBody] System.Text.Json.JsonElement body, IEfCoreEventService eventService, ILogger<Program> logger) =>
         {
+            var user = context.Items["User"] as Data.Entities.User;
+            if (user == null)
+                return Results.Json(new { message = "Not authenticated" }, statusCode: StatusCodes.Status401Unauthorized);
+            var roleName = user.Role?.Name;
+            if (roleName != "Admin" && roleName != "Owner")
+                return Results.Json(new { message = "Forbidden" }, statusCode: StatusCodes.Status403Forbidden);
+
             try
             {
                 var eventEntity = await eventService.GetEventByIdAsync(id);
@@ -425,6 +613,10 @@ public static class EfCoreApiEndpoints
                     logger.LogWarning("Event update failed - event not found: {EventId}", id);
                     return Results.NotFound(new { error = "Event not found" });
                 }
+
+                // Ownership check: Owner can only update their own events; Admin bypasses
+                if (roleName == "Owner" && eventEntity.HostId != user.Id)
+                    return Results.Json(new { message = "Forbidden" }, statusCode: StatusCodes.Status403Forbidden);
 
                 // Update properties from the request body
                 if (body.TryGetProperty("title", out var titleProp) && titleProp.ValueKind != System.Text.Json.JsonValueKind.Null)
@@ -685,7 +877,7 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        api.MapPut("/questions/{id}", async (string id, [FromBody] UpdateQuestion body, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, ILogger<Program> logger) =>
+        api.MapPut("/questions/{id}", async (HttpContext context, string id, [FromBody] UpdateQuestion body, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, ILogger<Program> logger) =>
         {
             try
             {
@@ -738,7 +930,7 @@ public static class EfCoreApiEndpoints
                             UnsplashImageId = body.SelectedImage.Id,
                             SizeVariant = "regular",
                             UsageContext = "question_background",
-                            SelectedByUserId = "mark-user-id" // Default user since no auth
+                            SelectedByUserId = GetAuthenticatedUserId(context) ?? "anonymous"
                         };
                         var eventImage = await eventImageService.SaveImageForQuestionAsync(createImageRequest);
                         logger.LogInformation("EventImage creation result: {Success}", eventImage != null ? "Success" : "Failed");
@@ -828,8 +1020,8 @@ public static class EfCoreApiEndpoints
             }
         });
 
-        // PUT endpoint to save/update EventImage for a question - no auth required
-        api.MapPut("/questions/{id}/eventimage", async (string id, [FromBody] SaveEventImageRequest body, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, ILogger<Program> logger) =>
+        // PUT endpoint to save/update EventImage for a question
+        api.MapPut("/questions/{id}/eventimage", async (HttpContext context, string id, [FromBody] SaveEventImageRequest body, IEfCoreEventService eventService, IEfCoreQuestionService questionService, IEventImageService eventImageService, ILogger<Program> logger) =>
         {
             try
             {
@@ -854,7 +1046,7 @@ public static class EfCoreApiEndpoints
                     UnsplashImageId = body.UnsplashImageId,
                     SizeVariant = body.SizeVariant ?? "regular",
                     UsageContext = body.UsageContext ?? "question_background",
-                    SelectedByUserId = "mark-user-id", // Default user since no auth
+                    SelectedByUserId = GetAuthenticatedUserId(context) ?? "anonymous",
                     SearchContext = body.SearchContext
                 };
 
@@ -1951,6 +2143,883 @@ public static class EfCoreApiEndpoints
             }
         });
     }
+
+    /// <summary>Endpoint filter requiring authentication and Admin or Owner role. Participants get 403.</summary>
+    private class EventAuthFilter : IEndpointFilter
+    {
+        public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+        {
+            var httpContext = context.HttpContext;
+            var user = httpContext.Items["User"] as Data.Entities.User;
+            if (user == null)
+                return Results.Json(new { message = "Not authenticated" }, statusCode: StatusCodes.Status401Unauthorized);
+
+            var roleName = user.Role?.Name;
+            if (roleName != "Admin" && roleName != "Owner")
+                return Results.Json(new { message = "Forbidden" }, statusCode: StatusCodes.Status403Forbidden);
+
+            return await next(context);
+        }
+    }
+
+    /// <summary>Extracts authenticated user ID from HttpContext, or null if not authenticated.</summary>
+    private static string? GetAuthenticatedUserId(HttpContext httpContext)
+    {
+        return (httpContext.Items["User"] as Data.Entities.User)?.Id;
+    }
+
+    private static void MapAuthEndpoints(RouteGroupBuilder api)
+    {
+        var auth = api.MapGroup("/auth").WithTags("Auth");
+
+        // POST /api/auth/login
+        auth.MapPost("/login", async (
+            HttpContext context,
+            [FromBody] AuthLoginRequest body,
+            IAdminService adminService,
+            ISessionService sessionService,
+            IWebHostEnvironment env,
+            ILogger<Program> logger) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.Identifier) || string.IsNullOrWhiteSpace(body.Password))
+                return Results.BadRequest(new { message = "Identifier and password are required" });
+
+            // Look up user by username or email
+            var users = await adminService.GetAllUsersAsync();
+            var user = users.FirstOrDefault(u =>
+                u.Username.Equals(body.Identifier, StringComparison.OrdinalIgnoreCase) ||
+                u.Email.Equals(body.Identifier, StringComparison.OrdinalIgnoreCase));
+
+            if (user == null)
+            {
+                // Constant-time comparison to prevent user enumeration
+                BCrypt.Net.BCrypt.Verify(body.Password, AuthConstants.DummyBCryptHash);
+                logger.LogWarning("Login failed: user not found for identifier {Identifier}", body.Identifier);
+                return Results.Json(new { message = "Invalid credentials" }, statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            // Verify password — guard against non-BCrypt hashes from legacy data
+            bool passwordValid;
+            try
+            {
+                passwordValid = user.Password.StartsWith("$2") && BCrypt.Net.BCrypt.Verify(body.Password, user.Password);
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                passwordValid = false;
+            }
+
+            if (!passwordValid)
+            {
+                logger.LogWarning("Login failed: invalid password for user {Username}", user.Username);
+                return Results.Json(new { message = "Invalid credentials" }, statusCode: StatusCodes.Status401Unauthorized);
+            }
+
+            var ipAddress = context.Connection.RemoteIpAddress?.ToString();
+            var userAgent = context.Request.Headers.UserAgent.FirstOrDefault();
+            var sessionId = await sessionService.CreateSessionAsync(user.Id, ipAddress, userAgent);
+
+            var isProduction = !env.IsDevelopment();
+            context.Response.Cookies.Append(AuthConstants.CookieName, sessionId, AuthConstants.CreateCookieOptions(isProduction));
+
+            logger.LogInformation("User {Username} logged in successfully", user.Username);
+
+            return Results.Ok(new
+            {
+                id = user.Id,
+                username = user.Username,
+                email = user.Email,
+                fullName = user.FullName,
+                role = user.Role != null ? new { id = user.Role.Id, name = user.Role.Name } : null
+            });
+        });
+
+        // POST /api/auth/logout
+        auth.MapPost("/logout", async (
+            HttpContext context,
+            ISessionService sessionService,
+            IWebHostEnvironment env) =>
+        {
+            var sessionId = context.Request.Cookies[AuthConstants.CookieName];
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                await sessionService.DeleteSessionAsync(sessionId);
+            }
+
+            var isProduction = !env.IsDevelopment();
+            context.Response.Cookies.Delete(AuthConstants.CookieName, AuthConstants.CreateExpiredCookieOptions(isProduction));
+
+            return Results.Ok(new { message = "Logged out" });
+        });
+
+        // GET /api/auth/me
+        auth.MapGet("/me", (HttpContext context) =>
+        {
+            var user = context.Items["User"] as Data.Entities.User;
+            if (user == null)
+                return Results.Json(new { message = "Not authenticated" }, statusCode: StatusCodes.Status401Unauthorized);
+
+            var isDefaultPassword = BCrypt.Net.BCrypt.Verify(AuthConstants.DefaultAdminPassword, user.Password);
+
+            return Results.Ok(new
+            {
+                id = user.Id,
+                username = user.Username,
+                email = user.Email,
+                fullName = user.FullName,
+                role = user.Role != null ? new { id = user.Role.Id, name = user.Role.Name } : null,
+                createdAt = user.CreatedAt.ToString("o"),
+                passwordChangeRequired = isDefaultPassword
+            });
+        });
+
+        // POST /api/auth/change-password
+        auth.MapPost("/change-password", async (
+            HttpContext context,
+            [FromBody] ChangePasswordApiRequest body,
+            IAdminService adminService,
+            ILogger<Program> logger) =>
+        {
+            var user = context.Items["User"] as Data.Entities.User;
+            if (user == null)
+                return Results.Json(new { message = "Not authenticated" }, statusCode: StatusCodes.Status401Unauthorized);
+
+            if (string.IsNullOrWhiteSpace(body.CurrentPassword) || string.IsNullOrWhiteSpace(body.NewPassword))
+                return Results.Json(new { message = "Current password and new password are required" }, statusCode: StatusCodes.Status400BadRequest);
+
+            try
+            {
+                await adminService.ChangePasswordAsync(user.Id, body.CurrentPassword, body.NewPassword);
+                logger.LogInformation("User {UserId} changed their password successfully", user.Id);
+                return Results.Ok(new { message = "Password changed successfully" });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Json(new { message = "Current password is incorrect" }, statusCode: StatusCodes.Status401Unauthorized);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.Json(new { message = ex.Message }, statusCode: StatusCodes.Status400BadRequest);
+            }
+        });
+    }
+
+    /// <summary>Endpoint filter requiring Admin role. Non-admin gets 403, unauthenticated gets 401.</summary>
+    private class AdminAuthFilter : IEndpointFilter
+    {
+        public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
+        {
+            var httpContext = context.HttpContext;
+            var user = httpContext.Items["User"] as Data.Entities.User;
+            if (user == null)
+                return Results.Json(new { message = "Not authenticated" }, statusCode: StatusCodes.Status401Unauthorized);
+
+            if (user.Role?.Name != "Admin")
+                return Results.Json(new { message = "Forbidden" }, statusCode: StatusCodes.Status403Forbidden);
+
+            return await next(context);
+        }
+    }
+
+    private static void MapAdminEndpoints(RouteGroupBuilder api)
+    {
+        var admin = api.MapGroup("/admin").WithTags("Admin").AddEndpointFilter<AdminAuthFilter>();
+
+        // ===== User Management =====
+
+        // GET /api/admin/users
+        admin.MapGet("/users", async (IAdminService adminService) =>
+        {
+            var users = await adminService.GetAllUsersAsync();
+            return Results.Ok(users.Select(u => new
+            {
+                id = u.Id,
+                username = u.Username,
+                email = u.Email,
+                fullName = u.FullName,
+                createdAt = u.CreatedAt.ToString("o"),
+                role = u.Role != null ? new { id = u.Role.Id, name = u.Role.Name } : null
+            }));
+        });
+
+        // GET /api/admin/users/{id}
+        admin.MapGet("/users/{id}", async (string id, IAdminService adminService) =>
+        {
+            var user = await adminService.GetUserByIdAsync(id);
+            if (user == null)
+                return Results.Json(new { message = "User not found" }, statusCode: StatusCodes.Status404NotFound);
+
+            return Results.Ok(new
+            {
+                id = user.Id,
+                username = user.Username,
+                email = user.Email,
+                fullName = user.FullName,
+                createdAt = user.CreatedAt.ToString("o"),
+                role = user.Role != null ? new { id = user.Role.Id, name = user.Role.Name } : null
+            });
+        });
+
+        // POST /api/admin/users
+        admin.MapPost("/users", async (HttpContext context, [FromBody] CreateUserApiRequest body, IAdminService adminService, ILogger<Program> logger) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.Username) || string.IsNullOrWhiteSpace(body.Email) || string.IsNullOrWhiteSpace(body.Password))
+                return Results.Json(new { message = "Username, email, and password are required" }, statusCode: StatusCodes.Status400BadRequest);
+
+            var adminUser = context.Items["User"] as Data.Entities.User;
+            try
+            {
+                var user = await adminService.CreateUserAsync(new CreateUserRequest(body.Username, body.Email, body.Password, body.FullName ?? "", body.RoleId));
+                logger.LogInformation("Admin {AdminUsername} created user {Username} ({UserId})", adminUser?.Username, user.Username, user.Id);
+                return Results.Json(new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    fullName = user.FullName,
+                    createdAt = user.CreatedAt.ToString("o"),
+                    role = user.Role != null ? new { id = user.Role.Id, name = user.Role.Name } : null
+                }, statusCode: StatusCodes.Status201Created);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+            {
+                return Results.Json(new { message = "Username or email already exists" }, statusCode: StatusCodes.Status409Conflict);
+            }
+        });
+
+        // PUT /api/admin/users/{id}
+        admin.MapPut("/users/{id}", async (string id, [FromBody] UpdateUserApiRequest body, IAdminService adminService) =>
+        {
+            try
+            {
+                var user = await adminService.UpdateUserAsync(id, new UpdateUserRequest(body.Username, body.Email, body.FullName, body.RoleId));
+                if (user == null)
+                    return Results.Json(new { message = "User not found" }, statusCode: StatusCodes.Status404NotFound);
+
+                return Results.Ok(new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    fullName = user.FullName,
+                    createdAt = user.CreatedAt.ToString("o"),
+                    role = user.Role != null ? new { id = user.Role.Id, name = user.Role.Name } : null
+                });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+            {
+                return Results.Json(new { message = "Username or email already exists" }, statusCode: StatusCodes.Status409Conflict);
+            }
+        });
+
+        // DELETE /api/admin/users/{id}
+        admin.MapDelete("/users/{id}", async (HttpContext context, string id, IAdminService adminService, ISessionService sessionService, ILogger<Program> logger) =>
+        {
+            var adminUser = context.Items["User"] as Data.Entities.User;
+            try
+            {
+                // Invalidate all sessions for the user before deletion (T053)
+                await sessionService.DeleteUserSessionsAsync(id);
+
+                var deleted = await adminService.DeleteUserAsync(id);
+                if (!deleted)
+                    return Results.Json(new { message = "User not found" }, statusCode: StatusCodes.Status404NotFound);
+
+                logger.LogInformation("Admin {AdminUsername} deleted user {UserId}", adminUser?.Username, id);
+                return Results.NoContent();
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("last admin"))
+            {
+                logger.LogWarning("Admin {AdminUsername} attempted to delete last admin user {UserId}", adminUser?.Username, id);
+                return Results.Json(new { message = "Cannot delete the last admin user" }, statusCode: StatusCodes.Status409Conflict);
+            }
+        });
+
+        // POST /api/admin/users/{userId}/change-role
+        admin.MapPost("/users/{userId}/change-role", async (HttpContext context, string userId, [FromBody] ChangeRoleRequest body, IAdminService adminService, ILogger<Program> logger) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.RoleId))
+                return Results.Json(new { message = "Role ID is required" }, statusCode: StatusCodes.Status400BadRequest);
+
+            var adminUser = context.Items["User"] as Data.Entities.User;
+            try
+            {
+                var user = await adminService.ChangeUserRoleAsync(userId, body.RoleId);
+                if (user == null)
+                    return Results.Json(new { message = "User or role not found" }, statusCode: StatusCodes.Status404NotFound);
+
+                logger.LogInformation("Admin {AdminUsername} changed role for user {Username} ({UserId}) to {RoleName}", adminUser?.Username, user.Username, userId, user.Role?.Name);
+                return Results.Ok(new
+                {
+                    id = user.Id,
+                    username = user.Username,
+                    email = user.Email,
+                    fullName = user.FullName,
+                    createdAt = user.CreatedAt.ToString("o"),
+                    role = user.Role != null ? new { id = user.Role.Id, name = user.Role.Name } : null
+                });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("last admin"))
+            {
+                logger.LogWarning("Admin {AdminUsername} attempted to change role of last admin user {UserId}", adminUser?.Username, userId);
+                return Results.Json(new { message = "Cannot remove admin role from the last admin user" }, statusCode: StatusCodes.Status409Conflict);
+            }
+        });
+
+        // ===== Role Management =====
+
+        // GET /api/admin/roles
+        admin.MapGet("/roles", async (IAdminService adminService) =>
+        {
+            var roles = await adminService.GetAllRolesAsync();
+            return Results.Ok(roles.Select(r => new
+            {
+                id = r.Id,
+                name = r.Name,
+                description = r.Description,
+                createdAt = r.CreatedAt.ToString("o")
+            }));
+        });
+
+        // GET /api/admin/roles/{id}
+        admin.MapGet("/roles/{id}", async (string id, IAdminService adminService) =>
+        {
+            var role = await adminService.GetRoleByIdAsync(id);
+            if (role == null)
+                return Results.Json(new { message = "Role not found" }, statusCode: StatusCodes.Status404NotFound);
+
+            return Results.Ok(new
+            {
+                id = role.Id,
+                name = role.Name,
+                description = role.Description,
+                createdAt = role.CreatedAt.ToString("o")
+            });
+        });
+
+        // POST /api/admin/roles
+        admin.MapPost("/roles", async (HttpContext context, [FromBody] CreateRoleApiRequest body, IAdminService adminService, ILogger<Program> logger) =>
+        {
+            if (string.IsNullOrWhiteSpace(body.Name))
+                return Results.Json(new { message = "Role name is required" }, statusCode: StatusCodes.Status400BadRequest);
+
+            var adminUser = context.Items["User"] as Data.Entities.User;
+            try
+            {
+                var role = await adminService.CreateRoleAsync(new CreateRoleRequest(body.Name, body.Description));
+                logger.LogInformation("Admin {AdminUsername} created role {RoleName} ({RoleId})", adminUser?.Username, role.Name, role.Id);
+                return Results.Json(new
+                {
+                    id = role.Id,
+                    name = role.Name,
+                    description = role.Description,
+                    createdAt = role.CreatedAt.ToString("o")
+                }, statusCode: StatusCodes.Status201Created);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+            {
+                return Results.Json(new { message = "Role name already exists" }, statusCode: StatusCodes.Status409Conflict);
+            }
+        });
+
+        // PUT /api/admin/roles/{id}
+        admin.MapPut("/roles/{id}", async (string id, [FromBody] UpdateRoleApiRequest body, IAdminService adminService) =>
+        {
+            try
+            {
+                var role = await adminService.UpdateRoleAsync(id, new UpdateRoleRequest(body.Name, body.Description));
+                if (role == null)
+                    return Results.Json(new { message = "Role not found" }, statusCode: StatusCodes.Status404NotFound);
+
+                return Results.Ok(new
+                {
+                    id = role.Id,
+                    name = role.Name,
+                    description = role.Description,
+                    createdAt = role.CreatedAt.ToString("o")
+                });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+            {
+                return Results.Json(new { message = "Role name already exists" }, statusCode: StatusCodes.Status409Conflict);
+            }
+        });
+
+        // DELETE /api/admin/roles/{id}
+        admin.MapDelete("/roles/{id}", async (HttpContext context, string id, IAdminService adminService, ILogger<Program> logger) =>
+        {
+            var adminUser = context.Items["User"] as Data.Entities.User;
+            try
+            {
+                var deleted = await adminService.DeleteRoleAsync(id);
+                if (!deleted)
+                    return Results.Json(new { message = "Role not found" }, statusCode: StatusCodes.Status404NotFound);
+
+                logger.LogInformation("Admin {AdminUsername} deleted role {RoleId}", adminUser?.Username, id);
+                return Results.NoContent();
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("assigned users"))
+            {
+                logger.LogWarning("Admin {AdminUsername} attempted to delete role {RoleId} with assigned users", adminUser?.Username, id);
+                return Results.Json(new { message = "Cannot delete role that has assigned users" }, statusCode: StatusCodes.Status409Conflict);
+            }
+        });
+    }
+
+    // ===== Migrated from EventImagesController =====
+    private static void MapEventImagesEndpoints(RouteGroupBuilder api)
+    {
+        var images = api.MapGroup("/eventimages").WithTags("EventImages");
+
+        images.MapGet("/search", async (
+            [FromQuery] string questionId,
+            [FromQuery] string query,
+            [FromQuery] string size,
+            [FromQuery] string? context,
+            [FromQuery] string? userId,
+            IEventImageService eventImageService,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(questionId))
+                return Results.BadRequest(new { error = "Question ID is required" });
+            if (string.IsNullOrWhiteSpace(query))
+                return Results.BadRequest(new { error = "Search query is required" });
+
+            try
+            {
+                var result = await eventImageService.SearchAndSelectImageAsync(
+                    questionId, query, size ?? "regular", context, userId, cancellationToken);
+                return Results.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error searching images for question {QuestionId}", questionId);
+                return Results.StatusCode(500);
+            }
+        });
+
+        images.MapGet("/search/category", async (
+            [FromQuery] string questionId,
+            [FromQuery] string category,
+            [FromQuery] string size,
+            IEventImageService eventImageService,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(questionId))
+                return Results.BadRequest(new { error = "Question ID is required" });
+            if (string.IsNullOrWhiteSpace(category))
+                return Results.BadRequest(new { error = "Category is required" });
+
+            try
+            {
+                var result = await eventImageService.SearchImagesByCategoryForQuestionAsync(
+                    questionId, category, size ?? "regular", cancellationToken);
+                return Results.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error searching images by category {Category} for question {QuestionId}", category, questionId);
+                return Results.StatusCode(500);
+            }
+        });
+
+        images.MapPost("/", async (
+            [FromBody] CreateEventImageRequest request,
+            IEventImageService eventImageService,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(request?.QuestionId))
+                return Results.BadRequest(new { error = "Question ID is required" });
+            if (string.IsNullOrWhiteSpace(request?.UnsplashImageId))
+                return Results.BadRequest(new { error = "Unsplash Image ID is required" });
+
+            try
+            {
+                var eventImage = await eventImageService.SaveImageForQuestionAsync(request, cancellationToken);
+                if (eventImage == null)
+                    return Results.BadRequest(new { error = "Failed to save image. Question or image may not exist." });
+
+                var response = eventImageService.ToEventImageResponse(eventImage);
+                return Results.Created($"/api/eventimages/question/{eventImage.QuestionId}", response);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error saving image for question {QuestionId}", request?.QuestionId);
+                return Results.StatusCode(500);
+            }
+        });
+
+        images.MapGet("/question/{questionId}", async (
+            string questionId,
+            IEventImageService eventImageService,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(questionId))
+                return Results.BadRequest(new { error = "Question ID is required" });
+
+            var eventImage = await eventImageService.GetImageForQuestionAsync(questionId, cancellationToken);
+            if (eventImage == null)
+                return Results.NotFound(new { error = "No image found for this question" });
+
+            return Results.Ok(eventImageService.ToEventImageResponse(eventImage));
+        });
+
+        images.MapGet("/event/{eventId}", async (
+            string eventId,
+            IEventImageService eventImageService,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(eventId))
+                return Results.BadRequest(new { error = "Event ID is required" });
+
+            var eventImages = await eventImageService.GetImagesForEventAsync(eventId, cancellationToken);
+            return Results.Ok(eventImages.Select(ei => eventImageService.ToEventImageResponse(ei)));
+        });
+
+        images.MapPut("/question/{questionId}/replace", async (
+            string questionId,
+            [FromBody] ReplaceImageApiRequest request,
+            IEventImageService eventImageService,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(questionId))
+                return Results.BadRequest(new { error = "Question ID is required" });
+            if (string.IsNullOrWhiteSpace(request?.NewUnsplashImageId))
+                return Results.BadRequest(new { error = "New Unsplash Image ID is required" });
+
+            try
+            {
+                var eventImage = await eventImageService.ReplaceQuestionImageAsync(
+                    questionId, request.NewUnsplashImageId, request.SizeVariant ?? "regular",
+                    request.SelectedByUserId, cancellationToken);
+
+                if (eventImage == null)
+                    return Results.BadRequest(new { error = "Failed to replace image." });
+
+                return Results.Ok(eventImageService.ToEventImageResponse(eventImage));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error replacing image for question {QuestionId}", questionId);
+                return Results.StatusCode(500);
+            }
+        });
+
+        images.MapDelete("/question/{questionId}", async (
+            string questionId,
+            IEventImageService eventImageService,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(questionId))
+                return Results.BadRequest(new { error = "Question ID is required" });
+
+            var success = await eventImageService.RemoveImageForQuestionAsync(questionId, cancellationToken);
+            return success
+                ? Results.Ok(new { message = "Image removed successfully" })
+                : Results.NotFound(new { error = "No image found for this question" });
+        });
+
+        images.MapPost("/question/{questionId}/track-usage", async (
+            string questionId,
+            IEventImageService eventImageService,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(questionId))
+                return Results.BadRequest(new { error = "Question ID is required" });
+
+            var success = await eventImageService.TrackImageUsageAsync(questionId, cancellationToken);
+            return success
+                ? Results.Ok(new { message = "Image usage tracked successfully" })
+                : Results.NotFound(new { error = "No image found for this question" });
+        });
+
+        images.MapPost("/admin/cleanup-expired", async (
+            IEventImageService eventImageService,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var cleanedCount = await eventImageService.CleanupExpiredImagesAsync(cancellationToken);
+                return Results.Ok(new { cleanedCount, message = $"Successfully cleaned up {cleanedCount} expired image cache entries" });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error cleaning up expired images");
+                return Results.StatusCode(500);
+            }
+        }).AddEndpointFilter<AdminAuthFilter>();
+    }
+
+    // ===== Migrated from UnsplashController =====
+    private static void MapUnsplashEndpoints(RouteGroupBuilder api)
+    {
+        var unsplash = api.MapGroup("/unsplash").WithTags("Unsplash");
+
+        unsplash.MapGet("/test", async (
+            IUnsplashService unsplashService,
+            ILogger<Program> logger) =>
+        {
+            try
+            {
+                var searchParams = new Services.Models.UnsplashSearchParams
+                {
+                    Query = "test", Page = 1, PerPage = 1,
+                    OrderBy = "relevant", ContentFilter = "high"
+                };
+                var result = await unsplashService.SearchImagesAsync(searchParams);
+                if (result == null)
+                    return Results.StatusCode(500);
+
+                return Results.Ok(new { status = "success", message = "Unsplash API is working", totalResults = result.Total, resultCount = result.Results?.Count ?? 0 });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Unsplash API test failed");
+                return Results.Json(new { error = "Unsplash API test failed", message = ex.Message }, statusCode: 500);
+            }
+        });
+
+        unsplash.MapGet("/search", async (
+            [FromQuery] string query,
+            [FromQuery] int page,
+            [FromQuery] int perPage,
+            [FromQuery] string orderBy,
+            [FromQuery] string? color,
+            [FromQuery] string? orientation,
+            IUnsplashService unsplashService,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return Results.BadRequest(new { error = "Search query is required" });
+
+            try
+            {
+                var searchParams = new Services.Models.UnsplashSearchParams
+                {
+                    Query = query.Trim(),
+                    Page = Math.Max(page > 0 ? page : 1, 1),
+                    PerPage = Math.Min(Math.Max(perPage > 0 ? perPage : 20, 1), 30),
+                    OrderBy = string.IsNullOrEmpty(orderBy) ? "relevant" : orderBy,
+                    Color = color ?? string.Empty,
+                    Orientation = orientation ?? string.Empty,
+                    ContentFilter = "high"
+                };
+
+                var result = await unsplashService.SearchImagesAsync(searchParams, cancellationToken);
+                return result == null
+                    ? Results.StatusCode(500)
+                    : Results.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error searching Unsplash images");
+                return Results.StatusCode(500);
+            }
+        });
+
+        unsplash.MapGet("/images/{id}", async (
+            string id,
+            IUnsplashService unsplashService,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return Results.BadRequest(new { error = "Image ID is required" });
+
+            var image = await unsplashService.GetImageByIdAsync(id, cancellationToken);
+            return image == null
+                ? Results.NotFound(new { error = "Image not found" })
+                : Results.Ok(image);
+        });
+
+        unsplash.MapGet("/images/{id}/selection", async (
+            string id,
+            [FromQuery] string size,
+            IUnsplashService unsplashService,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return Results.BadRequest(new { error = "Image ID is required" });
+
+            var image = await unsplashService.GetImageByIdAsync(id, cancellationToken);
+            if (image == null)
+                return Results.NotFound(new { error = "Image not found" });
+
+            var selection = unsplashService.ToImageSelection(image, string.IsNullOrEmpty(size) ? "regular" : size);
+            return Results.Ok(selection);
+        });
+
+        unsplash.MapGet("/categories/{category}", async (
+            string category,
+            [FromQuery] int page,
+            [FromQuery] int perPage,
+            IUnsplashService unsplashService,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(category))
+                return Results.BadRequest(new { error = "Category is required" });
+
+            var validCategories = new[] { "wine", "food", "history", "science", "sports", "nature", "travel", "business", "education", "arts" };
+            if (!validCategories.Contains(category.ToLowerInvariant()))
+                return Results.BadRequest(new { error = "Invalid category", validCategories });
+
+            try
+            {
+                var result = await unsplashService.SearchImagesByCategoryAsync(
+                    category, Math.Max(page > 0 ? page : 1, 1),
+                    Math.Min(Math.Max(perPage > 0 ? perPage : 20, 1), 30), cancellationToken);
+
+                return result == null ? Results.StatusCode(500) : Results.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error searching by category {Category}", category);
+                return Results.StatusCode(500);
+            }
+        });
+
+        unsplash.MapGet("/featured", async (
+            [FromQuery] int page,
+            [FromQuery] int perPage,
+            IUnsplashService unsplashService,
+            CancellationToken cancellationToken) =>
+        {
+            var images = await unsplashService.GetFeaturedImagesAsync(
+                Math.Max(page > 0 ? page : 1, 1),
+                Math.Min(Math.Max(perPage > 0 ? perPage : 20, 1), 30), cancellationToken);
+            return Results.Ok(images);
+        });
+
+        unsplash.MapPost("/track-download", async (
+            [FromBody] TrackDownloadApiRequest request,
+            IUnsplashService unsplashService) =>
+        {
+            if (string.IsNullOrWhiteSpace(request?.DownloadUrl))
+                return Results.BadRequest(new { error = "Download URL is required" });
+
+            var success = await unsplashService.TrackDownloadAsync(request.DownloadUrl);
+            return success
+                ? Results.Ok(new { message = "Download tracked successfully" })
+                : Results.StatusCode(500);
+        });
+
+        unsplash.MapGet("/categories", () =>
+        {
+            var categories = new[]
+            {
+                new { name = "wine", displayName = "Wine & Beverages", description = "Wine, vineyards, beverages, and related imagery" },
+                new { name = "food", displayName = "Food & Cuisine", description = "Food, cooking, restaurants, and culinary arts" },
+                new { name = "history", displayName = "History & Culture", description = "Historical sites, artifacts, museums, and cultural heritage" },
+                new { name = "science", displayName = "Science & Technology", description = "Scientific research, technology, laboratories, and discoveries" },
+                new { name = "sports", displayName = "Sports & Recreation", description = "Athletic activities, sports venues, and recreational activities" },
+                new { name = "nature", displayName = "Nature & Landscapes", description = "Natural landscapes, wildlife, forests, and outdoor scenes" },
+                new { name = "travel", displayName = "Travel & Destinations", description = "Tourist destinations, landmarks, and travel-related imagery" },
+                new { name = "business", displayName = "Business & Professional", description = "Business environments, corporate settings, and professional activities" },
+                new { name = "education", displayName = "Education & Learning", description = "Educational institutions, learning materials, and academic settings" },
+                new { name = "arts", displayName = "Arts & Creative", description = "Artistic works, galleries, creative processes, and cultural arts" }
+            };
+            return Results.Ok(categories);
+        });
+    }
+
+    // ===== Migrated from EfCoreTestController + EventsV2Controller (dev-only) =====
+    private static void MapDevTestEndpoints(RouteGroupBuilder api)
+    {
+        var efcore = api.MapGroup("/efcore").WithTags("EfCore Test");
+        var v2 = api.MapGroup("/v2/events").WithTags("Events V2");
+
+        // Environment check filter — only allow in Development
+        efcore.AddEndpointFilter(async (context, next) =>
+        {
+            var env = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            if (!env.IsDevelopment())
+                return Results.NotFound();
+            return await next(context);
+        });
+        v2.AddEndpointFilter(async (context, next) =>
+        {
+            var env = context.HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>();
+            if (!env.IsDevelopment())
+                return Results.NotFound();
+            return await next(context);
+        });
+
+        // EfCoreTestController endpoints
+        efcore.MapGet("/events/{eventId}/teams", async (string eventId, IEfCoreStorageService efCoreStorage) =>
+        {
+            var teams = await efCoreStorage.GetTeamsForEventAsync(eventId);
+            return Results.Ok(teams.Select(t => new
+            {
+                t.Id, t.EventId, t.Name, t.TableNumber, t.MaxMembers,
+                CreatedAt = ((DateTimeOffset)t.CreatedAt).ToUnixTimeSeconds().ToString(),
+                MemberCount = t.Participants.Count
+            }));
+        });
+
+        efcore.MapGet("/events/{eventId}/participants", async (string eventId, IEfCoreStorageService efCoreStorage) =>
+        {
+            var participants = await efCoreStorage.GetParticipantsForEventAsync(eventId);
+            return Results.Ok(participants.Select(p => new
+            {
+                p.Id, p.EventId, p.TeamId, p.Name, p.ParticipantToken,
+                JoinedAt = ((DateTimeOffset)p.JoinedAt).ToUnixTimeSeconds().ToString(),
+                LastActiveAt = ((DateTimeOffset)p.LastActiveAt).ToUnixTimeSeconds().ToString(),
+                p.IsActive, p.CanSwitchTeam
+            }));
+        });
+
+        efcore.MapGet("/events/{eventId}/questions", async (string eventId, IEfCoreStorageService efCoreStorage) =>
+        {
+            var questions = await efCoreStorage.GetQuestionsForEventAsync(eventId);
+            return Results.Ok(questions.Select(q => new
+            {
+                q.Id, q.EventId, q.Type, Question = q.QuestionText, q.Options, q.CorrectAnswer,
+                q.Explanation, q.Points, q.TimeLimit, q.Difficulty, q.Category,
+                q.BackgroundImageUrl, q.AiGenerated, q.OrderIndex,
+                CreatedAt = ((DateTimeOffset)q.CreatedAt).ToUnixTimeSeconds().ToString()
+            }));
+        });
+
+        efcore.MapGet("/events/{eventId}/fun-facts", async (string eventId, IEfCoreStorageService efCoreStorage) =>
+        {
+            var funFacts = await efCoreStorage.GetFunFactsForEventAsync(eventId);
+            return Results.Ok(funFacts.Select(f => new
+            {
+                f.Id, f.EventId, f.Title, f.Content, f.OrderIndex, f.IsActive,
+                CreatedAt = ((DateTimeOffset)f.CreatedAt).ToUnixTimeSeconds().ToString()
+            }));
+        });
+
+        // EventsV2Controller endpoints
+        v2.MapGet("/{eventId}/teams", async (string eventId, IEfCoreStorageService efCoreStorage) =>
+        {
+            var teams = await efCoreStorage.GetTeamsForEventAsync(eventId);
+            return Results.Ok(teams.Select(t => new
+            {
+                t.Id, t.EventId, t.Name, t.TableNumber, t.MaxMembers,
+                CreatedAt = ((DateTimeOffset)t.CreatedAt).ToUnixTimeSeconds().ToString(),
+                MemberCount = t.Participants.Count
+            }));
+        });
+
+        v2.MapGet("/{eventId}/questions", async (string eventId, IEfCoreStorageService efCoreStorage) =>
+        {
+            var questions = await efCoreStorage.GetQuestionsForEventAsync(eventId);
+            return Results.Ok(questions.Select(q => new
+            {
+                q.Id, q.EventId, q.Type, Question = q.QuestionText, q.Options, q.CorrectAnswer,
+                q.Explanation, q.Points, q.TimeLimit, q.Difficulty, q.Category,
+                q.BackgroundImageUrl, q.AiGenerated, q.OrderIndex,
+                CreatedAt = ((DateTimeOffset)q.CreatedAt).ToUnixTimeSeconds().ToString()
+            }));
+        });
+    }
 }
 
 // DTOs for API compatibility
@@ -1989,3 +3058,21 @@ class CorsFilter : IEndpointFilter
 public record GenerateQuestionsRequest(string EventId, string Topic, string? Type, int Count, string? QuestionType);
 public record BulkInsertQuestionsRequest(string EventId, List<BulkQuestionData> Questions);
 public record BulkQuestionData(string Question, string Type, List<string>? Options, string CorrectAnswer, string? Difficulty, string? Category, string? Explanation, bool? AiGenerated, string? QuestionType);
+
+// Auth DTOs
+public record AuthLoginRequest(string Identifier, string Password);
+public record ChangePasswordApiRequest(string CurrentPassword, string NewPassword);
+
+// Admin DTOs
+public record CreateUserApiRequest(string Username, string Email, string Password, string? FullName, string? RoleId);
+public record UpdateUserApiRequest(string? Username, string? Email, string? FullName, string? RoleId);
+public record ChangeRoleRequest(string RoleId);
+public record CreateRoleApiRequest(string Name, string? Description);
+public record UpdateRoleApiRequest(string? Name, string? Description);
+
+// Migrated controller DTOs
+public record ReplaceImageApiRequest(string NewUnsplashImageId, string? SizeVariant, string? SelectedByUserId);
+public record TrackDownloadApiRequest(string DownloadUrl);
+
+// Event clone DTO
+public record CloneEventRequest(string? Title, DateTime? EventDate, string? EventTime, string? Location);

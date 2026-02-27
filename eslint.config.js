@@ -21,7 +21,6 @@ export default tseslint.config(
       'tools/**',
       'tests/**',
       'temp/**',
-      'drizzle.config.ts',
       'postcss.config.js',
       'tailwind.config.ts',
       'vite.config.ts',

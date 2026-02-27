@@ -178,40 +178,40 @@ export default function EventJoin() {
     const canSwitchTeam = currentParticipant.canSwitchTeam;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md trivia-card" data-testid="card-participant-status">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md" data-testid="card-participant-status">
           <CardHeader className="text-center">
             <div className="w-16 h-16 wine-gradient rounded-full flex items-center justify-center mx-auto mb-4">
               <UserCheck className="h-8 w-8 text-white" />
             </div>
-            <CardTitle className="text-2xl wine-text" data-testid="text-welcome-back-title">
+            <CardTitle className="text-2xl text-primary" data-testid="text-welcome-back-title">
               Welcome back, {currentParticipant.name}!
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-wine-50 rounded-lg border border-wine-200">
-              <h3 className="font-semibold text-wine-800 mb-2" data-testid="text-event-title">
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <h3 className="font-semibold text-primary mb-2" data-testid="text-event-title">
                 {joinedEvent.event.title}
               </h3>
-              <p className="text-sm text-gray-600" data-testid="text-event-description">
+              <p className="text-sm text-muted-foreground" data-testid="text-event-description">
                 {joinedEvent.event.description}
               </p>
             </div>
 
             {/* Team Status */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-800">Team Status</h4>
+              <h4 className="font-medium text-foreground">Team Status</h4>
               {currentTeam ? (
-                <div className="p-3 bg-champagne-50 rounded-lg border border-champagne-200">
+                <div className="p-3 bg-accent/20 rounded-lg border border-accent-foreground/20">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-champagne-800" data-testid="text-current-team">
+                      <p className="font-medium text-accent-foreground" data-testid="text-current-team">
                         {currentTeam.name}
                       </p>
                       {currentTeam.tableNumber && (
-                        <p className="text-sm text-gray-600">Table {currentTeam.tableNumber}</p>
+                        <p className="text-sm text-muted-foreground">Table {currentTeam.tableNumber}</p>
                       )}
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {currentTeam.participantCount}/{currentTeam.maxMembers} members
                       </p>
                     </div>
@@ -228,8 +228,8 @@ export default function EventJoin() {
                   </div>
                 </div>
               ) : (
-                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-sm text-gray-600 mb-2">You're not on a team</p>
+                <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                  <p className="text-sm text-muted-foreground mb-2">You're not on a team</p>
                   {canSwitchTeam && teams && teams.length > 0 && (
                     <Select onValueChange={handleTeamSwitch} data-testid="select-join-team">
                       <SelectTrigger className="w-full">
@@ -259,7 +259,7 @@ export default function EventJoin() {
             </div>
 
             <div className="space-y-3 pt-4">
-              <div className="flex items-center justify-center text-sm text-gray-600">
+              <div className="flex items-center justify-center text-sm text-muted-foreground">
                 <Users className="mr-2 h-4 w-4" />
                 <span data-testid="text-waiting-message">
                   {joinedEvent.event.status === 'active'
@@ -268,7 +268,7 @@ export default function EventJoin() {
                 </span>
               </div>
 
-              <div className="text-xs text-gray-500 text-center" data-testid="text-instructions">
+              <div className="text-xs text-muted-foreground text-center" data-testid="text-instructions">
                 Keep this page open. The trivia will continue shortly!
               </div>
             </div>
@@ -281,28 +281,28 @@ export default function EventJoin() {
   // New participant joining flow
   if (joinedEvent && !currentParticipant) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md trivia-card" data-testid="card-joined-success">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md" data-testid="card-joined-success">
           <CardHeader className="text-center">
             <div className="w-16 h-16 wine-gradient rounded-full flex items-center justify-center mx-auto mb-4">
               <Trophy className="h-8 w-8 text-white" />
             </div>
-            <CardTitle className="text-2xl wine-text" data-testid="text-welcome-title">
+            <CardTitle className="text-2xl text-primary" data-testid="text-welcome-title">
               Welcome, {joinedEvent.participant.name}!
             </CardTitle>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <div className="p-4 bg-wine-50 rounded-lg border border-wine-200">
-              <h3 className="font-semibold text-wine-800 mb-2" data-testid="text-event-title">
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <h3 className="font-semibold text-primary mb-2" data-testid="text-event-title">
                 {joinedEvent.event.title}
               </h3>
-              <p className="text-sm text-gray-600" data-testid="text-event-description">
+              <p className="text-sm text-muted-foreground" data-testid="text-event-description">
                 {joinedEvent.event.description}
               </p>
             </div>
 
             <div className="space-y-3 pt-4">
-              <div className="flex items-center justify-center text-sm text-gray-600">
+              <div className="flex items-center justify-center text-sm text-muted-foreground">
                 <Users className="mr-2 h-4 w-4" />
                 <span data-testid="text-waiting-message">
                   {joinedEvent.event.status === 'active'
@@ -311,7 +311,7 @@ export default function EventJoin() {
                 </span>
               </div>
 
-              <div className="text-xs text-gray-500" data-testid="text-instructions">
+              <div className="text-xs text-muted-foreground" data-testid="text-instructions">
                 Keep this page open. The trivia will begin shortly!
               </div>
             </div>
@@ -323,32 +323,32 @@ export default function EventJoin() {
 
   // Initial join form
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* TriviaSpark Branding */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="w-16 h-16 wine-gradient rounded-lg flex items-center justify-center mr-4">
-              <Brain className="text-champagne-400 h-8 w-8" />
+              <Brain className="text-primary-foreground h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold wine-text" data-testid="text-brand-title">
+              <h1 className="text-2xl font-bold text-primary" data-testid="text-brand-title">
                 TriviaSpark
               </h1>
-              <p className="text-sm text-gray-500" data-testid="text-brand-tagline">
+              <p className="text-sm text-muted-foreground" data-testid="text-brand-tagline">
                 A WebSpark Solution
               </p>
             </div>
           </div>
-          <p className="text-gray-600" data-testid="text-join-subtitle">
+          <p className="text-muted-foreground" data-testid="text-join-subtitle">
             Join the trivia event
           </p>
         </div>
 
-        <Card className="trivia-card" data-testid="card-join-form">
+        <Card data-testid="card-join-form">
           <CardHeader>
             <CardTitle className="text-center" data-testid="text-join-title">
-              Event Code: <span className="font-mono champagne-text">{qrCode}</span>
+              Event Code: <span className="font-mono text-primary">{qrCode}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -421,7 +421,7 @@ export default function EventJoin() {
                         {errors.teamIdentifier.message}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Example: "Wine Lovers" or "3" for Table 3
                     </p>
                   </div>
@@ -444,7 +444,7 @@ export default function EventJoin() {
                         {errors.teamIdentifier.message}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Example: "Team Awesome" or "5" for Table 5
                     </p>
                   </div>
@@ -454,7 +454,7 @@ export default function EventJoin() {
               <Button
                 type="submit"
                 disabled={joinEventMutation.isPending}
-                className="w-full trivia-button-primary"
+                className="w-full"
                 data-testid="button-join-event"
               >
                 {joinEventMutation.isPending ? (
@@ -468,16 +468,16 @@ export default function EventJoin() {
               </Button>
             </form>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center text-sm text-gray-600 mb-2">
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center text-sm text-muted-foreground mb-2">
                 <Brain className="mr-2 h-4 w-4" />
                 <span data-testid="text-ai-powered">AI-Powered Trivia Experience</span>
               </div>
-              <div className="flex items-center text-xs text-gray-500 mb-1">
+              <div className="flex items-center text-xs text-muted-foreground mb-1">
                 <Users className="mr-1 h-3 w-3" />
                 <span>Teams up to 6 members</span>
               </div>
-              <div className="flex items-center text-xs text-gray-500">
+              <div className="flex items-center text-xs text-muted-foreground">
                 <Hash className="mr-1 h-3 w-3" />
                 <span>Switch teams before game starts</span>
               </div>
@@ -485,7 +485,7 @@ export default function EventJoin() {
           </CardContent>
         </Card>
 
-        <div className="text-center mt-6 text-xs text-gray-500" data-testid="text-footer">
+        <div className="text-center mt-6 text-xs text-muted-foreground" data-testid="text-footer">
           Powered by TriviaSpark • Created by Mark Hazleton
         </div>
       </div>

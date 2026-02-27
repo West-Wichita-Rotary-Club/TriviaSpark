@@ -78,8 +78,16 @@ public class EfCoreAdminService : IAdminService
 
     public async Task<bool> DeleteUserAsync(string id)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == id);
         if (user == null) return false;
+
+        // Last-admin-delete guard (T031/FR-013)
+        if (user.Role?.Name == "Admin")
+        {
+            var adminCount = await _context.Users.CountAsync(u => u.Role != null && u.Role.Name == "Admin");
+            if (adminCount <= 1)
+                throw new InvalidOperationException("Cannot delete the last admin user");
+        }
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();
@@ -88,11 +96,19 @@ public class EfCoreAdminService : IAdminService
 
     public async Task<EntityUser?> ChangeUserRoleAsync(string userId, string roleId)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) return null;
 
         var role = await _context.Roles.FindAsync(roleId);
         if (role == null) return null;
+
+        // Guard: don't remove Admin role from the last admin
+        if (user.Role?.Name == "Admin" && role.Name != "Admin")
+        {
+            var adminCount = await _context.Users.CountAsync(u => u.Role != null && u.Role.Name == "Admin");
+            if (adminCount <= 1)
+                throw new InvalidOperationException("Cannot remove admin role from the last admin user");
+        }
 
         user.RoleId = roleId;
         await _context.SaveChangesAsync();
@@ -186,11 +202,42 @@ public class EfCoreAdminService : IAdminService
             _logger.LogInformation("Created default Admin role");
         }
 
+        var ownerRole = await GetRoleByNameAsync("Owner");
+        if (ownerRole == null)
+        {
+            await CreateRoleAsync(new CreateRoleRequest("Owner", "Can create events and manage own events"));
+            _logger.LogInformation("Created default Owner role");
+        }
+
+        var participantRole = await GetRoleByNameAsync("Participant");
+        if (participantRole == null)
+        {
+            await CreateRoleAsync(new CreateRoleRequest("Participant", "Basic participant access (public routes only)"));
+            _logger.LogInformation("Created default Participant role");
+        }
+
+        // Keep legacy "User" role if it exists (backward compatibility)
         var userRole = await GetRoleByNameAsync("User");
         if (userRole == null)
         {
             await CreateRoleAsync(new CreateRoleRequest("User", "Standard user access"));
             _logger.LogInformation("Created default User role");
         }
+    }
+
+    public async Task ChangePasswordAsync(string userId, string currentPassword, string newPassword)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+            throw new InvalidOperationException("User not found");
+
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.Password))
+            throw new UnauthorizedAccessException("Current password is incorrect");
+
+        if (newPassword.Length < 8)
+            throw new ArgumentException("New password must be at least 8 characters");
+
+        user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _context.SaveChangesAsync();
     }
 }

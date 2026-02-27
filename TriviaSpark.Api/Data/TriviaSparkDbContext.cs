@@ -18,6 +18,7 @@ public class TriviaSparkDbContext : DbContext
     public DbSet<Response> Responses { get; set; }
     public DbSet<FunFact> FunFacts { get; set; }
     public DbSet<EventImage> EventImages { get; set; }
+    public DbSet<UserSession> UserSessions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,6 +34,7 @@ public class TriviaSparkDbContext : DbContext
         modelBuilder.Entity<Response>().ToTable("responses");
         modelBuilder.Entity<FunFact>().ToTable("fun_facts");
         modelBuilder.Entity<EventImage>().ToTable("event_images");
+        modelBuilder.Entity<UserSession>().ToTable("user_sessions");
 
         // Configure column names to match existing schema (snake_case)
         ConfigureUserEntity(modelBuilder);
@@ -44,6 +46,7 @@ public class TriviaSparkDbContext : DbContext
         ConfigureResponseEntity(modelBuilder);
         ConfigureFunFactEntity(modelBuilder);
         ConfigureEventImageEntity(modelBuilder);
+        ConfigureUserSessionEntity(modelBuilder);
 
         // Configure relationships
         ConfigureRelationships(modelBuilder);
@@ -64,7 +67,7 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("created_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
 
         userEntity.HasIndex(e => e.Username).IsUnique();
         userEntity.HasIndex(e => e.Email).IsUnique();
@@ -81,7 +84,7 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("created_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
 
         roleEntity.HasIndex(e => e.Name).IsUnique();
     }
@@ -184,7 +187,7 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("created_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
     }
 
     private static void ConfigureTeamEntity(ModelBuilder modelBuilder)
@@ -200,7 +203,7 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("created_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
     }
 
     private static void ConfigureParticipantEntity(ModelBuilder modelBuilder)
@@ -216,13 +219,13 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("joined_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
                 
         participantEntity.Property(e => e.LastActiveAt)
             .HasColumnName("last_active_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
                 
         participantEntity.Property(e => e.IsActive).HasColumnName("is_active");
         participantEntity.Property(e => e.CanSwitchTeam).HasColumnName("can_switch_team");
@@ -246,7 +249,7 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("submitted_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
     }
 
     private static void ConfigureFunFactEntity(ModelBuilder modelBuilder)
@@ -263,7 +266,7 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("created_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
     }
 
     private static void ConfigureEventImageEntity(ModelBuilder modelBuilder)
@@ -291,25 +294,55 @@ public class TriviaSparkDbContext : DbContext
             .HasColumnName("created_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
                 
         eventImageEntity.Property(e => e.LastUsedAt)
             .HasColumnName("last_used_at")
             .HasConversion(
                 v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                v => DateTime.Parse(v));
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
                 
         eventImageEntity.Property(e => e.ExpiresAt)
             .HasColumnName("expires_at")
             .HasConversion(
                 v => v.HasValue ? v.Value.ToString("yyyy-MM-ddTHH:mm:ss.fffZ") : null,
-                v => v != null ? DateTime.Parse(v) : (DateTime?)null);
+                v => v != null ? DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind) : (DateTime?)null);
 
         // Add indexes for performance
         eventImageEntity.HasIndex(e => e.QuestionId).IsUnique(); // One image per question
         eventImageEntity.HasIndex(e => e.UnsplashImageId);
         eventImageEntity.HasIndex(e => e.DownloadTracked);
         eventImageEntity.HasIndex(e => e.CreatedAt);
+    }
+
+    private static void ConfigureUserSessionEntity(ModelBuilder modelBuilder)
+    {
+        var sessionEntity = modelBuilder.Entity<UserSession>();
+        sessionEntity.Property(e => e.Id).HasColumnName("id");
+        sessionEntity.Property(e => e.UserId).HasColumnName("user_id");
+        sessionEntity.Property(e => e.IpAddress).HasColumnName("ip_address");
+        sessionEntity.Property(e => e.UserAgent).HasColumnName("user_agent");
+
+        sessionEntity.Property(e => e.CreatedAt)
+            .HasColumnName("created_at")
+            .HasConversion(
+                v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
+
+        sessionEntity.Property(e => e.ExpiresAt)
+            .HasColumnName("expires_at")
+            .HasConversion(
+                v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
+
+        sessionEntity.Property(e => e.LastAccessAt)
+            .HasColumnName("last_access_at")
+            .HasConversion(
+                v => v.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+                v => DateTime.Parse(v, null, System.Globalization.DateTimeStyles.RoundtripKind));
+
+        sessionEntity.HasIndex(e => e.UserId);
+        sessionEntity.HasIndex(e => e.ExpiresAt);
     }
 
     private static void ConfigureRelationships(ModelBuilder modelBuilder)
@@ -390,5 +423,12 @@ public class TriviaSparkDbContext : DbContext
             .WithMany()
             .HasForeignKey(ei => ei.SelectedByUserId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // User -> UserSessions (one-to-many)
+        modelBuilder.Entity<UserSession>()
+            .HasOne(s => s.User)
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

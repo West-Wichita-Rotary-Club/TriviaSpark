@@ -14,7 +14,7 @@ namespace TriviaSpark.Api.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
 
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Event", b =>
                 {
@@ -473,6 +473,13 @@ namespace TriviaSpark.Api.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("question");
 
+                    b.Property<string>("QuestionType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("game")
+                        .HasColumnName("QuestionType");
+
                     b.Property<int>("TimeLimit")
                         .HasColumnType("INTEGER")
                         .HasColumnName("time_limit");
@@ -652,6 +659,51 @@ namespace TriviaSpark.Api.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("TriviaSpark.Api.Data.Entities.UserSession", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CreatedAt")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("ExpiresAt")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("ip_address");
+
+                    b.Property<string>("LastAccessAt")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("last_access_at");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("user_agent");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("user_sessions", (string)null);
+                });
+
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Event", b =>
                 {
                     b.HasOne("TriviaSpark.Api.Data.Entities.User", "Host")
@@ -666,7 +718,7 @@ namespace TriviaSpark.Api.Migrations
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.EventImage", b =>
                 {
                     b.HasOne("TriviaSpark.Api.Data.Entities.Question", "Question")
-                        .WithMany()
+                        .WithMany("EventImages")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -761,6 +813,17 @@ namespace TriviaSpark.Api.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("TriviaSpark.Api.Data.Entities.UserSession", b =>
+                {
+                    b.HasOne("TriviaSpark.Api.Data.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Event", b =>
                 {
                     b.Navigation("FunFacts");
@@ -779,6 +842,8 @@ namespace TriviaSpark.Api.Migrations
 
             modelBuilder.Entity("TriviaSpark.Api.Data.Entities.Question", b =>
                 {
+                    b.Navigation("EventImages");
+
                     b.Navigation("Responses");
                 });
 

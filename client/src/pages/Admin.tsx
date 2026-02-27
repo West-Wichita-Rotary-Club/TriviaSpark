@@ -14,8 +14,14 @@ interface User {
   username: string;
   email: string;
   fullName: string;
-  roleId: string;
-  roleName: string;
+  role: { id: string; name: string } | null;
+  createdAt: string;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  description: string | null;
   createdAt: string;
 }
 
@@ -24,7 +30,7 @@ interface CreateUserRequest {
   email: string;
   fullName: string;
   password: string;
-  roleName: string;
+  roleId: string;
 }
 
 export default function AdminPage() {
@@ -36,7 +42,7 @@ export default function AdminPage() {
     email: '',
     fullName: '',
     password: '',
-    roleName: 'User',
+    roleId: '',
   });
 
   // Fetch all users
@@ -46,6 +52,12 @@ export default function AdminPage() {
     error,
   } = useQuery<User[]>({
     queryKey: ['/api/admin/users'],
+    retry: false,
+  });
+
+  // Fetch all roles
+  const { data: roles } = useQuery<Role[]>({
+    queryKey: ['/api/admin/roles'],
     retry: false,
   });
 
@@ -80,7 +92,7 @@ export default function AdminPage() {
         email: '',
         fullName: '',
         password: '',
-        roleName: 'User',
+        roleId: '',
       });
     },
     onError: (error) => {
@@ -94,13 +106,13 @@ export default function AdminPage() {
 
   // Change role mutation
   const changeRoleMutation = useMutation({
-    mutationFn: async ({ userId, roleName }: { userId: string; roleName: string }) => {
+    mutationFn: async ({ userId, roleId }: { userId: string; roleId: string }) => {
       const response = await fetch(`/api/admin/users/${userId}/change-role`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ roleName }),
+        body: JSON.stringify({ roleId }),
         credentials: 'include',
       });
 
@@ -140,9 +152,13 @@ export default function AdminPage() {
     createUserMutation.mutate(newUser);
   };
 
-  const handleRoleChange = (userId: string, currentRole: string) => {
-    const newRole = currentRole === 'Admin' ? 'User' : 'Admin';
-    changeRoleMutation.mutate({ userId, roleName: newRole });
+  const handleRoleChange = (userId: string, currentRoleName: string) => {
+    // Toggle between Admin and the first non-Admin role (or User fallback)
+    const targetRoleName = currentRoleName === 'Admin' ? 'User' : 'Admin';
+    const targetRole = roles?.find(r => r.name === targetRoleName);
+    if (targetRole) {
+      changeRoleMutation.mutate({ userId, roleId: targetRole.id });
+    }
   };
 
   if (error) {
@@ -162,7 +178,7 @@ export default function AdminPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Shield className="text-champagne-400 h-8 w-8 animate-pulse" />
+            <Shield className="text-primary-foreground h-8 w-8 animate-pulse" />
           </div>
           <p className="text-primary">Loading admin panel...</p>
         </div>
@@ -187,7 +203,7 @@ export default function AdminPage() {
           </div>
           <Button
             onClick={() => setShowCreateUser(true)}
-            className="trivia-button-primary"
+            className=""
             data-testid="button-create-user"
           >
             <UserPlus className="mr-2 h-4 w-4" />
@@ -198,7 +214,7 @@ export default function AdminPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="trivia-card">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <Users className="h-4 w-4 text-primary" />
@@ -208,26 +224,26 @@ export default function AdminPage() {
           </CardContent>
         </Card>
 
-        <Card className="trivia-card">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
             <Shield className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users?.filter((u) => u.roleName === 'Admin').length || 0}
+              {users?.filter((u) => u.role?.name === 'Admin').length || 0}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="trivia-card">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Regular Users</CardTitle>
             <Users className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users?.filter((u) => u.roleName === 'User').length || 0}
+              {users?.filter((u) => u.role?.name !== 'Admin').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -235,7 +251,7 @@ export default function AdminPage() {
 
       {/* Create User Form */}
       {showCreateUser && (
-        <Card className="trivia-card mb-8" data-testid="card-create-user">
+        <Card className="mb-8" data-testid="card-create-user">
           <CardHeader>
             <CardTitle className="flex items-center">
               <UserPlus className="mr-2 h-5 w-5" />
@@ -292,12 +308,14 @@ export default function AdminPage() {
                   <select
                     id="role"
                     title="User Role"
-                    value={newUser.roleName}
-                    onChange={(e) => setNewUser({ ...newUser, roleName: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={newUser.roleId}
+                    onChange={(e) => setNewUser({ ...newUser, roleId: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-md bg-background text-foreground border-input focus:outline-none focus:ring-2 focus:ring-ring"
                   >
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
+                    <option value="">Select Role</option>
+                    {roles?.map((r) => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -305,7 +323,7 @@ export default function AdminPage() {
                 <Button
                   type="submit"
                   disabled={createUserMutation.isPending}
-                  className="trivia-button-primary"
+                  className=""
                 >
                   {createUserMutation.isPending ? 'Creating...' : 'Create User'}
                 </Button>
@@ -319,7 +337,7 @@ export default function AdminPage() {
       )}
 
       {/* Users Table */}
-      <Card className="trivia-card" data-testid="card-users-table">
+      <Card className="" data-testid="card-users-table">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Users className="mr-2 h-5 w-5" />
@@ -350,11 +368,10 @@ export default function AdminPage() {
                     <td className="py-3 px-4 text-foreground">{user.email}</td>
                     <td className="py-3 px-4">
                       <Badge
-                        variant={user.roleName === 'Admin' ? 'destructive' : 'secondary'}
-                        className={user.roleName === 'Admin' ? 'bg-primary/10 text-primary' : ''}
+                        variant={user.role?.name === 'Admin' ? 'default' : 'secondary'}
                       >
-                        {user.roleName === 'Admin' && <Crown className="w-3 h-3 mr-1" />}
-                        {user.roleName}
+                        {user.role?.name === 'Admin' && <Crown className="w-3 h-3 mr-1" />}
+                        {user.role?.name ?? 'No Role'}
                       </Badge>
                     </td>
                     <td className="py-3 px-4 text-sm text-muted-foreground">
@@ -364,12 +381,12 @@ export default function AdminPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleRoleChange(user.id, user.roleName)}
+                        onClick={() => handleRoleChange(user.id, user.role?.name ?? '')}
                         disabled={changeRoleMutation.isPending}
                         className="text-xs"
                       >
                         <Key className="w-3 h-3 mr-1" />
-                        {user.roleName === 'Admin' ? 'Demote to User' : 'Promote to Admin'}
+                        {user.role?.name === 'Admin' ? 'Demote to User' : 'Promote to Admin'}
                       </Button>
                     </td>
                   </tr>

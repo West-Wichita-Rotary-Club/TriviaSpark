@@ -100,11 +100,11 @@ export default function QuestionGenerator() {
   };
 
   return (
-    <Card className="trivia-card overflow-hidden" data-testid="card-question-generator">
-      <CardHeader className="border-b border-gray-200">
+    <Card className="overflow-hidden" data-testid="card-question-generator">
+      <CardHeader className="border-b border-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <HelpCircle className="text-champagne-600 text-xl mr-3" />
+            <HelpCircle className="text-muted-foreground text-xl mr-3" />
             <CardTitle className="text-lg" data-testid="text-question-generator-title">
               AI Question Generator
             </CardTitle>
@@ -154,11 +154,7 @@ export default function QuestionGenerator() {
                 id="topic"
                 {...register('topic')}
                 placeholder="French Wine Regions"
-                className={
-                  errors.topic
-                    ? 'border-red-500'
-                    : 'focus:ring-2 focus:ring-wine-500 focus:border-transparent'
-                }
+                className={errors.topic ? 'border-red-500' : ''}
                 data-testid="input-topic"
               />
               {errors.topic && (
@@ -208,7 +204,7 @@ export default function QuestionGenerator() {
             <Button
               type="submit"
               disabled={generateQuestionsMutation.isPending}
-              className="flex-1 trivia-button-secondary"
+              className="flex-1"
               data-testid="button-generate-question"
             >
               {generateQuestionsMutation.isPending ? (
@@ -233,17 +229,17 @@ export default function QuestionGenerator() {
         {/* Generated Questions Display */}
         {generatedQuestions.length > 0 && (
           <div className="mt-6 space-y-4">
-            <h4 className="font-medium text-gray-900" data-testid="text-generated-questions-title">
+            <h4 className="font-medium text-foreground" data-testid="text-generated-questions-title">
               Generated Questions
             </h4>
             {generatedQuestions.map((question, index) => (
               <div
                 key={index}
-                className="p-4 border border-gray-200 rounded-lg bg-gray-50"
+                className="p-4 border border-border rounded-lg bg-muted/50"
                 data-testid={`generated-question-${index}`}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h5 className="font-medium text-gray-900" data-testid={`text-question-${index}`}>
+                  <h5 className="font-medium text-foreground" data-testid={`text-question-${index}`}>
                     {question.question}
                   </h5>
                   <div className="flex items-center space-x-2">
@@ -264,7 +260,7 @@ export default function QuestionGenerator() {
                         className={`p-2 text-sm rounded border ${
                           option === question.correctAnswer
                             ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                            : 'border-gray-200 bg-white'
+                            : 'border-border bg-background'
                         }`}
                         data-testid={`option-${index}-${optionIndex}`}
                       >
@@ -274,7 +270,7 @@ export default function QuestionGenerator() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mt-3 text-sm text-gray-600">
+                <div className="flex items-center justify-between mt-3 text-sm text-muted-foreground">
                   <span data-testid={`text-correct-answer-${index}`}>
                     Correct:{' '}
                     <span className="font-medium text-emerald-600">{question.correctAnswer}</span>

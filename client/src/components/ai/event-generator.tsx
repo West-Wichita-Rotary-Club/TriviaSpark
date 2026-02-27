@@ -80,15 +80,15 @@ export default function EventGenerator() {
 
   if (generatedEvent) {
     return (
-      <Card className="trivia-card overflow-hidden" data-testid="card-generated-event">
+      <Card className="overflow-hidden" data-testid="card-generated-event">
         <div className="wine-gradient px-6 py-4">
           <div className="flex items-center">
-            <Sparkles className="text-champagne-400 text-xl mr-3" />
+            <Sparkles className="text-primary-foreground text-xl mr-3" />
             <div>
               <h3 className="text-xl font-semibold text-white" data-testid="text-generated-title">
                 Event Generated Successfully!
               </h3>
-              <p className="text-champagne-200 text-sm" data-testid="text-generated-subtitle">
+              <p className="text-primary-foreground text-sm" data-testid="text-generated-subtitle">
                 Your AI-powered trivia event is ready
               </p>
             </div>
@@ -99,12 +99,12 @@ export default function EventGenerator() {
           <div className="space-y-4">
             <div>
               <h4
-                className="text-lg font-semibold text-gray-900 mb-2"
+                className="text-lg font-semibold text-foreground mb-2"
                 data-testid="text-event-title"
               >
                 {generatedEvent.event.title}
               </h4>
-              <p className="text-gray-600 text-sm" data-testid="text-event-description">
+              <p className="text-muted-foreground text-sm" data-testid="text-event-description">
                 {generatedEvent.event.description}
               </p>
             </div>
@@ -112,7 +112,7 @@ export default function EventGenerator() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               {generatedEvent.event.eventDate && (
                 <div>
-                  <p className="text-sm text-gray-500">Date</p>
+                  <p className="text-sm text-muted-foreground">Date</p>
                   <p className="font-medium" data-testid="text-event-date">
                     {formatDateInCST(generatedEvent.event.eventDate)}
                   </p>
@@ -120,7 +120,7 @@ export default function EventGenerator() {
               )}
               {generatedEvent.event.eventTime && (
                 <div>
-                  <p className="text-sm text-gray-500">Time</p>
+                  <p className="text-sm text-muted-foreground">Time</p>
                   <p className="font-medium" data-testid="text-event-time">
                     {generatedEvent.event.eventTime}
                   </p>
@@ -128,7 +128,7 @@ export default function EventGenerator() {
               )}
               {generatedEvent.event.location && (
                 <div>
-                  <p className="text-sm text-gray-500">Location</p>
+                  <p className="text-sm text-muted-foreground">Location</p>
                   <p className="font-medium" data-testid="text-event-location">
                     {generatedEvent.event.location}
                   </p>
@@ -136,7 +136,7 @@ export default function EventGenerator() {
               )}
               {generatedEvent.event.sponsoringOrganization && (
                 <div>
-                  <p className="text-sm text-gray-500">Sponsor</p>
+                  <p className="text-sm text-muted-foreground">Sponsor</p>
                   <p className="font-medium" data-testid="text-event-sponsor">
                     {generatedEvent.event.sponsoringOrganization}
                   </p>
@@ -166,7 +166,7 @@ export default function EventGenerator() {
             <div className="flex space-x-3">
               <Button
                 onClick={() => setLocation(`/event/${generatedEvent.event.id}`)}
-                className="flex-1 trivia-button-primary"
+                className="flex-1"
                 data-testid="button-manage-event"
               >
                 Manage Event
@@ -186,15 +186,15 @@ export default function EventGenerator() {
   }
 
   return (
-    <Card className="trivia-card overflow-hidden" data-testid="card-event-generator">
+    <Card className="overflow-hidden" data-testid="card-event-generator">
       <div className="wine-gradient px-6 py-4">
         <div className="flex items-center">
-          <WandSparkles className="text-champagne-400 text-xl mr-3" />
+          <WandSparkles className="text-primary-foreground text-xl mr-3" />
           <div>
             <h3 className="text-xl font-semibold text-white" data-testid="text-generator-title">
               AI Event Generator
             </h3>
-            <p className="text-champagne-200 text-sm" data-testid="text-generator-subtitle">
+            <p className="text-primary-foreground text-sm" data-testid="text-generator-subtitle">
               Describe your event and let AI create the perfect trivia experience
             </p>
           </div>
@@ -212,7 +212,7 @@ export default function EventGenerator() {
               {...register('description')}
               rows={3}
               placeholder="Create a sophisticated wine dinner trivia for 30 guests featuring French Bordeaux wines with medium difficulty questions about wine regions, tasting notes, and vineyard history..."
-              className={`resize-none ${errors.description ? 'border-red-500' : 'focus:ring-2 focus:ring-wine-500 focus:border-transparent'}`}
+              className={`resize-none ${errors.description ? 'border-red-500' : ''}`}
               data-testid="textarea-description"
             />
             {errors.description && (
@@ -253,11 +253,7 @@ export default function EventGenerator() {
                 type="number"
                 {...register('participants', { valueAsNumber: true })}
                 placeholder="30"
-                className={
-                  errors.participants
-                    ? 'border-red-500'
-                    : 'focus:ring-2 focus:ring-wine-500 focus:border-transparent'
-                }
+                className={errors.participants ? 'border-red-500' : ''}
                 data-testid="input-participants"
               />
               {errors.participants && (
@@ -291,7 +287,7 @@ export default function EventGenerator() {
           <Button
             type="submit"
             disabled={generateEventMutation.isPending}
-            className="w-full trivia-button-primary"
+            className="w-full"
             data-testid="button-generate-event"
           >
             {generateEventMutation.isPending ? (

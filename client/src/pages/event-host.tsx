@@ -79,8 +79,8 @@ export default function EventHost() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="h-64 bg-muted rounded"></div>
         </div>
       </div>
     );
@@ -92,12 +92,12 @@ export default function EventHost() {
         <Card className="text-center p-8" data-testid="card-event-not-found">
           <CardContent>
             <h2
-              className="text-2xl font-bold text-gray-900 mb-2"
+              className="text-2xl font-bold text-foreground mb-2"
               data-testid="text-event-not-found"
             >
               Event Not Found
             </h2>
-            <p className="text-gray-600 mb-4" data-testid="text-event-not-found-desc">
+            <p className="text-muted-foreground mb-4" data-testid="text-event-not-found-desc">
               The event you're looking for doesn't exist or has been removed.
             </p>
             <Link href="/dashboard">
@@ -129,10 +129,10 @@ export default function EventHost() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900" data-testid="text-event-title">
+            <h1 className="text-3xl font-bold text-foreground" data-testid="text-event-title">
               {event.title}
             </h1>
-            <p className="text-gray-600" data-testid="text-event-description">
+            <p className="text-muted-foreground" data-testid="text-event-description">
               {event.description}
             </p>
           </div>
@@ -149,7 +149,7 @@ export default function EventHost() {
         {/* Event Controls */}
         <div className="lg:col-span-2 space-y-6">
           {/* Control Panel */}
-          <Card className="trivia-card" data-testid="card-control-panel">
+          <Card data-testid="card-control-panel">
             <CardHeader>
               <CardTitle data-testid="text-control-panel-title">Event Control Panel</CardTitle>
             </CardHeader>
@@ -160,7 +160,6 @@ export default function EventHost() {
                     <Button
                       onClick={() => startEventMutation.mutate()}
                       disabled={startEventMutation.isPending}
-                      className="trivia-button-primary"
                       data-testid="button-start-event"
                     >
                       <Play className="mr-2 h-4 w-4" />
@@ -168,7 +167,6 @@ export default function EventHost() {
                     </Button>
                   ) : (
                     <Button
-                      className="trivia-button-secondary"
                       disabled
                       data-testid="button-pause-event"
                     >
@@ -177,14 +175,14 @@ export default function EventHost() {
                     </Button>
                   )}
 
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Users className="mr-1 h-4 w-4" />
                     <span data-testid="text-participant-count">
                       {participants?.length || 0} participants
                     </span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center text-sm text-muted-foreground">
                     <Clock className="mr-1 h-4 w-4" />
                     <span data-testid="text-question-count">
                       {questions?.length || 0} questions
@@ -195,7 +193,7 @@ export default function EventHost() {
                 <Link href={`/presenter/${eventId}`}>
                   <Button
                     variant="outline"
-                    className="trivia-button-outline"
+                    className=""
                     data-testid="button-presenter-view"
                   >
                     <Trophy className="mr-2 h-4 w-4" />
@@ -208,7 +206,7 @@ export default function EventHost() {
 
           {/* Teams & Participants */}
           {event.status === 'draft' && (
-            <Card className="trivia-card" data-testid="card-teams-participants">
+            <Card data-testid="card-teams-participants">
               <CardHeader>
                 <CardTitle
                   className="flex items-center"
@@ -222,38 +220,38 @@ export default function EventHost() {
                 <div className="space-y-6">
                   {/* Teams Section */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">Teams ({teams?.length || 0})</h4>
+                    <h4 className="font-medium text-foreground mb-3">Teams ({teams?.length || 0})</h4>
                     {teams && teams.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {teams.map((team: any) => (
                           <div
                             key={team.id}
-                            className="p-4 bg-champagne-50 rounded-lg border border-champagne-200"
+                            className="p-4 bg-accent/20 rounded-lg border border-accent-foreground/20"
                             data-testid={`team-card-${team.id}`}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="font-medium text-champagne-800">{team.name}</h5>
+                              <h5 className="font-medium text-accent-foreground">{team.name}</h5>
                               {team.tableNumber && (
                                 <Badge variant="outline" className="text-xs">
                                   Table {team.tableNumber}
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600 mb-2">
+                            <p className="text-sm text-muted-foreground mb-2">
                               {team.participantCount || 0}/{team.maxMembers || 6} members
                             </p>
                             {team.participants && team.participants.length > 0 && (
                               <div className="space-y-1">
-                                <p className="text-xs text-gray-500 font-medium">Members:</p>
+                                <p className="text-xs text-muted-foreground font-medium">Members:</p>
                                 {team.participants
                                   .slice(0, 3)
                                   .map((participant: any, idx: number) => (
-                                    <div key={participant.id} className="text-xs text-gray-600">
+                                    <div key={participant.id} className="text-xs text-muted-foreground">
                                       • {participant.name}
                                     </div>
                                   ))}
                                 {team.participants.length > 3 && (
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-muted-foreground">
                                     ... and {team.participants.length - 3} more
                                   </div>
                                 )}
@@ -263,7 +261,7 @@ export default function EventHost() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg text-center">
+                      <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg text-center">
                         No teams created yet. Participants can create teams when joining.
                       </div>
                     )}
@@ -273,7 +271,7 @@ export default function EventHost() {
 
                   {/* Individual Participants Section */}
                   <div>
-                    <h4 className="font-medium text-gray-900 mb-3">
+                    <h4 className="font-medium text-foreground mb-3">
                       Individual Participants ({participants?.filter((p) => !p.teamId).length || 0})
                     </h4>
                     {participants && participants.filter((p) => !p.teamId).length > 0 ? (
@@ -283,13 +281,13 @@ export default function EventHost() {
                           .map((participant: any) => (
                             <div
                               key={participant.id}
-                              className="p-3 bg-wine-50 rounded-lg border border-wine-200"
+                              className="p-3 bg-primary/5 rounded-lg border border-primary/20"
                               data-testid={`participant-card-${participant.id}`}
                             >
-                              <div className="text-sm font-medium text-wine-800 truncate">
+                              <div className="text-sm font-medium text-primary truncate">
                                 {participant.name}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-muted-foreground">
                                 {new Date(participant.joinedAt).toLocaleTimeString([], {
                                   hour: '2-digit',
                                   minute: '2-digit',
@@ -299,7 +297,7 @@ export default function EventHost() {
                           ))}
                       </div>
                     ) : (
-                      <div className="text-sm text-gray-500 bg-gray-50 p-4 rounded-lg text-center">
+                      <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg text-center">
                         No individual participants yet.
                       </div>
                     )}
@@ -334,7 +332,7 @@ export default function EventHost() {
           )}
 
           {/* Questions List */}
-          <Card className="trivia-card" data-testid="card-questions-list">
+          <Card data-testid="card-questions-list">
             <CardHeader>
               <CardTitle data-testid="text-questions-title">Event Questions</CardTitle>
             </CardHeader>
@@ -344,12 +342,12 @@ export default function EventHost() {
                   {questions.map((question: any, index: number) => (
                     <div
                       key={question.id}
-                      className="p-4 border border-gray-200 rounded-lg"
+                      className="p-4 border border-border rounded-lg"
                       data-testid={`question-${index}`}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <h4
-                          className="font-medium text-gray-900"
+                          className="font-medium text-foreground"
                           data-testid={`text-question-${index}`}
                         >
                           {index + 1}. {question.question}
@@ -389,7 +387,7 @@ export default function EventHost() {
                                   className={`p-2 text-sm rounded border ${
                                     option === question.correctAnswer
                                       ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                                      : 'border-gray-200 bg-gray-50'
+                                      : 'border-border bg-muted/50'
                                   }`}
                                   data-testid={`option-${index}-${optionIndex}`}
                                 >
@@ -404,7 +402,7 @@ export default function EventHost() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-8" data-testid="text-no-questions">
+                <p className="text-muted-foreground text-center py-8" data-testid="text-no-questions">
                   No questions have been added to this event yet.
                 </p>
               )}
@@ -415,7 +413,7 @@ export default function EventHost() {
         {/* Right Column - Event Info */}
         <div className="space-y-6">
           {/* QR Code */}
-          <Card className="trivia-card" data-testid="card-qr-code">
+          <Card data-testid="card-qr-code">
             <CardHeader>
               <CardTitle data-testid="text-qr-title">Event QR Code</CardTitle>
             </CardHeader>
@@ -423,15 +421,15 @@ export default function EventHost() {
               {event.qrCode ? (
                 <>
                   <QRCodeDisplay value={`${window.location.origin}/join/${event.qrCode}`} />
-                  <p className="text-sm text-gray-600 mt-4" data-testid="text-qr-code">
+                  <p className="text-sm text-muted-foreground mt-4" data-testid="text-qr-code">
                     Code: <span className="font-mono font-bold">{event.qrCode}</span>
                   </p>
-                  <p className="text-xs text-gray-500 mt-2" data-testid="text-qr-instruction">
+                  <p className="text-xs text-muted-foreground mt-2" data-testid="text-qr-instruction">
                     Participants can scan this QR code to join your event
                   </p>
                 </>
               ) : (
-                <div className="text-gray-500 py-8" data-testid="text-no-qr-code">
+                <div className="text-muted-foreground py-8" data-testid="text-no-qr-code">
                   No QR code available for this event
                 </div>
               )}
@@ -439,7 +437,7 @@ export default function EventHost() {
           </Card>
 
           {/* Event Details */}
-          <Card className="trivia-card" data-testid="card-event-details">
+          <Card data-testid="card-event-details">
             <CardHeader>
               <CardTitle className="flex items-center" data-testid="text-details-title">
                 <Info className="mr-2 h-5 w-5" />
@@ -450,9 +448,9 @@ export default function EventHost() {
               <div className="space-y-4">
                 {event.eventDate && (
                   <div className="flex items-center space-x-3">
-                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <span className="text-sm text-gray-600">Date & Time</span>
+                      <span className="text-sm text-muted-foreground">Date & Time</span>
                       <p className="font-medium" data-testid="text-event-datetime">
                         {formatEventDate(event.eventDate, event.eventTime)}
                       </p>
@@ -461,9 +459,9 @@ export default function EventHost() {
                 )}
                 {event.location && (
                   <div className="flex items-center space-x-3">
-                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <span className="text-sm text-gray-600">Location</span>
+                      <span className="text-sm text-muted-foreground">Location</span>
                       <p className="font-medium" data-testid="text-event-location">
                         {event.location}
                       </p>
@@ -472,9 +470,9 @@ export default function EventHost() {
                 )}
                 {event.sponsoringOrganization && (
                   <div className="flex items-center space-x-3">
-                    <Building className="h-4 w-4 text-gray-500" />
+                    <Building className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <span className="text-sm text-gray-600">Organization</span>
+                      <span className="text-sm text-muted-foreground">Organization</span>
                       <p className="font-medium" data-testid="text-event-organization">
                         {event.sponsoringOrganization}
                       </p>
@@ -484,20 +482,20 @@ export default function EventHost() {
                 <Separator />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="text-gray-600 text-sm">Max Participants</span>
+                    <span className="text-muted-foreground text-sm">Max Participants</span>
                     <p className="font-semibold" data-testid="text-max-participants">
                       {event.maxParticipants}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-600 text-sm">Difficulty</span>
+                    <span className="text-muted-foreground text-sm">Difficulty</span>
                     <Badge variant="outline" data-testid="badge-difficulty">
                       {event.difficulty}
                     </Badge>
                   </div>
                 </div>
                 <div>
-                  <span className="text-gray-600 text-sm">Event Type</span>
+                  <span className="text-muted-foreground text-sm">Event Type</span>
                   <Badge variant="secondary" data-testid="badge-event-type">
                     {event.eventType.replace('_', ' ')}
                   </Badge>
@@ -508,7 +506,7 @@ export default function EventHost() {
 
           {/* Contact Information */}
           {(event.contactEmail || event.contactPhone || event.websiteUrl) && (
-            <Card className="trivia-card" data-testid="card-contact-info">
+            <Card data-testid="card-contact-info">
               <CardHeader>
                 <CardTitle data-testid="text-contact-title">Contact Information</CardTitle>
               </CardHeader>
@@ -516,7 +514,7 @@ export default function EventHost() {
                 <div className="space-y-3">
                   {event.contactEmail && (
                     <div className="flex items-center space-x-3">
-                      <Mail className="h-4 w-4 text-gray-500" />
+                      <Mail className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm" data-testid="text-contact-email">
                         {event.contactEmail}
                       </span>
@@ -524,7 +522,7 @@ export default function EventHost() {
                   )}
                   {event.contactPhone && (
                     <div className="flex items-center space-x-3">
-                      <Phone className="h-4 w-4 text-gray-500" />
+                      <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm" data-testid="text-contact-phone">
                         {event.contactPhone}
                       </span>
@@ -532,7 +530,7 @@ export default function EventHost() {
                   )}
                   {event.websiteUrl && (
                     <div className="flex items-center space-x-3">
-                      <Globe className="h-4 w-4 text-gray-500" />
+                      <Globe className="h-4 w-4 text-muted-foreground" />
                       <a
                         href={event.websiteUrl}
                         target="_blank"
@@ -551,7 +549,7 @@ export default function EventHost() {
 
           {/* Event Information */}
           {(event.eventRules || event.prizeInformation || event.specialInstructions) && (
-            <Card className="trivia-card" data-testid="card-event-info">
+            <Card data-testid="card-event-info">
               <CardHeader>
                 <CardTitle data-testid="text-event-info-title">Event Information</CardTitle>
               </CardHeader>
@@ -559,9 +557,9 @@ export default function EventHost() {
                 <div className="space-y-4">
                   {event.eventRules && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Rules</h4>
+                      <h4 className="font-medium text-foreground mb-2">Rules</h4>
                       <p
-                        className="text-sm text-gray-600 whitespace-pre-line"
+                        className="text-sm text-muted-foreground whitespace-pre-line"
                         data-testid="text-event-rules"
                       >
                         {event.eventRules}
@@ -570,9 +568,9 @@ export default function EventHost() {
                   )}
                   {event.prizeInformation && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Prizes</h4>
+                      <h4 className="font-medium text-foreground mb-2">Prizes</h4>
                       <p
-                        className="text-sm text-gray-600 whitespace-pre-line"
+                        className="text-sm text-muted-foreground whitespace-pre-line"
                         data-testid="text-prize-info"
                       >
                         {event.prizeInformation}
@@ -581,9 +579,9 @@ export default function EventHost() {
                   )}
                   {event.specialInstructions && (
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-2">Special Instructions</h4>
+                      <h4 className="font-medium text-foreground mb-2">Special Instructions</h4>
                       <p
-                        className="text-sm text-gray-600 whitespace-pre-line"
+                        className="text-sm text-muted-foreground whitespace-pre-line"
                         data-testid="text-special-instructions"
                       >
                         {event.specialInstructions}
@@ -596,7 +594,7 @@ export default function EventHost() {
           )}
 
           {/* Participants */}
-          <Card className="trivia-card" data-testid="card-participants">
+          <Card data-testid="card-participants">
             <CardHeader>
               <CardTitle className="flex items-center" data-testid="text-participants-title">
                 <Users className="mr-2 h-5 w-5" />
@@ -609,7 +607,7 @@ export default function EventHost() {
                   {participants.map((participant: any, index: number) => (
                     <div
                       key={participant.id}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                      className="flex items-center justify-between p-2 bg-muted/50 rounded"
                       data-testid={`participant-${index}`}
                     >
                       <div>
@@ -621,7 +619,7 @@ export default function EventHost() {
                         </span>
                         {participant.teamName && (
                           <span
-                            className="text-sm text-gray-600 ml-2"
+                            className="text-sm text-muted-foreground ml-2"
                             data-testid={`text-participant-team-${index}`}
                           >
                             ({participant.teamName})
@@ -638,7 +636,7 @@ export default function EventHost() {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4" data-testid="text-no-participants">
+                <p className="text-muted-foreground text-center py-4" data-testid="text-no-participants">
                   No participants yet. Share the QR code to get started!
                 </p>
               )}

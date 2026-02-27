@@ -122,12 +122,12 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card
-              className="trivia-card hover:shadow-lg transition-shadow"
+              className="hover:shadow-lg transition-shadow"
               data-testid="card-ai-powered"
             >
               <CardHeader className="text-center">
                 <div className="w-16 h-16 wine-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Brain className="text-champagne-400 h-8 w-8" />
+                  <Brain className="text-primary-foreground h-8 w-8" />
                 </div>
                 <CardTitle className="text-xl text-primary">AI-Powered Content</CardTitle>
               </CardHeader>
@@ -143,12 +143,12 @@ export default function Home() {
             </Card>
 
             <Card
-              className="trivia-card hover:shadow-lg transition-shadow"
+              className="hover:shadow-lg transition-shadow"
               data-testid="card-instant-joining"
             >
               <CardHeader className="text-center">
                 <div className="w-16 h-16 wine-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <QrCode className="text-champagne-400 h-8 w-8" />
+                  <QrCode className="text-primary-foreground h-8 w-8" />
                 </div>
                 <CardTitle className="text-xl text-primary">Instant Joining</CardTitle>
               </CardHeader>
@@ -164,12 +164,12 @@ export default function Home() {
             </Card>
 
             <Card
-              className="trivia-card hover:shadow-lg transition-shadow"
+              className="hover:shadow-lg transition-shadow"
               data-testid="card-live-engagement"
             >
               <CardHeader className="text-center">
                 <div className="w-16 h-16 wine-gradient rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Trophy className="text-champagne-400 h-8 w-8" />
+                  <Trophy className="text-primary-foreground h-8 w-8" />
                 </div>
                 <CardTitle className="text-xl text-primary">Live Engagement</CardTitle>
               </CardHeader>
@@ -203,7 +203,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            <Card className="trivia-card text-center p-6" data-testid="card-wine-dinners">
+            <Card className="text-center p-6" data-testid="card-wine-dinners">
               <Users className="text-primary h-10 w-10 mx-auto mb-4" />
               <h3 className="font-semibold text-foreground mb-2">Wine Dinners</h3>
               <p className="text-sm text-muted-foreground">
@@ -211,7 +211,7 @@ export default function Home() {
               </p>
             </Card>
 
-            <Card className="trivia-card text-center p-6" data-testid="card-corporate-events">
+            <Card className="text-center p-6" data-testid="card-corporate-events">
               <Shield className="text-primary h-10 w-10 mx-auto mb-4" />
               <h3 className="font-semibold text-foreground mb-2">Corporate Events</h3>
               <p className="text-sm text-muted-foreground">
@@ -219,7 +219,7 @@ export default function Home() {
               </p>
             </Card>
 
-            <Card className="trivia-card text-center p-6" data-testid="card-parties">
+            <Card className="text-center p-6" data-testid="card-parties">
               <Sparkles className="text-primary h-10 w-10 mx-auto mb-4" />
               <h3 className="font-semibold text-foreground mb-2">Parties</h3>
               <p className="text-sm text-muted-foreground">
@@ -227,7 +227,7 @@ export default function Home() {
               </p>
             </Card>
 
-            <Card className="trivia-card text-center p-6" data-testid="card-educational">
+            <Card className="text-center p-6" data-testid="card-educational">
               <Brain className="text-primary h-10 w-10 mx-auto mb-4" />
               <h3 className="font-semibold text-foreground mb-2">Educational</h3>
               <p className="text-sm text-muted-foreground">
@@ -235,7 +235,7 @@ export default function Home() {
               </p>
             </Card>
 
-            <Card className="trivia-card text-center p-6" data-testid="card-fundraisers">
+            <Card className="text-center p-6" data-testid="card-fundraisers">
               <Trophy className="text-primary h-10 w-10 mx-auto mb-4" />
               <h3 className="font-semibold text-foreground mb-2">Fundraisers</h3>
               <p className="text-sm text-muted-foreground">
@@ -368,7 +368,7 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
           {upcoming.map((ev) => (
             <Card
               key={ev.id}
-              className="trivia-card flex flex-col"
+              className="flex flex-col"
               data-testid={`home-event-card-${ev.id}`}
             >
               <CardHeader className="pb-2">
@@ -424,7 +424,7 @@ function UpcomingEvents({ onLaunchDemo }: UpcomingEventsProps) {
                 <div className="mt-auto">
                   <Button
                     size="sm"
-                    className="w-full trivia-button-primary"
+                    className="w-full"
                     onClick={() => onLaunchDemo(ev.id)}
                     data-testid={`button-demo-${ev.id}`}
                   >
