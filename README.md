@@ -1,6 +1,15 @@
 # TriviaSpark
 
+**Live Site**: [https://trivia.makeboldspark.com](https://trivia.makeboldspark.com)
+
 A modern, interactive trivia platform designed for wine dinners, corporate events, fundraisers, and social gatherings. TriviaSpark combines real-time participation, AI-powered content generation, and elegant presentation tools to create engaging trivia experiences.
+
+## About
+
+TriviaSpark demonstrates full-stack development with ASP.NET Core 9, React 19, Entity Framework Core, and SignalR — delivering real-time, AI-powered trivia experiences for any gathering.
+
+> Built by [Mark Hazleton](https://markhazleton.com) — Mark Hazleton, Solutions Architect
+> TriviaSpark is part of the [Make Bold Spark](https://makeboldspark.com) portfolio of technical demonstrations.
 
 ## 🎯 Platform Overview
 
@@ -28,7 +37,9 @@ TriviaSpark offers two distinct deployment options:
 
 ---
 
-## 🚀 Live Demo
+## 🚀 Live Site & Demo
+
+**Live Site**: [https://trivia.makeboldspark.com](https://trivia.makeboldspark.com)
 
 **GitHub Pages Demo**: [https://west-wichita-rotary-club.github.io/TriviaSpark/](https://west-wichita-rotary-club.github.io/TriviaSpark/)
 
@@ -490,6 +501,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Website: [https://markhazleton.com](https://markhazleton.com)
 - GitHub: [@markhazleton](https://github.com/markhazleton)
+
+> Built by [Mark Hazleton](https://markhazleton.com) — Mark Hazleton, Solutions Architect
+> TriviaSpark is part of the [Make Bold Spark](https://makeboldspark.com) portfolio of technical demonstrations.
 
 *TriviaSpark was conceived and developed by Mark Hazleton to create engaging, AI-powered trivia experiences for wine dinners, corporate events, and fundraisers.*
 

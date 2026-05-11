@@ -23,8 +23,12 @@ export default function Footer() {
               Where Every Event Becomes Unforgettable. Create intelligent, immersive trivia
               experiences that transform any gathering into lasting memories.
             </p>
-            <p className="text-sm text-gray-500" data-testid="text-footer-credit">
-              Created by Mark Hazleton • © 2025 Mark Hazleton
+            <p className="text-sm text-muted-foreground" data-testid="text-footer-credit">
+              <a href="https://trivia.makeboldspark.com" className="hover:text-primary transition-colors">TriviaSpark</a>
+              {' — built by '}
+              <a href="https://markhazleton.com" className="hover:text-primary transition-colors">Mark Hazleton</a>
+              {' · '}
+              <a href="https://makeboldsolutions.com" className="hover:text-primary transition-colors">Make Bold Solutions</a>
             </p>
           </div>
 
