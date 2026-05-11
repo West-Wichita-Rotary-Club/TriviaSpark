@@ -108,14 +108,14 @@ const QuestionThumbnail: React.FC<{ questionId: string; backgroundImageUrl?: str
 
   if (!imageUrl) {
     return (
-      <div className="w-16 h-12 bg-gray-100 rounded border flex items-center justify-center text-gray-400">
+      <div className="w-16 h-12 bg-muted rounded border flex items-center justify-center text-muted-foreground">
         <ImageIcon className="h-4 w-4" />
       </div>
     );
   }
 
   return (
-    <div className="w-16 h-12 rounded border overflow-hidden bg-gray-100 flex-shrink-0">
+    <div className="w-16 h-12 rounded border overflow-hidden bg-muted flex-shrink-0">
       <img
         src={imageUrl}
         alt="Question thumbnail"
@@ -326,8 +326,8 @@ const AIQuestionGeneratorForm: React.FC<{
                             key={i}
                             className={`text-xs p-2 rounded ${
                               option === q.correctAnswer
-                                ? 'bg-green-100 text-green-800 font-medium'
-                                : 'bg-gray-100 text-gray-700'
+                                ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 font-medium'
+                                : 'bg-muted text-muted-foreground'
                             }`}
                           >
                             {String.fromCharCode(65 + i)}. {option}
@@ -339,7 +339,7 @@ const AIQuestionGeneratorForm: React.FC<{
                       Correct: {q.correctAnswer}
                     </p>
                     {q.explanation && (
-                      <p className="text-xs text-gray-600">
+                      <p className="text-xs text-muted-foreground">
                         <strong>Explanation:</strong> {q.explanation}
                       </p>
                     )}
@@ -537,7 +537,7 @@ const FullQuestionEditor: React.FC<{
               <div className="mt-2 space-y-2">
                 {form.options.map((o, i) => (
                   <div key={i} className="flex gap-2">
-                    <span className="w-8 h-10 rounded bg-gray-100 flex items-center justify-center text-sm font-semibold">
+                    <span className="w-8 h-10 rounded bg-muted flex items-center justify-center text-sm font-semibold">
                       {String.fromCharCode(65 + i)}
                     </span>
                     <Input value={o} onChange={(e) => updateOption(i, e.target.value)} />
@@ -652,10 +652,10 @@ const FullQuestionEditor: React.FC<{
                 </Button>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 mt-1">No image selected.</p>
+              <p className="text-sm text-muted-foreground mt-1">No image selected.</p>
             )}
           </div>
-          <div className="border rounded p-4 space-y-3 bg-gray-50">
+          <div className="border rounded p-4 space-y-3 bg-muted/50">
             <div className="flex gap-2">
               <Input
                 placeholder="Search Unsplash"
@@ -677,7 +677,7 @@ const FullQuestionEditor: React.FC<{
                       setSelectedImage(img);
                       setForm({ ...form, backgroundImageUrl: img.urls.regular });
                     }}
-                    className={`relative border rounded overflow-hidden ${selectedImage?.id === img.id ? 'ring-2 ring-wine-500' : 'hover:ring-2 hover:ring-wine-300'}`}
+                    className={`relative border rounded overflow-hidden ${selectedImage?.id === img.id ? 'ring-2 ring-primary' : 'hover:ring-2 hover:ring-primary/30'}`}
                   >
                     <img
                       src={img.urls.thumb}
@@ -685,7 +685,7 @@ const FullQuestionEditor: React.FC<{
                       className="w-full h-20 object-cover"
                     />
                     {selectedImage?.id === img.id && (
-                      <span className="absolute inset-0 bg-wine-600/40 flex items-center justify-center text-white text-xs font-semibold">
+                      <span className="absolute inset-0 bg-primary/40 flex items-center justify-center text-white text-xs font-semibold">
                         Selected
                       </span>
                     )}
@@ -694,7 +694,7 @@ const FullQuestionEditor: React.FC<{
               </div>
             )}
             {selectedImage && (
-              <p className="text-[11px] text-gray-600">
+              <p className="text-[11px] text-muted-foreground">
                 Photo by{' '}
                 <a
                   className="underline"
@@ -892,7 +892,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({
   if (isLoading) return <div className="p-8 text-center">Loading questions...</div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -919,9 +919,9 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({
           }}
         />
 
-        <Card className="trivia-card">
+        <Card>
           <CardHeader>
-            <CardTitle className="wine-text">All Questions</CardTitle>
+            <CardTitle className="text-primary">All Questions</CardTitle>
           </CardHeader>
           <CardContent>
             {questions.length === 0 ? (
@@ -947,7 +947,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({
                       {/* Section Header */}
                       <button
                         onClick={() => toggleSection(questionType)}
-                        className={`w-full px-6 py-4 text-left transition-colors hover:bg-gray-50 border-b ${sectionInfo.color} flex items-center justify-between`}
+                        className={`w-full px-6 py-4 text-left transition-colors hover:bg-muted/50 border-b ${sectionInfo.color} flex items-center justify-between`}
                       >
                         <div>
                           <div className="flex items-center gap-3 mb-1">
@@ -968,7 +968,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({
 
                       {/* Section Content */}
                       {isExpanded && (
-                        <div className="p-4 space-y-4 bg-gray-50/30">
+                        <div className="p-4 space-y-4 bg-muted/10">
                           {sectionQuestions.map((q, idx) => (
                             <div
                               key={q.id}
@@ -1006,7 +1006,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({
                                     {q.options.map((o, i) => (
                                       <div
                                         key={i}
-                                        className={`text-xs p-2 rounded ${o === q.correctAnswer ? 'bg-green-100 text-green-800 font-medium' : 'bg-gray-100 text-gray-700'}`}
+                                        className={`text-xs p-2 rounded ${o === q.correctAnswer ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 font-medium' : 'bg-muted text-muted-foreground'}`}
                                       >
                                         {String.fromCharCode(65 + i)}. {o}
                                       </div>
@@ -1017,7 +1017,7 @@ const EventTriviaManage: React.FC<TriviaManageProps> = ({
                                   Correct: {q.correctAnswer}
                                 </p>
                                 {q.explanation && (
-                                  <p className="text-xs text-gray-500 line-clamp-2">
+                                  <p className="text-xs text-muted-foreground line-clamp-2">
                                     {q.explanation}
                                   </p>
                                 )}

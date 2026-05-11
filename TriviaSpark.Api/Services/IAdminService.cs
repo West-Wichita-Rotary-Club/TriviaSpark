@@ -41,6 +41,10 @@ public interface IAdminService
     // Initialization
     /// <summary>Ensures default roles (Admin, User) exist in the database.</summary>
     Task EnsureDefaultRolesExistAsync();
+
+    // Password Management
+    /// <summary>Changes a user's password after verifying the current password.</summary>
+    Task ChangePasswordAsync(string userId, string currentPassword, string newPassword);
 }
 
 /// <summary>Request to create a new user.</summary>

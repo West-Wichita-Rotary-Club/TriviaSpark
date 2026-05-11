@@ -83,32 +83,32 @@ export default function EventManagement() {
 
   if (eventsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Brain className="text-champagne-400 h-8 w-8 animate-pulse" />
+            <Brain className="text-primary-foreground h-8 w-8 animate-pulse" />
           </div>
-          <p className="text-wine-700">Loading...</p>
+          <p className="text-primary">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20">
       {/* Header */}
       <div className="wine-gradient shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30 mr-4">
-                <Brain className="text-champagne-400 h-6 w-6" />
+                <Brain className="text-primary-foreground h-6 w-6" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white" data-testid="text-page-title">
                   Event Management
                 </h1>
-                <p className="text-champagne-200" data-testid="text-welcome">
+                <p className="text-primary-foreground" data-testid="text-welcome">
                   Manage your trivia events
                 </p>
               </div>
@@ -121,9 +121,9 @@ export default function EventManagement() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Events List */}
           <div className="lg:col-span-2">
-            <Card className="trivia-card" data-testid="card-events-list">
+            <Card data-testid="card-events-list">
               <CardHeader>
-                <CardTitle className="flex items-center wine-text">
+                <CardTitle className="flex items-center text-primary">
                   <Calendar className="mr-2 h-5 w-5" />
                   Your Events
                 </CardTitle>
@@ -131,7 +131,7 @@ export default function EventManagement() {
               <CardContent>
                 {eventsLoading ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-600">Loading events...</p>
+                    <p className="text-muted-foreground">Loading events...</p>
                   </div>
                 ) : events && events.length > 0 ? (
                   <div className="space-y-4">
@@ -139,7 +139,7 @@ export default function EventManagement() {
                       <Card
                         key={event.id}
                         className={`cursor-pointer transition-all hover:shadow-md ${
-                          selectedEvent?.id === event.id ? 'ring-2 ring-wine-500 bg-wine-50' : ''
+                          selectedEvent?.id === event.id ? 'ring-2 ring-primary bg-primary/5' : ''
                         }`}
                         onClick={() => setSelectedEvent(event)}
                         data-testid={`event-card-${event.id}`}
@@ -148,7 +148,7 @@ export default function EventManagement() {
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
                               <h3
-                                className="font-semibold text-wine-800 text-lg"
+                                className="font-semibold text-primary text-lg"
                                 data-testid={`text-event-title-${event.id}`}
                               >
                                 {event.title}
@@ -179,12 +179,12 @@ export default function EventManagement() {
                             </div>
                           </div>
                           <p
-                            className="text-gray-600 text-sm mb-3"
+                            className="text-muted-foreground text-sm mb-3"
                             data-testid={`text-event-description-${event.id}`}
                           >
                             {event.description}
                           </p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-500">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-muted-foreground">
                             {event.eventTime && (
                               <div className="flex items-center">
                                 <Calendar className="mr-1 h-3 w-3" />
@@ -214,8 +214,8 @@ export default function EventManagement() {
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <Brain className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600 mb-4">No events found</p>
+                    <Brain className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-4">No events found</p>
                     <Button
                       onClick={() => setLocation('/dashboard')}
                       data-testid="button-create-event"
@@ -232,9 +232,9 @@ export default function EventManagement() {
           <div>
             {selectedEvent ? (
               <div className="space-y-6">
-                <Card className="trivia-card" data-testid="card-event-details">
+                <Card data-testid="card-event-details">
                   <CardHeader>
-                    <CardTitle className="wine-text text-lg">{selectedEvent.title}</CardTitle>
+                    <CardTitle className="text-primary text-lg">{selectedEvent.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -242,7 +242,7 @@ export default function EventManagement() {
                         <Button
                           onClick={() => startEventMutation.mutate(selectedEvent.id)}
                           disabled={startEventMutation.isPending}
-                          className="w-full trivia-button-primary"
+                          className="w-full"
                           data-testid="button-start-event"
                         >
                           {startEventMutation.isPending ? (
@@ -271,19 +271,19 @@ export default function EventManagement() {
                               />
                             )}
                           </div>
-                          <div className="bg-gray-50 p-3 rounded-lg">
-                            <p className="text-sm font-medium text-gray-700 mb-1">Join Code:</p>
+                          <div className="bg-muted/50 p-3 rounded-lg">
+                            <p className="text-sm font-medium text-foreground mb-1">Join Code:</p>
                             <p
-                              className="text-lg font-mono text-wine-800"
+                              className="text-lg font-mono text-foreground"
                               data-testid="text-join-code"
                             >
                               {selectedEvent.qrCode}
                             </p>
                           </div>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             Participants can scan the QR code or visit:
                             <br />
-                            <span className="font-mono text-wine-800">
+                            <span className="font-mono text-foreground">
                               /join/{selectedEvent.qrCode}
                             </span>
                           </p>
@@ -296,7 +296,7 @@ export default function EventManagement() {
                 {selectedEvent.status === 'active' && (
                   <Button
                     onClick={() => setLocation(`/event/${selectedEvent.id}`)}
-                    className="w-full trivia-button-secondary"
+                    className="w-full"
                     data-testid="button-manage-event"
                   >
                     <Users className="mr-2 h-4 w-4" />
@@ -305,10 +305,10 @@ export default function EventManagement() {
                 )}
               </div>
             ) : (
-              <Card className="trivia-card" data-testid="card-select-event">
+              <Card data-testid="card-select-event">
                 <CardContent className="text-center py-12">
-                  <QrCode className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-                  <p className="text-gray-600">Select an event to view QR code and controls</p>
+                  <QrCode className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Select an event to view QR code and controls</p>
                 </CardContent>
               </Card>
             )}
@@ -319,7 +319,7 @@ export default function EventManagement() {
           <Button
             variant="outline"
             onClick={() => setLocation('/dashboard')}
-            className="border-wine-200 text-wine-700 hover:bg-wine-50"
+            className="border-primary/20 text-primary hover:bg-primary/5"
             data-testid="button-dashboard"
           >
             <Brain className="mr-2 h-4 w-4" />

@@ -1,0 +1,278 @@
+### Auth & Admin API Tests
+### Base URL: http://localhost:5000
+
+@baseUrl = http://localhost:5000
+
+###############################################################################
+## Authentication Endpoints
+###############################################################################
+
+### Login - Success (admin / ChangeMe123!)
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "ChangeMe123!"
+}
+
+### Login - Success with email
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "admin@triviaspark.local",
+  "password": "ChangeMe123!"
+}
+
+### Login - Invalid credentials (wrong password)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "WrongPassword!"
+}
+
+### Login - Invalid credentials (nonexistent user)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "nonexistent_user",
+  "password": "SomePassword123"
+}
+
+### Login - Validation error (missing password)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": ""
+}
+
+### Login - Validation error (missing identifier)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "",
+  "password": "ChangeMe123!"
+}
+
+### Get current user (authenticated - use cookie from login)
+# @name getMe
+GET {{baseUrl}}/api/auth/me
+Cookie: triviaspark_session={{loginAdmin.response.headers.Set-Cookie}}
+
+### Get current user (unauthenticated - no cookie)
+GET {{baseUrl}}/api/auth/me
+
+### Change password - Success
+POST {{baseUrl}}/api/auth/change-password
+Content-Type: application/json
+Cookie: triviaspark_session={{loginAdmin.response.headers.Set-Cookie}}
+
+{
+  "currentPassword": "ChangeMe123!",
+  "newPassword": "NewSecurePass1!"
+}
+
+### Change password - Wrong current password
+POST {{baseUrl}}/api/auth/change-password
+Content-Type: application/json
+Cookie: triviaspark_session={{loginAdmin.response.headers.Set-Cookie}}
+
+{
+  "currentPassword": "WrongOldPassword",
+  "newPassword": "NewSecurePass1!"
+}
+
+### Change password - New password too short
+POST {{baseUrl}}/api/auth/change-password
+Content-Type: application/json
+Cookie: triviaspark_session={{loginAdmin.response.headers.Set-Cookie}}
+
+{
+  "currentPassword": "ChangeMe123!",
+  "newPassword": "short"
+}
+
+### Change password - Unauthenticated
+POST {{baseUrl}}/api/auth/change-password
+Content-Type: application/json
+
+{
+  "currentPassword": "ChangeMe123!",
+  "newPassword": "NewSecurePass1!"
+}
+
+### Logout (authenticated)
+POST {{baseUrl}}/api/auth/logout
+Cookie: triviaspark_session={{loginAdmin.response.headers.Set-Cookie}}
+
+### Logout (idempotent - no session)
+POST {{baseUrl}}/api/auth/logout
+
+###############################################################################
+## Admin User Management Endpoints (requires Admin role)
+###############################################################################
+
+### Login as admin first for admin endpoints
+# @name adminLogin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "ChangeMe123!"
+}
+
+### List all users
+# @name listUsers
+GET {{baseUrl}}/api/admin/users
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Get user by ID (use admin's own ID from login response)
+GET {{baseUrl}}/api/admin/users/{{adminLogin.response.body.id}}
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Get user by ID - Not found
+GET {{baseUrl}}/api/admin/users/nonexistent-id
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Create a new user
+# @name createUser
+POST {{baseUrl}}/api/admin/users
+Content-Type: application/json
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+{
+  "username": "testuser",
+  "email": "testuser@triviaspark.local",
+  "password": "TestPass123!",
+  "fullName": "Test User",
+  "roleId": ""
+}
+
+### Update user
+PUT {{baseUrl}}/api/admin/users/{{createUser.response.body.id}}
+Content-Type: application/json
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+{
+  "username": "testuser_updated",
+  "email": "testupdated@triviaspark.local",
+  "fullName": "Test User Updated"
+}
+
+### Change user role
+POST {{baseUrl}}/api/admin/users/{{createUser.response.body.id}}/change-role
+Content-Type: application/json
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+{
+  "roleId": ""
+}
+
+### Delete user
+DELETE {{baseUrl}}/api/admin/users/{{createUser.response.body.id}}
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Delete user - Not found
+DELETE {{baseUrl}}/api/admin/users/nonexistent-id
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### List users - Unauthenticated (expect 401)
+GET {{baseUrl}}/api/admin/users
+
+###############################################################################
+## Admin Role Management Endpoints (requires Admin role)
+###############################################################################
+
+### List all roles
+# @name listRoles
+GET {{baseUrl}}/api/admin/roles
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Get role by ID
+GET {{baseUrl}}/api/admin/roles/{{listRoles.response.body[0].id}}
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Get role by ID - Not found
+GET {{baseUrl}}/api/admin/roles/nonexistent-role-id
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Create a new role
+# @name createRole
+POST {{baseUrl}}/api/admin/roles
+Content-Type: application/json
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+{
+  "name": "TestRole",
+  "description": "A test role for HTTP testing"
+}
+
+### Update role
+PUT {{baseUrl}}/api/admin/roles/{{createRole.response.body.id}}
+Content-Type: application/json
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+{
+  "name": "TestRole_Updated",
+  "description": "Updated description"
+}
+
+### Delete role (no users assigned)
+DELETE {{baseUrl}}/api/admin/roles/{{createRole.response.body.id}}
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### Delete role - Not found
+DELETE {{baseUrl}}/api/admin/roles/nonexistent-role-id
+Cookie: triviaspark_session={{adminLogin.response.headers.Set-Cookie}}
+
+### List roles - Unauthenticated (expect 401)
+GET {{baseUrl}}/api/admin/roles
+
+###############################################################################
+## Concurrent Session Validation
+###############################################################################
+
+### Session 1 - Login
+# @name session1
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "ChangeMe123!"
+}
+
+### Session 2 - Login (same user, second session)
+# @name session2
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "admin",
+  "password": "ChangeMe123!"
+}
+
+### Verify Session 1 still valid
+GET {{baseUrl}}/api/auth/me
+Cookie: triviaspark_session={{session1.response.headers.Set-Cookie}}
+
+### Verify Session 2 also valid
+GET {{baseUrl}}/api/auth/me
+Cookie: triviaspark_session={{session2.response.headers.Set-Cookie}}
+
+### Logout Session 1
+POST {{baseUrl}}/api/auth/logout
+Cookie: triviaspark_session={{session1.response.headers.Set-Cookie}}
+
+### Verify Session 2 still valid after Session 1 logout
+GET {{baseUrl}}/api/auth/me
+Cookie: triviaspark_session={{session2.response.headers.Set-Cookie}}

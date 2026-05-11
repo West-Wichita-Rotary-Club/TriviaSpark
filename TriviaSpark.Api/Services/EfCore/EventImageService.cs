@@ -139,17 +139,17 @@ public class EventImageService : IEventImageService
             // Create image selection
             var imageSelection = _unsplashService.ToImageSelection(unsplashImage, request.SizeVariant);
 
-            // Ensure we always have a valid user ID - default to mark-user-id if null or invalid
-            var selectedByUserId = string.IsNullOrWhiteSpace(request.SelectedByUserId) ? "mark-user-id" : request.SelectedByUserId;
+            // Ensure we always have a valid user ID
+            var selectedByUserId = string.IsNullOrWhiteSpace(request.SelectedByUserId) ? "anonymous" : request.SelectedByUserId;
             
             // Validate that the user exists if specified
-            if (!string.IsNullOrWhiteSpace(selectedByUserId) && selectedByUserId != "mark-user-id")
+            if (selectedByUserId != "anonymous")
             {
                 var userExists = await _context.Users.AnyAsync(u => u.Id == selectedByUserId, cancellationToken);
                 if (!userExists)
                 {
-                    _logger.LogWarning("User {UserId} not found, defaulting to mark-user-id", selectedByUserId);
-                    selectedByUserId = "mark-user-id";
+                    _logger.LogWarning("User {UserId} not found, defaulting to anonymous", selectedByUserId);
+                    selectedByUserId = "anonymous";
                 }
             }
 

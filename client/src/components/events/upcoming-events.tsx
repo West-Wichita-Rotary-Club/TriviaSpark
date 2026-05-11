@@ -5,12 +5,10 @@ import {
   WineIcon as Wine,
   Building,
   Cake,
-  ChevronRight,
   Calendar,
   Settings,
   Tv,
   Presentation,
-  Monitor,
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { formatDateInCST } from '@/lib/utils';
@@ -31,13 +29,13 @@ const getEventIcon = (eventType: string) => {
 const getEventColor = (eventType: string) => {
   switch (eventType) {
     case 'wine_dinner':
-      return 'bg-wine-100 text-wine-600';
+      return 'bg-primary/10 text-primary';
     case 'corporate':
-      return 'bg-champagne-100 text-champagne-600';
+      return 'bg-secondary text-secondary-foreground';
     case 'party':
-      return 'bg-coral-100 text-coral-500';
+      return 'bg-accent text-accent-foreground';
     default:
-      return 'bg-wine-100 text-wine-600';
+      return 'bg-primary/10 text-primary';
   }
 };
 
@@ -68,7 +66,7 @@ export default function UpcomingEvents() {
 
   if (isLoading) {
     return (
-      <Card className="trivia-card" data-testid="card-upcoming-events-loading">
+      <Card data-testid="card-upcoming-events-loading">
         <CardHeader>
           <CardTitle data-testid="text-upcoming-events-title">Upcoming Events</CardTitle>
         </CardHeader>
@@ -76,10 +74,10 @@ export default function UpcomingEvents() {
           <div className="animate-pulse space-y-4">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-gray-200 rounded-lg"></div>
+                <div className="w-10 h-10 bg-muted rounded-lg" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-100 rounded w-3/4"></div>
+                  <div className="h-4 bg-muted rounded" />
+                  <div className="h-3 bg-muted/50 rounded w-3/4" />
                 </div>
               </div>
             ))}
@@ -90,10 +88,10 @@ export default function UpcomingEvents() {
   }
 
   return (
-    <Card className="trivia-card" data-testid="card-upcoming-events">
+    <Card data-testid="card-upcoming-events">
       <CardHeader>
         <CardTitle className="flex items-center" data-testid="text-upcoming-events-title">
-          <Calendar className="text-blue-500 mr-2 h-5 w-5" />
+          <Calendar className="text-primary mr-2 h-5 w-5" />
           Upcoming Events
         </CardTitle>
       </CardHeader>
@@ -107,7 +105,7 @@ export default function UpcomingEvents() {
               return (
                 <div
                   key={event.id}
-                  className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
+                  className="border rounded-lg p-3 hover:bg-muted/50 transition-colors"
                   data-testid={`upcoming-event-${index}`}
                 >
                   <div className="flex items-center space-x-4 mb-3">
@@ -118,13 +116,13 @@ export default function UpcomingEvents() {
                     </div>
                     <div className="flex-1">
                       <h4
-                        className="font-medium text-gray-900"
+                        className="font-medium text-foreground"
                         data-testid={`text-upcoming-event-title-${index}`}
                       >
                         {event.title}
                       </h4>
                       <p
-                        className="text-sm text-gray-600"
+                        className="text-sm text-muted-foreground"
                         data-testid={`text-upcoming-event-info-${index}`}
                       >
                         {event.maxParticipants} max participants • {formatDate(event.eventDate)}
@@ -156,7 +154,7 @@ export default function UpcomingEvents() {
             })
           ) : (
             <div className="text-center py-6" data-testid="text-no-upcoming-events">
-              <p className="text-gray-500 text-sm">No upcoming events</p>
+              <p className="text-muted-foreground text-sm">No upcoming events</p>
             </div>
           )}
         </div>

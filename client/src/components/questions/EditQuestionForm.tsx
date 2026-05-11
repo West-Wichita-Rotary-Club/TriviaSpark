@@ -429,7 +429,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
                 key={img.id}
                 type="button"
                 onClick={() => handleSelectImage(img)}
-                className={`group relative border rounded-md overflow-hidden focus:outline-none ${selectedImage?.id === img.id ? 'ring-2 ring-wine-500' : 'hover:ring-2 hover:ring-wine-300'}`}
+                className={`group relative border rounded-md overflow-hidden focus:outline-none ${selectedImage?.id === img.id ? 'ring-2 ring-primary' : 'hover:ring-2 hover:ring-primary/30'}`}
                 data-testid={`unsplash-result-${i}`}
               >
                 <img
@@ -438,7 +438,7 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
                   className="w-full h-16 object-cover"
                 />
                 {selectedImage?.id === img.id && (
-                  <span className="absolute inset-0 bg-wine-600/40 flex items-center justify-center text-white text-xs font-medium">
+                  <span className="absolute inset-0 bg-primary/40 flex items-center justify-center text-white text-xs font-medium">
                     Selected
                   </span>
                 )}
@@ -474,12 +474,12 @@ export function EditQuestionForm({ question, onSave, onCancel, isLoading }: Edit
       </div>
 
       {/* Event Image Management Form */}
-      <Card className="mt-4 border-2 border-wine-300 bg-card dark:bg-card">
-        <CardHeader className="pb-3 bg-wine-50/50 dark:bg-wine-900/20 border-b border-wine-200 dark:border-wine-700">
-          <CardTitle className="text-sm font-medium text-wine-800 dark:text-wine-200">
-            🖼️ Event Image Management
+      <Card className="mt-4 border-2 border-primary/30 bg-card dark:bg-card">
+        <CardHeader className="pb-3 bg-primary/5 dark:bg-primary/10 border-b border-primary/20">
+          <CardTitle className="text-sm font-medium text-primary dark:text-primary-foreground">
+            Event Image Management
           </CardTitle>
-          <p className="text-xs text-wine-600 dark:text-wine-300">
+          <p className="text-xs text-muted-foreground">
             Configure and manage image metadata for this question
           </p>
         </CardHeader>

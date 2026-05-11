@@ -134,10 +134,10 @@ export default function DatabaseAnalyzer() {
 
   if (dbLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center">
         <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin text-wine-600 mx-auto mb-2" />
-          <p className="text-wine-700">Loading database information...</p>
+          <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+          <p className="text-primary">Loading database information...</p>
         </div>
       </div>
     );
@@ -145,7 +145,7 @@ export default function DatabaseAnalyzer() {
 
   if (dbError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center text-red-600">
@@ -154,7 +154,7 @@ export default function DatabaseAnalyzer() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Failed to connect to the database. Please ensure the database file exists and is
               accessible.
             </p>
@@ -175,16 +175,16 @@ export default function DatabaseAnalyzer() {
 
   if (!selectedTable) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 p-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <Database className="h-8 w-8 text-wine-600 mr-3" />
+                <Database className="h-8 w-8 text-primary mr-3" />
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Database Analyzer</h1>
-                  <p className="text-gray-600">Explore and analyze database tables and structure</p>
+                  <h1 className="text-3xl font-bold text-foreground">Database Analyzer</h1>
+                  <p className="text-muted-foreground">Explore and analyze database tables and structure</p>
                 </div>
               </div>
               <Button variant="outline" onClick={handleBackToDashboard}>
@@ -198,10 +198,10 @@ export default function DatabaseAnalyzer() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Database Size</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Database Size</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-wine-600">
+                  <div className="text-2xl font-bold text-primary">
                     {formatBytes(dbInfo.databaseSize)}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">{dbInfo.databasePath}</p>
@@ -210,20 +210,20 @@ export default function DatabaseAnalyzer() {
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Tables</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Tables</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-wine-600">{dbInfo.tableCount}</div>
+                  <div className="text-2xl font-bold text-primary">{dbInfo.tableCount}</div>
                   <p className="text-xs text-gray-500 mt-1">Database tables</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Records</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Records</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-wine-600">
+                  <div className="text-2xl font-bold text-primary">
                     {dbInfo.tables.reduce((sum, table) => sum + table.rowCount, 0).toLocaleString()}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">All tables combined</p>
@@ -248,18 +248,18 @@ export default function DatabaseAnalyzer() {
                     return (
                       <Card
                         key={table.name}
-                        className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-wine-200"
+                        className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-primary/30"
                         onClick={() => handleTableSelect(table.name)}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between mb-3">
-                            <Icon className="h-5 w-5 text-wine-600" />
+                            <Icon className="h-5 w-5 text-primary" />
                             <Badge variant="secondary" className="text-xs">
                               {table.rowCount.toLocaleString()} rows
                             </Badge>
                           </div>
-                          <h3 className="font-semibold text-gray-900 mb-1">{table.name}</h3>
-                          <p className="text-xs text-gray-500 line-clamp-2">
+                          <h3 className="font-semibold text-foreground mb-1">{table.name}</h3>
+                          <p className="text-xs text-muted-foreground line-clamp-2">
                             Click to analyze table structure and data
                           </p>
                         </CardContent>
@@ -277,7 +277,7 @@ export default function DatabaseAnalyzer() {
 
   // Table Analysis View
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/10 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -289,11 +289,11 @@ export default function DatabaseAnalyzer() {
               <div className="flex items-center">
                 {(() => {
                   const Icon = getTableIcon(selectedTable);
-                  return <Icon className="h-6 w-6 text-wine-600 mr-2" />;
+                  return <Icon className="h-6 w-6 text-primary mr-2" />;
                 })()}
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{selectedTable}</h1>
-                  <p className="text-gray-600">Table analysis and data preview</p>
+                  <h1 className="text-2xl font-bold text-foreground">{selectedTable}</h1>
+                  <p className="text-muted-foreground">Table analysis and data preview</p>
                 </div>
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function DatabaseAnalyzer() {
 
         {tableLoading && (
           <div className="flex justify-center py-8">
-            <RefreshCw className="h-6 w-6 animate-spin text-wine-600" />
+            <RefreshCw className="h-6 w-6 animate-spin text-primary" />
           </div>
         )}
 
@@ -323,10 +323,10 @@ export default function DatabaseAnalyzer() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Rows</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Rows</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-wine-600">
+                  <div className="text-2xl font-bold text-primary">
                     {tableAnalysis.rowCount.toLocaleString()}
                   </div>
                 </CardContent>
@@ -334,10 +334,10 @@ export default function DatabaseAnalyzer() {
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Columns</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Columns</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-wine-600">
+                  <div className="text-2xl font-bold text-primary">
                     {tableAnalysis.columnCount}
                   </div>
                 </CardContent>
@@ -345,10 +345,10 @@ export default function DatabaseAnalyzer() {
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Indexes</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Indexes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-wine-600">
+                  <div className="text-2xl font-bold text-primary">
                     {tableAnalysis.indexes.length}
                   </div>
                 </CardContent>
@@ -402,7 +402,7 @@ export default function DatabaseAnalyzer() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-gray-500">
+                          <TableCell className="text-muted-foreground">
                             {column.defaultValue !== null ? String(column.defaultValue) : '—'}
                           </TableCell>
                         </TableRow>
@@ -428,7 +428,7 @@ export default function DatabaseAnalyzer() {
                       {tableAnalysis.indexes.map((index, i) => (
                         <div
                           key={i}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                          className="flex items-center justify-between p-2 bg-muted/50 rounded"
                         >
                           <span className="font-medium text-sm">{index.name}</span>
                           <div className="flex items-center gap-2">
@@ -437,7 +437,7 @@ export default function DatabaseAnalyzer() {
                                 UNIQUE
                               </Badge>
                             )}
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-muted-foreground">
                               {index.columns.join(', ')}
                             </span>
                           </div>
@@ -445,7 +445,7 @@ export default function DatabaseAnalyzer() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500 text-sm">No indexes defined</p>
+                    <p className="text-muted-foreground text-sm">No indexes defined</p>
                   )}
                 </CardContent>
               </Card>
@@ -461,18 +461,18 @@ export default function DatabaseAnalyzer() {
                   {tableAnalysis.foreignKeys.length > 0 ? (
                     <div className="space-y-2">
                       {tableAnalysis.foreignKeys.map((fk, i) => (
-                        <div key={i} className="p-2 bg-gray-50 rounded">
+                        <div key={i} className="p-2 bg-muted/50 rounded">
                           <div className="text-sm font-medium">
                             {fk.from} → {fk.table}.{fk.to}
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             ON UPDATE: {fk.onUpdate} | ON DELETE: {fk.onDelete}
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500 text-sm">No foreign keys defined</p>
+                    <p className="text-muted-foreground text-sm">No foreign keys defined</p>
                   )}
                 </CardContent>
               </Card>
@@ -512,7 +512,7 @@ export default function DatabaseAnalyzer() {
                     </Table>
                   </ScrollArea>
                 ) : (
-                  <p className="text-gray-500 text-center py-8">No data found in this table</p>
+                  <p className="text-muted-foreground text-center py-8">No data found in this table</p>
                 )}
               </CardContent>
             </Card>

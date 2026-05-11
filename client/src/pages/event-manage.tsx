@@ -208,10 +208,10 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
   // Early return if no eventId
   if (!eventId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Brain className="text-champagne-400 h-8 w-8" />
+            <Brain className="text-primary-foreground h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold text-foreground mb-2">Event Not Found</h1>
           <p className="text-muted-foreground mb-4">No event ID was provided.</p>
@@ -824,7 +824,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                     key={img.id}
                     type="button"
                     onClick={() => handleSelectImage(img)}
-                    className={`group relative border rounded-md overflow-hidden focus:outline-none ${selectedImage?.id === img.id ? 'ring-2 ring-wine-500' : 'hover:ring-2 hover:ring-wine-300'}`}
+                    className={`group relative border rounded-md overflow-hidden focus:outline-none ${selectedImage?.id === img.id ? 'ring-2 ring-primary' : 'hover:ring-2 hover:ring-primary/30'}`}
                     data-testid={`unsplash-result-${i}`}
                   >
                     <img
@@ -833,7 +833,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                       className="w-full h-16 object-cover"
                     />
                     {selectedImage?.id === img.id && (
-                      <span className="absolute inset-0 bg-wine-600/40 flex items-center justify-center text-white text-xs font-medium">
+                      <span className="absolute inset-0 bg-primary/40 flex items-center justify-center text-white text-xs font-medium">
                         Selected
                       </span>
                     )}
@@ -870,12 +870,12 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
         </div>
 
         {/* Event Image Management Form */}
-        <Card className="mt-4 border-2 border-wine-300 bg-card">
-          <CardHeader className="pb-3 bg-wine-50 dark:bg-wine-900/20">
-            <CardTitle className="text-sm font-medium text-wine-800 dark:text-wine-200">
-              🖼️ Event Image Management
+        <Card className="mt-4 border-2 border-primary/30 bg-card">
+          <CardHeader className="pb-3 bg-primary/5 dark:bg-primary/10">
+            <CardTitle className="text-sm font-medium text-primary dark:text-primary-foreground">
+              Event Image Management
             </CardTitle>
-            <p className="text-xs text-wine-600 dark:text-wine-300">
+            <p className="text-xs text-muted-foreground">
               Configure and manage image metadata for this question
             </p>
           </CardHeader>
@@ -1272,10 +1272,10 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
   if (eventLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 wine-gradient rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Brain className="text-champagne-400 h-8 w-8 animate-pulse" />
+            <Brain className="text-primary-foreground h-8 w-8 animate-pulse" />
           </div>
           <p className="text-primary">Loading event...</p>
         </div>
@@ -1285,7 +1285,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center">
         <Card className="max-w-md w-full">
           <CardContent className="text-center py-8">
             <p className="text-muted-foreground mb-4">Event not found</p>
@@ -1299,7 +1299,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20">
       {/* Header */}
       <div className="wine-gradient shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -1318,7 +1318,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                 <h1 className="text-2xl font-bold text-white" data-testid="text-page-title">
                   Manage Event
                 </h1>
-                <p className="text-champagne-200" data-testid="text-event-title">
+                <p className="text-primary-foreground" data-testid="text-event-title">
                   {event.title}
                 </p>
               </div>
@@ -1411,9 +1411,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
           {/* Event Details Tab */}
           <TabsContent value="details">
-            <Card className="trivia-card" data-testid="card-event-details">
+            <Card data-testid="card-event-details">
               <CardHeader>
-                <CardTitle className="wine-text">Edit Event Details</CardTitle>
+                <CardTitle className="text-primary">Edit Event Details</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -1556,7 +1556,6 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                     <Button
                       type="submit"
                       disabled={updateEventMutation.isPending || !isDirty}
-                      className="trivia-button-primary"
                       data-testid="button-save-event"
                     >
                       {updateEventMutation.isPending ? (
@@ -1581,9 +1580,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
           <TabsContent value="trivia">
             <div className="space-y-6">
               {/* AI Generation Section */}
-              <Card className="trivia-card" data-testid="card-ai-generation">
+              <Card data-testid="card-ai-generation">
                 <CardHeader>
-                  <CardTitle className="wine-text flex items-center">
+                  <CardTitle className="text-primary flex items-center">
                     <Sparkles className="mr-2 h-5 w-5" />
                     AI Question Generator
                   </CardTitle>
@@ -1636,9 +1635,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
               </Card>
 
               {/* Questions List */}
-              <Card className="trivia-card" data-testid="card-questions-list">
+              <Card data-testid="card-questions-list">
                 <CardHeader>
-                  <CardTitle className="wine-text flex items-center justify-between">
+                  <CardTitle className="text-primary flex items-center justify-between">
                     <span>Event Questions ({questions.length})</span>
                     <Button
                       variant="outline"
@@ -1665,7 +1664,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                       {questions.map((question, index) => (
                         <div
                           key={question.id}
-                          className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                          className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
                           data-testid={`question-${index}`}
                         >
                           <div className="space-y-3">
@@ -1694,7 +1693,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                                     {question.timeLimit}s
                                   </Badge>
                                 </div>
-                                <h4 className="font-medium text-gray-900 mb-2">
+                                <h4 className="font-medium text-foreground mb-2">
                                   {question.question}
                                 </h4>
                                 {Array.isArray(question.options) && question.options.length > 0 && (
@@ -1704,8 +1703,8 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                                         key={optIndex}
                                         className={`text-sm p-2 rounded ${
                                           option === question.correctAnswer
-                                            ? 'bg-green-100 text-green-800 font-medium'
-                                            : 'bg-gray-100 text-gray-700'
+                                            ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 font-medium'
+                                            : 'bg-muted text-muted-foreground'
                                         }`}
                                       >
                                         {String.fromCharCode(65 + optIndex)}. {option}
@@ -1717,7 +1716,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                                   Correct Answer: {question.correctAnswer}
                                 </p>
                                 {question.explanation && (
-                                  <p className="text-xs text-gray-500 line-clamp-2">
+                                  <p className="text-xs text-muted-foreground line-clamp-2">
                                     {question.explanation}
                                   </p>
                                 )}
@@ -1729,7 +1728,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                                   }
                                   variant="outline"
                                   size="sm"
-                                  className="text-wine-600 border-wine-300 hover:bg-wine-50"
+                                  className="text-primary border-primary/30 hover:bg-primary/5"
                                   data-testid={`button-edit-full-${index}`}
                                 >
                                   <Edit className="h-4 w-4 mr-1" />
@@ -1774,7 +1773,7 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                 }}
               >
                 <DialogContent
-                  className="max-w-3xl bg-white dark:bg-gray-900 border-2 border-border text-foreground shadow-2xl"
+                  className="max-w-3xl bg-background border-2 border-border text-foreground shadow-2xl"
                   data-testid="dialog-edit-question"
                 >
                   {editingQuestion && (
@@ -1808,9 +1807,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
           {/* Status Control Tab */}
           <TabsContent value="status">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="trivia-card" data-testid="card-status-control">
+              <Card data-testid="card-status-control">
                 <CardHeader>
-                  <CardTitle className="wine-text">Event Status</CardTitle>
+                  <CardTitle className="text-primary">Event Status</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-center">
@@ -1860,42 +1859,42 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
                 </CardContent>
               </Card>
 
-              <Card className="trivia-card" data-testid="card-event-info">
+              <Card data-testid="card-event-info">
                 <CardHeader>
-                  <CardTitle className="wine-text">Event Information</CardTitle>
+                  <CardTitle className="text-primary">Event Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex items-center text-sm">
-                      <Calendar className="mr-3 h-4 w-4 text-wine-600" />
+                      <Calendar className="mr-3 h-4 w-4 text-primary" />
                       <span className="font-medium">Date:</span>
                       <span className="ml-2" data-testid="text-info-date">
                         {event.eventDate ? formatDateInCST(event.eventDate) : 'Not set'}
                       </span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Clock className="mr-3 h-4 w-4 text-wine-600" />
+                      <Clock className="mr-3 h-4 w-4 text-primary" />
                       <span className="font-medium">Time:</span>
                       <span className="ml-2" data-testid="text-info-time">
                         {event.eventTime || 'Not set'}
                       </span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <MapPin className="mr-3 h-4 w-4 text-wine-600" />
+                      <MapPin className="mr-3 h-4 w-4 text-primary" />
                       <span className="font-medium">Location:</span>
                       <span className="ml-2" data-testid="text-info-location">
                         {event.location || 'Not set'}
                       </span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Building2 className="mr-3 h-4 w-4 text-wine-600" />
+                      <Building2 className="mr-3 h-4 w-4 text-primary" />
                       <span className="font-medium">Organization:</span>
                       <span className="ml-2" data-testid="text-info-organization">
                         {event.sponsoringOrganization || 'Not set'}
                       </span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Users className="mr-3 h-4 w-4 text-wine-600" />
+                      <Users className="mr-3 h-4 w-4 text-primary" />
                       <span className="font-medium">Max Participants:</span>
                       <span className="ml-2" data-testid="text-info-max-participants">
                         {event.maxParticipants}
@@ -1909,9 +1908,9 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
 
           {/* Fun Facts Management Tab */}
           <TabsContent value="funfacts">
-            <Card className="trivia-card" data-testid="card-fun-facts">
+            <Card data-testid="card-fun-facts">
               <CardHeader>
-                <CardTitle className="wine-text flex items-center justify-between">
+                <CardTitle className="text-primary flex items-center justify-between">
                   <span>Fun Facts Management</span>
                   <Button
                     onClick={() => setEditingFunFacts(!editingFunFacts)}
@@ -1925,31 +1924,31 @@ function EventManage({ eventId: propEventId }: EventManageProps = {}) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     Add fun facts about your organization that will be shown between questions
                     during the trivia event.
                   </p>
 
                   {funFactsLoading ? (
                     <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wine-600"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="bg-muted/50 p-4 rounded-lg">
                       <h4 className="font-medium mb-2">Current Fun Facts ({funFacts.length}):</h4>
                       {funFacts.length > 0 ? (
                         <div className="space-y-3">
                           {funFacts.map((fact, index) => (
-                            <div key={fact.id} className="border-l-4 border-wine-600 pl-3">
-                              <h5 className="font-medium text-wine-700">
+                            <div key={fact.id} className="border-l-4 border-primary pl-3">
+                              <h5 className="font-medium text-primary">
                                 {index + 1}. {fact.title}
                               </h5>
-                              <p className="text-gray-700 mt-1">{fact.content}</p>
+                              <p className="text-foreground mt-1">{fact.content}</p>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-gray-500">No fun facts available for this event yet.</p>
+                        <p className="text-muted-foreground">No fun facts available for this event yet.</p>
                       )}
                     </div>
                   )}

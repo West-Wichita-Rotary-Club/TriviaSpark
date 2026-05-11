@@ -25,15 +25,15 @@ const ApiDocs = () => {
               Complete reference for integrating with the TriviaSpark platform
             </p>
             <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="trivia-badge">
+              <Badge variant="outline" className="">
                 <Server className="mr-1 h-3 w-3" />
                 REST API
               </Badge>
-              <Badge variant="outline" className="trivia-badge">
+              <Badge variant="outline" className="">
                 <Zap className="mr-1 h-3 w-3" />
                 WebSocket
               </Badge>
-              <Badge variant="outline" className="trivia-badge">
+              <Badge variant="outline" className="">
                 <Shield className="mr-1 h-3 w-3" />
                 Session Auth
               </Badge>
@@ -52,7 +52,7 @@ const ApiDocs = () => {
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <FileText className="mr-2 h-5 w-5" />
@@ -62,7 +62,7 @@ const ApiDocs = () => {
                 <CardContent className="space-y-4">
                   <div>
                     <h3 className="font-semibold mb-2">Base URL</h3>
-                    <code className="bg-gray-100 px-3 py-1 rounded">
+                    <code className="bg-muted px-3 py-1 rounded font-mono">
                       https://your-domain.com/api
                     </code>
                   </div>
@@ -77,14 +77,14 @@ const ApiDocs = () => {
 
                   <div>
                     <h3 className="font-semibold mb-2">Response Format</h3>
-                    <p className="text-gray-600">
+                    <p className="text-muted-foreground">
                       All responses are in JSON format with appropriate HTTP status codes.
                     </p>
                   </div>
 
                   <div>
                     <h3 className="font-semibold mb-2">Error Handling</h3>
-                    <p className="text-gray-600">
+                    <p className="text-muted-foreground">
                       Errors return JSON with an <code>error</code> field and appropriate HTTP
                       status codes.
                     </p>
@@ -93,7 +93,7 @@ const ApiDocs = () => {
               </Card>
 
               {/* Status Codes */}
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle>HTTP Status Codes</CardTitle>
                 </CardHeader>
@@ -143,7 +143,7 @@ const ApiDocs = () => {
 
             {/* Authentication Tab */}
             <TabsContent value="auth" className="space-y-6">
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Shield className="mr-2 h-5 w-5" />
@@ -157,11 +157,11 @@ const ApiDocs = () => {
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/auth/login</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Authenticate user and create session</p>
+                    <p className="text-muted-foreground mb-3">Authenticate user and create session</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "username": "string",
   "password": "string"
@@ -170,7 +170,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Response:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "user": {
     "id": "string",
@@ -192,10 +192,10 @@ const ApiDocs = () => {
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/auth/logout</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Destroy user session</p>
+                    <p className="text-muted-foreground mb-3">Destroy user session</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`{
   "success": true
 }`}
@@ -211,10 +211,10 @@ const ApiDocs = () => {
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/auth/me</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Get current authenticated user information</p>
+                    <p className="text-muted-foreground mb-3">Get current authenticated user information</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`{
   "user": {
     "id": "string",
@@ -236,11 +236,11 @@ const ApiDocs = () => {
                       <Badge className="bg-yellow-100 text-yellow-800">PUT</Badge>
                       <code className="text-sm">/api/auth/profile</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Update user profile information</p>
+                    <p className="text-muted-foreground mb-3">Update user profile information</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "fullName": "string",
   "email": "string",
@@ -250,7 +250,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Response:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "user": {
     "id": "string",
@@ -270,7 +270,7 @@ const ApiDocs = () => {
 
             {/* Events Tab */}
             <TabsContent value="events" className="space-y-6">
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Users className="mr-2 h-5 w-5" />
@@ -284,10 +284,10 @@ const ApiDocs = () => {
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/events</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Get all events for authenticated user</p>
+                    <p className="text-muted-foreground mb-3">Get all events for authenticated user</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`[
   {
     "id": "string",
@@ -316,11 +316,11 @@ const ApiDocs = () => {
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/events</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Create a new event manually</p>
+                    <p className="text-muted-foreground mb-3">Create a new event manually</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "title": "string",
   "description": "string",
@@ -347,13 +347,13 @@ const ApiDocs = () => {
                         AI
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">
+                    <p className="text-muted-foreground mb-3">
                       Generate complete event with AI-powered content
                     </p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "eventType": "wine_dinner | corporate | party | education | fundraiser",
   "participants": "number",
@@ -364,7 +364,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Response:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "event": { /* Event object */ },
   "questions": [ /* Array of generated questions */ ]
@@ -382,7 +382,7 @@ const ApiDocs = () => {
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/events/:id</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Get specific event details</p>
+                    <p className="text-muted-foreground mb-3">Get specific event details</p>
                   </div>
 
                   <Separator />
@@ -393,7 +393,7 @@ const ApiDocs = () => {
                       <Badge className="bg-yellow-100 text-yellow-800">PUT</Badge>
                       <code className="text-sm">/api/events/:id</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Update event information</p>
+                    <p className="text-muted-foreground mb-3">Update event information</p>
                   </div>
 
                   <Separator />
@@ -407,10 +407,10 @@ const ApiDocs = () => {
                         Enhanced
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Start an event and lock team switching</p>
+                    <p className="text-muted-foreground mb-3">Start an event and lock team switching</p>
                     <div>
                       <h5 className="font-medium">Notes:</h5>
-                      <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                      <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
                         <li>Changes event status to "active"</li>
                         <li>Locks team switching for all participants</li>
                         <li>Participants can no longer change teams after this point</li>
@@ -426,10 +426,10 @@ const ApiDocs = () => {
                       <Badge className="bg-orange-100 text-orange-800">PATCH</Badge>
                       <code className="text-sm">/api/events/:id/status</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Update event status</p>
+                    <p className="text-muted-foreground mb-3">Update event status</p>
                     <div>
                       <h5 className="font-medium">Request Body:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`{
   "status": "draft | active | completed | cancelled"
 }`}
@@ -445,7 +445,7 @@ const ApiDocs = () => {
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/events/:id/participants</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Get all participants for an event</p>
+                    <p className="text-muted-foreground mb-3">Get all participants for an event</p>
                   </div>
 
                   <Separator />
@@ -459,13 +459,13 @@ const ApiDocs = () => {
                         Enhanced
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">
+                    <p className="text-muted-foreground mb-3">
                       Join an event using QR code with team management
                     </p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "name": "string",
   "teamAction": "none | join | create",
@@ -475,7 +475,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Response:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "participant": {
     "id": "string",
@@ -498,7 +498,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Notes:</h5>
-                        <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                        <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
                           <li>Uses cookie-based participant recognition</li>
                           <li>Team switching allowed before event starts</li>
                           <li>Supports individual or team-based participation</li>
@@ -519,10 +519,10 @@ const ApiDocs = () => {
                         New
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Get all teams for an event (host only)</p>
+                    <p className="text-muted-foreground mb-3">Get all teams for an event (host only)</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`[
   {
     "id": "string",
@@ -556,11 +556,11 @@ const ApiDocs = () => {
                         New
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Create a new team for an event</p>
+                    <p className="text-muted-foreground mb-3">Create a new team for an event</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "name": "string",
   "tableNumber": "number (optional)"
@@ -569,7 +569,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Response:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "id": "string",
   "eventId": "string",
@@ -594,12 +594,12 @@ const ApiDocs = () => {
                         New
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">
+                    <p className="text-muted-foreground mb-3">
                       Get available teams for participants (public endpoint)
                     </p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`[
   {
     "id": "string",
@@ -618,7 +618,7 @@ const ApiDocs = () => {
 
             {/* Questions Tab */}
             <TabsContent value="questions" className="space-y-6">
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Code className="mr-2 h-5 w-5" />
@@ -632,10 +632,10 @@ const ApiDocs = () => {
                       <Badge className="bg-blue-100 text-blue-800">GET</Badge>
                       <code className="text-sm">/api/events/:id/questions</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Get all questions for an event</p>
+                    <p className="text-muted-foreground mb-3">Get all questions for an event</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`[
   {
     "id": "string",
@@ -664,11 +664,11 @@ const ApiDocs = () => {
                         AI
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Generate questions for an existing event</p>
+                    <p className="text-muted-foreground mb-3">Generate questions for an existing event</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "eventId": "string",
   "count": "number",
@@ -688,10 +688,10 @@ const ApiDocs = () => {
                       <Badge className="bg-yellow-100 text-yellow-800">PUT</Badge>
                       <code className="text-sm">/api/questions/:id</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Update a specific question</p>
+                    <p className="text-muted-foreground mb-3">Update a specific question</p>
                     <div>
                       <h5 className="font-medium">Request Body:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`{
   "question": "string",
   "options": ["string", "string", "string", "string"],
@@ -712,7 +712,7 @@ const ApiDocs = () => {
                       <Badge className="bg-red-100 text-red-800">DELETE</Badge>
                       <code className="text-sm">/api/questions/:id</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Delete a specific question</p>
+                    <p className="text-muted-foreground mb-3">Delete a specific question</p>
                   </div>
                 </CardContent>
               </Card>
@@ -720,7 +720,7 @@ const ApiDocs = () => {
 
             {/* Participants Tab */}
             <TabsContent value="participants" className="space-y-6">
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Users className="mr-2 h-5 w-5" />
@@ -734,11 +734,11 @@ const ApiDocs = () => {
                       <Badge className="bg-green-100 text-green-800">POST</Badge>
                       <code className="text-sm">/api/responses</code>
                     </div>
-                    <p className="text-gray-600 mb-3">Submit an answer to a question</p>
+                    <p className="text-muted-foreground mb-3">Submit an answer to a question</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "participantId": "string",
   "questionId": "string",
@@ -750,7 +750,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Response:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "id": "string",
   "participantId": "string",
@@ -778,11 +778,11 @@ const ApiDocs = () => {
                         New
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Switch a participant to a different team</p>
+                    <p className="text-muted-foreground mb-3">Switch a participant to a different team</p>
                     <div className="space-y-2">
                       <div>
                         <h5 className="font-medium">Request Body:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "teamId": "string (null to leave team)"
 }`}
@@ -790,11 +790,11 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Authentication:</h5>
-                        <p className="text-sm text-gray-600">Uses participant token from cookie</p>
+                        <p className="text-sm text-muted-foreground">Uses participant token from cookie</p>
                       </div>
                       <div>
                         <h5 className="font-medium">Response:</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "id": "string",
   "name": "string",
@@ -807,7 +807,7 @@ const ApiDocs = () => {
                       </div>
                       <div>
                         <h5 className="font-medium">Restrictions:</h5>
-                        <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                        <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
                           <li>Only works if canSwitchTeam is true</li>
                           <li>Team must have available capacity</li>
                           <li>Participant must own the token</li>
@@ -855,7 +855,7 @@ const ApiDocs = () => {
 
             {/* Real-time Tab */}
             <TabsContent value="realtime" className="space-y-6">
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Zap className="mr-2 h-5 w-5" />
@@ -866,12 +866,12 @@ const ApiDocs = () => {
                   {/* WebSocket Connection */}
                   <div>
                     <h3 className="font-semibold mb-3">WebSocket Connection</h3>
-                    <p className="text-gray-600 mb-3">
+                    <p className="text-muted-foreground mb-3">
                       Connect to real-time events using WebSocket
                     </p>
                     <div>
                       <h5 className="font-medium">Connection URL:</h5>
-                      <code className="bg-gray-100 px-3 py-1 rounded">ws://localhost:5000/ws</code>
+                      <code className="bg-muted px-3 py-1 rounded font-mono">ws://localhost:5000/ws</code>
                     </div>
                   </div>
 
@@ -883,7 +883,7 @@ const ApiDocs = () => {
                     <div className="space-y-4">
                       <div>
                         <h5 className="font-medium">Participant Joined</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "type": "participant_joined",
   "eventId": "string",
@@ -898,7 +898,7 @@ const ApiDocs = () => {
 
                       <div>
                         <h5 className="font-medium">Question Started</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "type": "question_started",
   "eventId": "string",
@@ -914,7 +914,7 @@ const ApiDocs = () => {
 
                       <div>
                         <h5 className="font-medium">Response Submitted</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "type": "response_submitted",
   "eventId": "string",
@@ -926,7 +926,7 @@ const ApiDocs = () => {
 
                       <div>
                         <h5 className="font-medium">Leaderboard Updated</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "type": "leaderboard_updated",
   "eventId": "string",
@@ -953,7 +953,7 @@ const ApiDocs = () => {
                     <div className="space-y-4">
                       <div>
                         <h5 className="font-medium">Team Member Joined</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "type": "team_member_joined",
   "eventId": "string",
@@ -968,7 +968,7 @@ const ApiDocs = () => {
 
                       <div>
                         <h5 className="font-medium">Team Switched</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "type": "team_switched",
   "eventId": "string",
@@ -981,7 +981,7 @@ const ApiDocs = () => {
 
                       <div>
                         <h5 className="font-medium">Team Scoring Update</h5>
-                        <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                        <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                           {`{
   "type": "team_score_updated",
   "eventId": "string",
@@ -1025,7 +1025,7 @@ const ApiDocs = () => {
               </Card>
 
               {/* Dashboard & Analytics */}
-              <Card className="trivia-card">
+              <Card className="">
                 <CardHeader>
                   <CardTitle>Dashboard & Analytics</CardTitle>
                 </CardHeader>
@@ -1038,10 +1038,10 @@ const ApiDocs = () => {
                         AI
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">Get dashboard statistics with AI insights</p>
+                    <p className="text-muted-foreground mb-3">Get dashboard statistics with AI insights</p>
                     <div>
                       <h5 className="font-medium">Response:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`{
   "totalEvents": "number",
   "totalParticipants": "number",
@@ -1070,12 +1070,12 @@ const ApiDocs = () => {
                         AI
                       </Badge>
                     </div>
-                    <p className="text-gray-600 mb-3">
+                    <p className="text-muted-foreground mb-3">
                       Generate promotional or thank you copy for events
                     </p>
                     <div>
                       <h5 className="font-medium">Request Body:</h5>
-                      <pre className="bg-gray-100 p-3 rounded text-sm overflow-x-auto">
+                      <pre className="bg-muted p-3 rounded text-sm overflow-x-auto font-mono">
                         {`{
   "type": "promotional | thank_you"
 }`}

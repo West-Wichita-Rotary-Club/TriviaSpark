@@ -48,9 +48,9 @@ export default function Insights() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-wine-50 to-champagne-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 to-accent/20 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-wine-700">Please log in to view insights.</p>
+          <p className="text-primary">Please log in to view insights.</p>
         </div>
       </div>
     );
@@ -60,8 +60,8 @@ export default function Insights() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Insights</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-foreground mb-2">AI Insights</h1>
+        <p className="text-muted-foreground">
           Get personalized recommendations based on your trivia event performance
         </p>
       </div>
@@ -77,26 +77,26 @@ export default function Insights() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-wine-700">{stats?.totalEvents || 0}</div>
-              <div className="text-sm text-gray-600">Events</div>
+              <div className="text-2xl font-bold text-primary">{stats?.totalEvents || 0}</div>
+              <div className="text-sm text-muted-foreground">Events</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-champagne-600">
+              <div className="text-2xl font-bold text-muted-foreground">
                 {stats?.totalParticipants || 0}
               </div>
-              <div className="text-sm text-gray-600">Participants</div>
+              <div className="text-sm text-muted-foreground">Participants</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-emerald-600">
                 {stats?.totalQuestions || 0}
               </div>
-              <div className="text-sm text-gray-600">Questions</div>
+              <div className="text-sm text-muted-foreground">Questions</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-coral-500">
+              <div className="text-2xl font-bold text-accent-foreground">
                 {stats?.averageRating?.toFixed(1) || '0.0'}
               </div>
-              <div className="text-sm text-gray-600">Avg Rating</div>
+              <div className="text-sm text-muted-foreground">Avg Rating</div>
             </div>
           </div>
         </CardContent>
@@ -111,13 +111,13 @@ export default function Insights() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             Click the button below to generate personalized insights based on your event data.
           </p>
           <Button
             onClick={handleGenerateInsights}
             disabled={insightsLoading}
-            className="bg-wine-600 hover:bg-wine-700"
+            className="bg-primary hover:bg-primary/90"
           >
             {insightsLoading ? (
               <>
@@ -136,34 +136,34 @@ export default function Insights() {
 
       {/* Insights Results */}
       {insights && (
-        <Card className="bg-gradient-to-br from-wine-50 to-champagne-50 border-wine-200">
-          <CardHeader className="border-b border-wine-200">
-            <CardTitle className="text-wine-800 flex items-center">
-              <Lightbulb className="text-wine-600 mr-2 h-5 w-5" />
+        <Card className="bg-gradient-to-br from-primary/5 to-accent/20 border-primary/20">
+          <CardHeader className="border-b border-primary/20">
+            <CardTitle className="text-foreground flex items-center">
+              <Lightbulb className="text-primary mr-2 h-5 w-5" />
               Your Personalized Insights
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
               {insights.insights.map((insight: string, index: number) => (
-                <div key={index} className="p-4 bg-white rounded-lg border border-wine-100">
+                <div key={index} className="p-4 bg-background rounded-lg border border-primary/10">
                   <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-wine-100 rounded-full flex items-center justify-center mt-1">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center mt-1">
                       {index === 0 ? (
-                        <Lightbulb className="text-wine-600 h-4 w-4" />
+                        <Lightbulb className="text-primary h-4 w-4" />
                       ) : (
-                        <TrendingUp className="text-champagne-600 h-4 w-4" />
+                        <TrendingUp className="text-muted-foreground h-4 w-4" />
                       )}
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900 mb-1">
+                      <h4 className="font-medium text-foreground mb-1">
                         {index === 0
                           ? 'Engagement Tip'
                           : index === 1
                             ? 'Performance Trend'
                             : 'Recommendation'}
                       </h4>
-                      <p className="text-sm text-gray-600">{insight}</p>
+                      <p className="text-sm text-muted-foreground">{insight}</p>
                     </div>
                   </div>
                 </div>
